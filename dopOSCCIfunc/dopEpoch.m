@@ -10,6 +10,10 @@ function [dop,okay,msg] = dopEpoch(dop_input,varargin)
 % type relates to left and right activation, the left minus right
 % difference, and the average of the left and right channels.
 %
+% also sets dop.epoch.screen to dop.epoch.length - epochs are excluded if
+% there is not enough data before the first or after the last event marker
+% for the specified epoch.
+%
 % Use:
 %
 % [dop,okay,msg] = dopEpoch(dop_input,[okay],[msg],...)
@@ -211,6 +215,7 @@ try
                 end
             end
             dop.epoch.length = logical(dop.epoch.length); % convert to logical array
+            dop.epoch.screen = dop.epoch.length;
             
             dop.epoch.notes{end+1} = sprintf('%u epochs of suitable length found of %u available',...
                 sum(dop.epoch.length),numel(dop.event.samples));

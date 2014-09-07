@@ -11,7 +11,7 @@ function [dop,okay,msg] = dopFileParts(dop_input,varargin)
 %
 % Use:
 %
-% dop = dopFileInfo(dop_input,varargin);
+% dop = dopFileParts(dop_input,[okay],[msg],[doppler data file]);
 %
 % where:
 % > Inputs:
@@ -29,6 +29,7 @@ function [dop,okay,msg] = dopFileParts(dop_input,varargin)
 % Last edit
 % 07-Aug-2014 NAB
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
+% 08-Sep-2014 NAB output issues
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);

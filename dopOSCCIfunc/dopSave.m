@@ -26,6 +26,7 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 06-Sep-2014 NAB updated save naming convention
+% 08-Sep-2014 NAB fixed fileparts exclusion for naming
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -70,11 +71,14 @@ try
         if okay
             %% set variable abbreivations
             dop.save.abb = dopSaveAbbreviations;
+            if iscell(dop.tmp.delim)
+                dop.tmp.delim = dop.tmp.delim{1};
+            end
             dop.save.delim = {dop.tmp.delim,'\n',1};
             %% save a mat file
             if isempty(strfind(dop.tmp.save_file,'.mat'))
-                [~,~,tmp_ext] = dop.tmp.save_file;
-                dop.save.save_file = strep(dop.tmp.save_file,tmp_ext,'.mat');
+                [~,~,tmp_ext] = fileparts(dop.tmp.save_file);
+                dop.save.save_file = strrep(dop.tmp.save_file,tmp_ext,'.mat');
             end
             if ~exist(dop.tmp.save_dir,'dir')
                 mkdir(dop.tmp.save_dir);

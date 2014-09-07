@@ -30,6 +30,8 @@ function dopCloseMsg(report)
 %
 % Created: 05-Sep-2014 NAB
 % Edits:
+% 08-Sep-2014 NAB problems with multiple popups - still not reporting all
+% of the messages
 
 if ~exist('report','var') || isempty(report)
     report = 1;
@@ -40,15 +42,26 @@ handles = allchild(0);
 msgboxes = strfind(get(handles,'Tag'),'Msgbox');
 
 for i = 1 : numel(msgboxes)
-    if and(~iscell(msgboxes),msgboxes(i)) || and(iscell(msgboxes), msgboxes{i})
+    delete_h = 0;
+    if ~iscell(msgboxes) && msgboxes(i)
+        delete_h = 1;
+    elseif iscell(msgboxes) && msgboxes{i}
+        delete_h = 1;
+    end
+    if delete_h
         if report
             try
                 ch = get(handles(i),'children');
                 ch_ch = get(ch(2),'children');
                 msg = get(ch_ch,'String');
-                fprintf('Msgbox %u: %s\n',i,msg{1});
+                fprintf('Msgbox %u:\n',i);
+                for j = 1 : size(msg,1)
+                    fprintf('\t%s\n',msg{j});
+                end
             end
         end
+        
         delete(handles(i));
     end
+end
 end

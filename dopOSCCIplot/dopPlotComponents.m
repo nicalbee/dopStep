@@ -6,6 +6,8 @@ function fig = dopPlotComponents(fig_h,varargin)
 % Created: 25-Aug-2014 NAB
 % Last edit:
 % 25-Aug-2014 NAB
+% 08-Sep-2014 NAB move y-axis components further to the left to avoid
+%   interfering with y title
 
 fig.h = fig_h; %figure;
 dop = get(fig.h,'UserData');
@@ -112,7 +114,7 @@ if ~isempty(varargin) && sum(strcmp(varargin,'yoff'))
 end
 if ~yoff
     fig.ybut.size = [.025 .05];
-    fig.ybut.pos.x = [fig.axes.pos(1)-.1 fig.axes.pos(1)-.1+fig.ybut.size(1)*1.5];
+    fig.ybut.pos.x = [fig.axes.pos(1)-.12 fig.axes.pos(1)-.12+fig.ybut.size(1)*1.5];
     fig.ybut.pos.y = ones(1,numel(fig.ybut.pos.x))*(fig.axes.pos(1)+sum(fig.axes.position([1 3]))*.5);
     
     fig.ybut.text = {'+','-'};

@@ -13,6 +13,7 @@ function dopPlotAxesAdjust(handle,~)
 % Last edit:
 % 29-Aug-2014 NAB
 % 02-Sep-2014 NAB adjusted zoom to be traditional
+% 08-Sep-2014 NAB fixed empty patch checkbox issue
 
 value = str2double(get(handle,'string'));
 
@@ -187,6 +188,7 @@ tmp_labels = {'epoch','baseline','poi'};
 %         tmp_vis = cell(1,numel(tmp_labels));%size(dop.tmp.data,2));
         check_h = zeros(1,numel(tmp_labels));%size(dop.tmp.data,2));
         for i = 1 : numel(tmp_labels); % numel(dop.data.epoch_labels)
+            if sum(strcmpi(get(legend_ch,'Tag'),[tmp_labels{i},'_check']))
             check_h(i) = legend_ch(strcmpi(get(legend_ch,'Tag'),[tmp_labels{i},'_check']));%dop.data.epoch_labels{i}));
             if ~isempty(check_h(i)) && check_h(i) && strcmp(get(get(check_h(i),'UserData'),'Type'),'patch')
                 switch tmp_labels{i}
@@ -201,5 +203,6 @@ tmp_labels = {'epoch','baseline','poi'};
 %             if iscell(tmp_vis{i})
 %                 tmp_vis{i} = tmp_vis{i}{1};
 %             end
+            end
         end
 % end

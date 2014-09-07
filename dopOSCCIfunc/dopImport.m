@@ -78,9 +78,9 @@ try
         end
         %% > ready to import?
         if okay
-            dop.use.file = dop.tmp.file;
-            dop.use.fullfile = dop.tmp.fullfile;
-            dop.use.dir = dop.tmp.dir;
+            dop.use.file = dop.file;
+            dop.use.fullfile = dop.fullfile;
+            dop.use.dir = dop.dir;
             
             
             msg{end+1} = sprintf(['> Importing:\n\tFile = %s\n\t'...
