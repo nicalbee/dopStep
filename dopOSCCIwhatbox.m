@@ -4,32 +4,33 @@ clc;
 % clear all;
 clear dop
 
-
+dop.save.save_file = 'what_box';
+dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
 dop.struc_name = 'dop';
 
 % definition information
-dop.def.signal_channels = [1 2]; % columns in file (e.g., EXP)
-dop.def.event_channels = 3;%9;%13; % 14 also in example
+dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
+dop.def.event_channels = 14;%9;%13; % 14 also in example
 dop.def.event_height = 1000; % 400; % greater than
-dop.def.event_sep = 40; %
+dop.def.event_sep = 35; %
 % dop.def.num_events = 40;
 
-dop.def.downsample_rate = 100; % Hertz
+dop.def.downsample_rate = 25; % Hertz
 
 % lower and upper values
-dop.def.epoch = [-17 29]; %[-5 20];
-dop.def.baseline = [-15 -5];
-dop.def.poi = [3 13];
+dop.def.epoch = [-10 16]; %[-5 20];
+dop.def.baseline = [-10 -5];
+dop.def.poi = [5 15];
 dop.def.act_window = 2; % activation window
 
-[dop,okay,msg] = dopPeriodChecks(dop,okay,msg,'wait_warn',1);
+[dop,okay,msg] = dopPeriodChecks(dop,'wait_warn',1);
 
-dop.def.act_range = [70 130];
+dop.def.act_range = [50 150];
 
 dop.def.correct_range = [-3 4];%[50 150]; % acceptable activation limits [-4 5]; %
 dop.def.correct_pct = 5; % if =< x% outside range, correct with mean/median
 
-dop.def.act_separation = 20; % acceptable activation difference
+dop.def.act_separation = 10; % acceptable activation difference
 dop.def.act_separation_pct = 1;
 
 dop.def.screen = {'length','act','sep'};
@@ -45,11 +46,10 @@ dop.save.periods = {'baseline','poi'};
 dop.save.epochs = {'screen'};%{'all','screen','odd','even'};
 dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
 
-dop.save.save_file = 'abbieTest.dat';
+
 dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
 % in.dir = '/Users/mq20111600/Documents/nData/tmp';%'/Users/mq20111600/Documents/nData/2013/201312infant_fTCD_UniSA/'; %
-dop.data_dir = '/Users/mq20111600/Documents/nData/Study AA (Abbie doppler stories)/data/raw/dopTrials/wordGen';
 % in.file_list = dir(fullfile(in.dir,'*.exp'));
 % dop.file_list = dopGetFileList(dop.data_dir);%;dir(in.dir);
 [dop,okay] = dopGetFileList(dop);%;dir(in.dir);
@@ -97,7 +97,7 @@ if okay
         % [dop,okay,msg] = dopHeartCycle(dop,'plot');
         
         % [dop,okay,msg] = dopEpoch(dop); % automatically in dopNorm(dop,[],[],'norm_method','epoch') or dopNorm(dop,[],[],'norm_method','deppe_epoch')
-        [dop,okay,msg] = dopActCorrect(dop,okay,msg);%,'plot');
+%         [dop,okay,msg] = dopActCorrect(dop,okay,msg);%,'plot');
         
         [dop,okay,msg] = dopNorm(dop,okay,msg);%,'norm_method',dop.test.norm{j});
         
@@ -115,7 +115,7 @@ if okay
         
         [dop,okay,msg] = dopSave(dop,okay,msg);%,'save_dir',dop.save.save_dir);
         
-        dop = dopPlot(dop,'wait');
+%         dop = dopPlot(dop,'wait');
 
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');
@@ -127,13 +127,12 @@ if okay
         %     dop.grp.Difference.poi.data(:,j) = dop.overall.Difference.poi.data;
         [dop] = dopDataCollect(dop,okay,msg);
         %         end
-        if ~okay
-            keyboard
-            % type 'return' to exit keyboard mode
-        end
+%         if ~okay
+%             keyboard
+%             % type 'return' to exit keyboard mode
+%         end
     end
 end
 [dop,okay,msg] = dopPlot(dop,'collect');
 
-% close all popup warning dialogs with one command :)
 dopCloseMsg;

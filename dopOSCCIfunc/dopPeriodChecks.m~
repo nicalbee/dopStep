@@ -45,7 +45,7 @@ function [dop,okay,msg] = dopPeriodChecks(dop_input,varargin)
 %
 %--- Optional, Text + value:
 %   > e.g., ...,'variable_name',X,...
-%   note: '...' indicates that other inputs can be included before or
+%   note: ... indicates that other inputs can be included before or
 %   after. The inputs can be included in any order.
 %
 % - 'epoch':
@@ -71,9 +71,7 @@ function [dop,okay,msg] = dopPeriodChecks(dop_input,varargin)
 %   The time between event markers in seconds. This is used to report
 %   whether or not the epoch periods will overlap trial to trial.
 %   This can be set manually at the start but will automatically be
-%   calculated during dopEvent Markers.
-%   Processing will not be cancelled if there is overlap, just a warning
-%   message thrown.
+%   calculated during dop
 %   
 % - 'file':
 %   > e.g., dopFunction(dop_input,okay,msg,...,'file','subjectX.exp',...)

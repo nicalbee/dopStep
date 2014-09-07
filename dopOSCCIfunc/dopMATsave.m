@@ -1,8 +1,8 @@
-function [dop,okay,msg] = dopMATsave(dop_input,okay,msg,varargin)
+function [dop,okay,msg] = dopMATsave(dop_input,varargin)
 % dopOSCCI3: dopMATsave
 %
 % notes:
-% saves dop structure to a '.mat' file which is. This allows for
+% saves dop structure to a '.mat' file. This allows for
 % the data to be imported (using dopMATread) more efficiently (quickly).
 %
 %
@@ -21,68 +21,95 @@ function [dop,okay,msg] = dopMATsave(dop_input,okay,msg,varargin)
 % - msg = message about progress/events within function
 %
 % Created: 07-Aug-2013 NAB
-% Last edit:
+% Edits:
 % 19-Aug-2014 NAB
+% 06-Sep-2014 NAB updated to current dopSetBasics & removed embedded
+%   function
 
-dop = [];
-if ~exist('okay','var') || isempty(okay)
-    okay = 0;
-end
-if ~exist('msg','var')
-    msg = [];
-end
+[dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
 try
-    dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
-    %% inputs
-    inputs.turnOff = {'comment'};
-    inputs.varargin = varargin;
-    inputs.defaults = struct(...
-        'fullfile',[], ... %
-        'dir',[] ... 
-        );
-    inputs.required = [];
-    [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
-    
-    switch dopInputCheck(dop_input)
-        case 'dop'
-            fprintf('> ''dop'' structure input recognised:\n');
-            dop = dop_input;
-            [dop,okay,msg] = save_dop(dop,okay,msg);
-        case dopFileTypes
-            [dop,okay,msg] = dopImport(dop_input,okay,msg);
-            okay = save_dop(dop);
-        otherwise
-            msg{end+1} = '> input not recognised:';
-            if dop.tmp.comment; fprintf('\t%s\n',msg{end}); end
-    end
     if okay
-        msg = '''.mat'' file saved.';
-    end
-    fprintf('%s\n\n',msg);
-    
-    %% set outputs
-    dop.okay = okay;
-    dop.msg = msg;
-    
-catch err
-    save(dopOSCCIdebug);rethrow(err);
-end
-end
-function [dop,okay,msg] = save_dop(dop,okay,msg)
-try
-    if okay
-        % note: file_name_loc = file name location (full path)
-        if isfield(dop,'fullfile');
-            [~,~,tmp_ext] = fileparts(dop.fullfile);
-            dop.mat.fullfile = strrep(dop.fullfile,'.mat',tmp_ext); % minus extension
-            save(dop.mat.fullfile,'dop');
-            msg{end+1} = sprintf('\t''.mat'' file save:\n\t%s\n',dop.mat.fullfile);
-            if dop.tmp.comment; fprintf('\t%s\n',msg{end}); end
-        else
-            okay = 0;
+        dopOSCCIindent;
+        %% inputs
+        %     inputs.turnOff = {'comment'};
+        inputs.varargin = varargin;
+        inputs.defaults = struct(...
+            'file',[],...
+            'msg',1,...
+            'wait_warn',0,...
+            'mat_file',[], ... 
+            'mat_dir',[], ...
+            'mat_fullfile',[] ...
+            );
+        inputs.required = [];
+        [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
+        
+        switch dopInputCheck(dop_input)
+            case 'dop'
+                msg{end+1} = '''dop'' structure input recognised:';
+                dop = dop_input;
+            case dopFileTypes
+                msg{end+1} = 'Doppler data file input recognised:';
+                [dop,okay,msg] = dopImport(dop_input,okay,msg);
+            otherwise
+                okay = 0;
+                msg{end+1} = 'Input not recognised';
+                if dop.tmp.comment; fprintf('\t%s\n',msg{end}); end
         end
+        
+        %% create file names
+        if okay
+            if isempty(dop.tmp.mat_file) && or(isfield(dop,'fullfile'),isfield(dop,'file'))
+                if isfield(dop,'file') && ~isempty(dop.file)
+                    [~,~,tmp_ext] = fileparts(dop.file);
+                    dop.tmp.mat_file = strrep(dop.file,'.mat',tmp_ext);
+                elseif isfield(dop,'fullfile') && ~isempty(dop.fullfile)
+                    [~,tmp_file,tmp_ext] = fileparts(dop.fullfile);
+                    dop.tmp.mat_fullfile = strrep(dop.fullfile,'.mat',tmp_ext); % minus extension
+                    dop.tmp.mat_file = dop.tmp.mat_fullfile(...
+                        strfind(dop.tmp.mat_fullfile,tmp_file):end);
+                else
+                    okay = 0;
+                    msg{end+1} = sprintf(['Can''t find ''dop.file'' or'...
+                        '''dop.fullfile'' to name .mat file.\n\t(%s)'],...
+                        mfilename);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                end
+            end
+            if isempty(dop.tmp.mat_dir) && or(or(isfield(dop,'dir'),isfield(dop,'fullfile')),isfield(dop,'file'))
+                if isfield(dop,'dir') && ~isempty(dop.dir) && exist(dop.dir,'dir')
+                    dop.tmp.mat_dir = dop.dir;
+                    msg{end+1} = sprintf(['''mat_dir'' empty, using ''dop.dir'''...
+                        'for .mat file directory: %s'],dop.dir);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                elseif isfield(dop,'fullfile') && ~isempty(dop.fullfile)
+                    dop.tmp.mat_dir = dop.fullfile(...
+                        1:strfind(dop.fullfile,tmp_file)-1));
+                else
+                    okay = 0;
+                    msg{end+1} = sprintf(['Can''t find ''dop.dir'' or'...
+                        '''dop.fullfile'' to get .mat save directory.\n\t(%s)'],...
+                        mfilename);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                end
+            end
+            if okay && isempty(dop.tmp,'mat_fullfile');
+                dop.tmp.mat_fullfile = fullfile(dop.tmp.mat_dir,dop.tmp.mat_file);
+            end
+            if okay
+                save(dop.mat.fullfile,'dop');
+                msg{end+1} = sprintf('''.mat'' file saved:\n\t%s',dop.mat.fullfile);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
+        end
+        
+        %% set outputs
+        dop.okay = okay;
+        dop.msg = msg;
+        
+        dopOSCCIindent('done');
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);

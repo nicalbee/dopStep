@@ -1,7 +1,7 @@
 function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
 % dopOSCCI3: dopXXX
 %
-% [dop,okay,msg] = dopXXX(dop,[okay],[msg],...);
+% [dop,okay,msg] = dopXXX(dop_input,[okay],[msg],...);
 %
 % notes:
 %
@@ -19,25 +19,44 @@ function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
 %   Optional:
 % - okay:
 %   logical (0 or 1) for problem, 0 = no problem, 1 = problem. This can be
-%   carried through from previously run functions. If set to 1, the
+%   carried through from previously run functions. If set to 0, the
 %   function will not be implemented.
+%
 % - msg:
-%   cell variable with a history of messages from previously run functions.
+%   Cell variable with a history of messages from previously run functions.
 %   New messages are appended to the end of the array and can be reported
 %   to examine the processing steps using 'dopMessage':
 %   e.g. dopMessage(msg) or dopMessage(dop);
 %
+%   note: okay and msg will only be recognised as the 1st and 2nd inputs
+%   after the dop_input variable.
+%   e.g.,
+%   dopFunction(dop,
+%
 %   Text only:
-% - 'nomsg':
-%   By default, messages about the processing will be reported to the
-%   MATLAB command window. If included as an input, 'nomsg' will turn off
-%   these messages. note: they will continue to be collected in the 'msg'
-%   variable.
 % - 'plot':
 %   If included as an input a plot will be produced at the conclusion of
 %   the function. The function will wait (see 'uiwait') until the figure
 %   has been closed to complete its operations.
 %
+%   Text + value: ...,'variable_name',X,...
+% - 'file': e.g., ...,'file','subjectX.exp',...
+%   file name of the data file currently being summarised. This is used for
+%   error reporting. Typically this variable is automatically populated in
+%   the 'dopSetGetInputs' function by searching the 'dop' structure
+%   variables: dop.save, dop.use, dop.def, dop.file_info.
+%   The default value is empty.
+%
+% - 'msg': e.g., ...,'msg',1,... or ....,'msg',0,...
+%   This is a logical variable (1 = on, 0 = off) setting whether or not
+%   messages about the progress of the processing are printed to the MATLAB
+%   command window.
+%   The default value is 1 = on, messages are printed
+%
+% - 'wait_warn': e.g., ...,'wait_warn',1,... or ....,'wait_warn',0,...
+%   This is a logical variable (1 = on, 0 = off) setting whether or not,
+%   when 'okay' changes to 0 (i.e. an error), progress through the scripts
+%   waits for the warning dialog popup to be closed.
 %
 % > Outputs: (note, optional)
 % - dop = dop matlab sructure
@@ -56,12 +75,14 @@ try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
-        inputs.turnOn = {'nomsg'};
-        inputs.turnOff = {'comment'};
+%         inputs.turnOn = {'nomsg'};
+%         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'wait_warn',0,...
-            'epoch',[], ... %
+            'file',[],... % for error reporting mostly
+            'msg',1,... % show messages
+            'wait_warn',0,... % wait to close warning dialogs
+            'epoch',[], ... % [lower upper] limits in seconds
             'event_height',[],... % needed for dopEventMarkers
             'event_channels',[], ... % needed for dopEventMarkers
             'sample_rate',[] ... % not critical for dopEventMarkers
@@ -73,22 +94,12 @@ try
         
         %% tmp check
         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-        %     if okay && isfield(dop,mfilename)
-        %         % make sure the dop.tmp variable is correct: with multiple
-        %         % functions within functions this is required.
-        %         msg{end+1} = ['Multiple functions running with setGetInputs,'...
-        %             ' updating ''dop.tmp'' variable'];
-        %         if dop.tmp.comment; fprintf('\t%s\n',msg{end}); end
-        %         dop.tmp = dop.(mfilename);
-        %         dop = rmfield(dop,mfilename);
-        %         % current data set may have been updated also...
-        %         dop.tmp.data = dop.data.use;
-        %     end
+
         %% main code
         
         %% example msg
         msg{end+1} = 'some string';
-        dopMessage(msg,dop.tmp.comment,1,okay,dop.tmp.wait_warn);
+        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

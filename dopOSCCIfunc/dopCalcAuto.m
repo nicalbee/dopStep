@@ -117,7 +117,8 @@ try
                                 dop.tmp.summary{i},...
                                 dop.tmp.channels{ii},dop.tmp.periods{iii},...
                                 dop.tmp.epochs{iiii});
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            % don't want this popping up as warn dialog
+                            dopMessage(msg,dop.tmp.msg,1);%,sokay,dop.tmp.wait_warn);
                             
                             % 'all'
                             dop.tmp.ep_select = ones(1,size(dop.tmp.data,2));

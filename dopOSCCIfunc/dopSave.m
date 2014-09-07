@@ -25,6 +25,7 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 20-Aug-2014 NAB
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn updates
+% 06-Sep-2014 NAB updated save naming convention
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -41,7 +42,8 @@ try
             'save_file','dopOSCCIoutput',...
             'save_dir','/Users/mq20111600/Documents/nData/dopOSCCIoutput/',...
             'save_mat',0,...
-            'save_dat',1 ...
+            'save_dat',1, ...
+            'delim','\t' ...
             );
         inputs.defaults.extras = {'file'};
         inputs.defaults.summary = {'overall'};
@@ -50,16 +52,17 @@ try
         inputs.defaults.epochs = {'screen'}; % 'screen','odd','even','all','act','sep'
         inputs.defaults.variables = {'n','mean','sd','latency'};
         %     inputs.defaults.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
-        inputs.required = ...
-            {};
+%         inputs.required = ...
+%             {};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
         %% data check
         if okay && ~isfield(dop,'sum')
             okay = 0;
-            msg{end+1} = ['There''s no ''dop.sum'' variable. You need to' ...
+            msg{end+1} = sprintf(['There''s no ''dop.sum'' variable. You need to' ...
                 ' run ''dopCalc'' to create summary variables otherwise' ...
-                ' there''s nothing to save'];
+                ' there''s nothing to save\n\t(%s: %s)'],...
+                mfilename,dop.tmp.file);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         
@@ -67,10 +70,11 @@ try
         if okay
             %% set variable abbreivations
             dop.save.abb = dopSaveAbbreviations;
-            dop.save.delim = {'\t','\n',1};
+            dop.save.delim = {dop.tmp.delim,'\n',1};
             %% save a mat file
             if isempty(strfind(dop.tmp.save_file,'.mat'))
-                dop.save.save_file = [dop.tmp.save_file,'.mat'];
+                [~,~,tmp_ext] = dop.tmp.save_file;
+                dop.save.save_file = strep(dop.tmp.save_file,tmp_ext,'.mat');
             end
             if ~exist(dop.tmp.save_dir,'dir')
                 mkdir(dop.tmp.save_dir);
@@ -78,6 +82,8 @@ try
             dop.save.fullfile_mat = fullfile(dop.tmp.save_dir,dop.save.save_file);
             if dop.tmp.save_mat
                 save(dop.save.fullfile_mat,'dop');
+                msg{end+1} = sprintf('''.mat'' file saved: %s',dop.save.fullfile_mat);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
             % to load
             % load(dop.save.fullfile);
@@ -126,19 +132,21 @@ try
                 end
             end
         end
-        
+        %% > write labels
+        % only if the file doesn't exist
         if okay && ~exist(dop.save.fullfile_dat,'file')
             % write the labels
             dop.save.fid = fopen(dop.save.fullfile_dat,'w');
-            dop.save.delim = {'\t','\n',1};
+            dop.save.delim{3} = 1; % reset delimiter
             for i = 1 : numel(dop.save.labels)
                 if i == numel(dop.save.labels)
-                    dop.save.delim{3} = 2;
+                    dop.save.delim{3} = 2; % new line
                 end
                 fprintf(dop.save.fid,['%s',dop.save.delim{dop.save.delim{3}}],dop.save.labels{i});
             end
             fclose(dop.save.fid);
         end
+        %% write the data
         if okay
             dop.save.fid = fopen(dop.save.fullfile_dat,'a');
             k = 0;
@@ -176,7 +184,7 @@ try
                                     case 'overall'
                                         k = k + 1;
                                         if k == numel(dop.save.labels)
-                                            dop.save.delim{3} = 2;
+                                            dop.save.delim{3} = 2; % new line
                                         end
                                         % overall data
                                         dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).(dop.tmp.var);
@@ -188,7 +196,7 @@ try
                                         for j = 1 : dop.event.n % for the moment
                                             k = k + 1;
                                             if k == numel(dop.save.labels)
-                                                dop.save.delim{3} = 2;
+                                                dop.save.delim{3} = 2; % new line
                                             end
                                             dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).(dop.tmp.var)(j);
                                             fprintf(dop.save.fid,...
