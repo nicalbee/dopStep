@@ -4,7 +4,7 @@ clc;
 % clear all;
 clear dop
 
-dop.save.save_file = 'what_box';
+dop.save.save_file = 'what_box.dat';
 dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
 dop.struc_name = 'dop';
 
@@ -31,28 +31,29 @@ dop.def.correct_range = [-3 4];%[50 150]; % acceptable activation limits [-4 5];
 dop.def.correct_pct = 5; % if =< x% outside range, correct with mean/median
 
 dop.def.act_separation = 10; % acceptable activation difference
-dop.def.act_separation_pct = 1;
+dop.def.act_separation_pct = 1;%0.5;%1;
 
 dop.def.screen = {'length','act','sep'};
 
+dop.def.manual_file = [];
+
 % keep copy of proccessing steps, e.g., dop.data.norm, dop.data.down etc.
 % always keep raw for resetting
-dop.def.keep_data_steps = 0;
+dop.def.keep_data_steps = 1;
 
 dop.save.extras = {'file'};%{'file','norm','base'}; % you can add your own variables to this, just need to be defined somewhere as dop.save.x = where x = variable name
 dop.save.summary = {'overall'};
 dop.save.channels = {'Difference'};
 dop.save.periods = {'baseline','poi'};
-dop.save.epochs = {'screen'};%{'all','screen','odd','even'};
+dop.save.epochs = {'screen','odd','even'};%{'all','screen','odd','even'};
 dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
-
 
 dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
 % in.dir = '/Users/mq20111600/Documents/nData/tmp';%'/Users/mq20111600/Documents/nData/2013/201312infant_fTCD_UniSA/'; %
 % in.file_list = dir(fullfile(in.dir,'*.exp'));
 % dop.file_list = dopGetFileList(dop.data_dir);%;dir(in.dir);
-[dop,okay] = dopGetFileList(dop);%;dir(in.dir);
+[dop,okay,msg] = dopGetFileList(dop,okay,msg);%;dir(in.dir);
 % in.file_list = {'test.exp'};
 if okay
    for i = 1 : numel(dop.file_list)
@@ -104,10 +105,14 @@ if okay
         [dop,okay,msg] = dopEpoch(dop,okay,msg);
         
         [dop,okay,msg] = dopEpochScreen(dop,okay,msg);
-        
+        % dopEpochScreen runs all of these:
+        %
         %         [dop,okay,msg] = dopEpochScreenAct(dop,okay,msg);
         %
         %         [dop,okay,msg] = dopEpochScreenSep(dop,okay,msg);
+        %
+        %         [dop,okay,msg] = dopEpochScreenCombine(dop,okay,msg);
+        %
         
         [dop,okay,msg] = dopBaseCorrect(dop,okay,msg);
         

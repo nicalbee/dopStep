@@ -66,7 +66,7 @@ try
                     fprintf('\t%s\n',msg{end});
                 end
                 
-            case dopFileTypes
+            case 'file' %dopFileTypes
                 dop_file = dop_input;
                 okay = 1;
             otherwise
@@ -115,8 +115,8 @@ try
             end
         end
         % set dop info
-        dop.okay = okay;
-        dop.msg = msg;
+%         dop.okay = okay;
+%         dop.msg = msg;
         dopOSCCIindent('done');
     end
 catch err

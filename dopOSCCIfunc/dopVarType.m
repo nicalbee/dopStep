@@ -48,9 +48,22 @@ try
         if isnan(in_var)
             var_type = '%s';
             var_type_name = 'NaN';
-        elseif diff([abs(round(in_var)),abs(in_var)]) ~= 0 
+        elseif numel(in_var) == 1 && diff([abs(round(in_var)),abs(in_var)]) ~= 0 
             var_type = sprintf('%%3.%uf',num_decimals);
             var_type_name = 'decimal number';
+        elseif numel(in_var) > 1
+            % check if any of them are decimal numbers - if not, stick with
+            % %i, otherwise, all will be reported in decimal format
+            decimal = 0;
+            for i = 1 : numel(in_var)
+                if diff([abs(round(in_var(i))),abs(in_var(i))])
+                    decimal = 1;
+                end
+            end
+            if decimal
+                var_type = sprintf('%%3.%uf',num_decimals);
+                var_type_name = 'decimal number';
+            end
         end
         if numel(in_var) > 1
             var_type = repmat([var_type,' '],1,numel(in_var));

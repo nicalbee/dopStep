@@ -45,7 +45,7 @@ for i = 1 : numel(msgboxes)
     delete_h = 0;
     if ~iscell(msgboxes) && msgboxes(i)
         delete_h = 1;
-    elseif iscell(msgboxes) && msgboxes{i}
+    elseif iscell(msgboxes) && ~isempty(msgboxes{i}) %&& msgboxes{i} 
         delete_h = 1;
     end
     if delete_h

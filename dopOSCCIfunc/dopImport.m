@@ -1,33 +1,93 @@
 function [dop,okay,msg] = dopImport(dop_input,varargin)
-% dopImport: dopOSCCI3
+% dopOSCCI3: dopImport
 %
-% import functional Transcranial Doppler Ultrasound (fTCD) data files for
-% interogation.
+% [dop,okay,msg] = dopImport(dop_input,[okay],[msg],...)
+%
+% Imports functional Transcranial Doppler Ultrasound (fTCD) data files for
+% summarising.
 %
 % Use:
 %
-% dop = dopImport(dop_input)
+% [dop,okay,msg] = dopImport(dop_input,okay,msg,'file','my_file.EXP','dir','C:\data_dir\')
 %
-% where: dop_input = ...
-% dop = dopOSCCI structure with setting information
-% OR
-% dop_file = file name or full path + file name for fTCD data
+% where:
+%--- Inputs ---
+% - dop_input: dop matlab structure or data matrix, file name, or data
+%   directory, depending on the function. Other than 'dop' structure is
+%   currently not well tested 07-Sep-2014 NAB
 %
-% note: dop_input is evaluated to determine which input type has been
-% provided
+%--- Optional, data only:
+%   > e.g., ...,0,... or ...,'string',... or ...,cell,...
+% - okay:
+%   e.g., dopFunction(dop_input,1,...) or dopFunction(dop_input,0,...)
+%       or dopFunction(dop_input,[],...)
+%   logical (0 or 1) for problem, 0 = no problem, 1 = problem. This can be
+%   carried through from previously run functions. If set to 0, the
+%   function will not be implemented - designed to skip functions if there
+%   is a problem with the data or variable settings.
 %
-% Returns:
-% dop = dopOSCCI structure
+% - msg:
+%   > e.g., dopFunction(dop_input,1,msg,...)
+%       or dopFunction(dop_input,1,[],...)
+%   Cell variable with a history of messages from previously run functions.
+%   New messages are appended to the end of the array and can be reported
+%   to examine the processing steps using 'dopMessage':
+%   e.g. dopMessage(msg) or dopMessage(dop);
 %
-% currently imports:
-% - EXP files
+%   note: okay and msg will only be recognised as the 1st and 2nd inputs
+%   after the dop_input variable and only in this order.
+%       e.g., dopFunction(dop,okay,msg,...)
+%   If run without, e.g., dopFunction(dop,...), okay and msg will be reset
+%   to 1 (i.e., no problem) and empty (i.e., []) respectively.
 %
-% - TW/TX
-% = mat (matlab files)
+%--- Optional, Text + value:
+%   > e.g., ...,'variable_name',X,...
+%   note: '...' indicates that other inputs can be included before or
+%   after. The inputs can be included in any order.
+%   
+% - 'file':
+%   > e.g., dopFunction(dop_input,okay,msg,...,'file','subjectX.exp',...)
+%   file name of the data file to be imported.
+%   The default value is empty.
+%
+% - 'dir':
+%   > e.g., dopFunction(dop_input,okay,msg,...,'dir','C:\my_data_dir\',...)
+%   directory of the data file to be imported.
+%   The default value is empty.
+%
+% - 'msg':
+%   > e.g., dopFunction(dop_input,okay,msg,...,'msg',1,...)
+%       or
+%           dopFunction(dop_input,okay,msg,...,'msg',0,...)
+%   This is a logical variable (1 = on, 0 = off) setting whether or not
+%   messages about the progress of the processing are printed to the MATLAB
+%   command window.
+%   The default value is 1 = on, messages are printed
+%
+% - 'wait_warn': e.g., ...,'wait_warn',1,... or ....,'wait_warn',0,...
+%   This is a logical variable (1 = on, 0 = off) setting whether or not,
+%   when 'okay' changes to 0 (i.e. an error), progress through the scripts
+%   waits for the warning dialog popup to be closed.
+%
+%--- Outputs ---
+%   note: outputs are optional, included at the left hand side of the call
+%   to a function. The order is fixed
+%   > e.g.,
+%       dop = dopFunction(...);
+%   or
+%       [dop,okay] = dopFunction(...);
+%   or
+%       [dop,okay,msg] = dopFunction(...);
+%
+% - dop = dop matlab sructure
+%
+% - okay = logical (0 or 1) for problem, 0 = no problem, 1 = problem
+% - msg = message about progress/events within function
 %
 % Created 22-Apr-2013
-% Last edit:
+% Edits:
 % 19-Aug-2014 NAB
+% 09-Sep-2014 NAB updated documentation
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -36,15 +96,13 @@ try
     if okay
         dopOSCCIindent;%fprintf('Running %s:\n',mfilename);
         %% Inputs
-        inputs.turnOff = {'comment'};
+%         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
-                inputs.defaults = struct(...
-            'msg',1,... % show messages
-            'wait_warn',0,... % wait to close warning dialogs
+        inputs.defaults = struct(...
             'file',[], ...
             'dir',[], ...
-            'signal_channels',[],... %
-            'event_channels',[] ... %
+            'msg',1,... % show messages
+            'wait_warn',0 ... % wait to close warning dialogs
             );
         inputs.required = ...
             {'file'};
@@ -58,18 +116,18 @@ try
         if okay && exist(dop.tmp.file,'file')
             dop.tmp.fullfile = dop.tmp.file;
             msg{end+1} = 'Full path to file inputted';
-            dopMessage(msg,dop.tmp.comment,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         elseif okay && ~isempty(dop.tmp.dir) && exist(fullfile(dop.tmp.dir,dop.tmp.file),'file')
             dop.tmp.fullfile = fullfile(dop.tmp.dir,dop.tmp.file);
             msg{end+1} = 'Combined ''dir'' and ''file'' inputs for full path to file';
-            dopMessage(msg,dop.tmp.comment,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         else
             okay = 0;
             msg{end+1} = sprintf(['''file'' input (''%s'') needs to be a full' ...
                 ' file path or on MATLAB paths\n\t',...
                 'OR ''dir'' + ''file'' inputs needs to give a full file path'],...
                 dop.tmp.file);
-            dopMessage(msg,dop.tmp.comment,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         
         %% > check file
@@ -86,7 +144,7 @@ try
             msg{end+1} = sprintf(['> Importing:\n\tFile = %s\n\t'...
                 'Dir = %s\n\tExtension = %s\n\n'],...
                 dop.use.file,dop.use.dir,dop.file_ext);
-            dopMessage(msg,dop.tmp.comment,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             %             tmp_file,tmp_dir,tmp_ext);
             % check for a mat file first
             dop.tmp.mat_dir = dop.dir;
@@ -102,7 +160,7 @@ try
                 dop.mat.fullfile = dop.tmp.mat_fullfile;
                 
                 msg{end+1} = sprintf('''.mat'' file found, importing:\n\t\t%s',dop.mat.fullfile);
-                dopMessage(msg,dop.tmp.comment,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 dop = dopMATread(dop.mat.fullfile,dop);
                 %             load(dop.tmp.mat_fullfile);
 
@@ -114,7 +172,7 @@ try
                 msg{end+1} = sprintf(['> File type not recognised:'...
                     '\n\tExtension = %s\n\t'...
                     'Expected ''.EXP'' or ''.TX'''],dop.file_ext);
-                dopMessage(msg,dop.tmp.comment,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
             if isfield(dop,'data') && isfield(dop.data,'raw')
                 % update the sample rate - this will change after downsampling

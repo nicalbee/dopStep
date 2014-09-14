@@ -84,7 +84,7 @@ function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
 %   note: 'event_height' is used within this function as an input for
 %   dopEvent Markers if it hasn't previously been called. That is,
 %   'dop.event' structure variable is not found
-%   
+%
 % - 'file':
 %   > e.g., dopFunction(dop_input,okay,msg,...,'file','subjectX.exp',...)
 %   file name of the data file currently being summarised. This is used for
@@ -133,17 +133,17 @@ try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
-%         inputs.turnOn = {'nomsg'};
-%         inputs.turnOff = {'comment'};
+        %         inputs.turnOn = {'nomsg'};
+        %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'file',[],... % for error reporting mostly
-            'msg',1,... % show messages
-            'wait_warn',0,... % wait to close warning dialogs
             'epoch',[], ... % [lower upper] limits in seconds
             'event_height',[],... % needed for dopEventMarkers
             'event_channels',[], ... % needed for dopEventMarkers
-            'sample_rate',[] ... % not critical for dopEventMarkers
+            'sample_rate',[], ... % not critical for dopEventMarkers
+            'file',[],... % for error reporting mostly
+            'msg',1,... % show messages
+            'wait_warn',0 ... % wait to close warning dialogs
             );
         inputs.required = ...
             {'epoch'};
@@ -152,7 +152,7 @@ try
         
         %% tmp check
         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-
+        
         %% main code
         
         %% example msg

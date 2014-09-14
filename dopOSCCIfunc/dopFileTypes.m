@@ -18,6 +18,9 @@ function file_types = dopFileTypes(report)
 % Edits:
 % 05-Sep-2014 NAB changed 'comment' to 'report' to be consistent with other
 %   functions.
+% 15-Sep-2014 NAB added '.dat' file for reading in data files - primarily
+%   for dopEpochScreenManualRead but figure they'll be more down the line
+%
 if ~exist('report','var') || isempty(report)
     report = 0;
 end
@@ -32,7 +35,7 @@ try
     
     dopOSCCIindent('run',report);
     % hopefully not case sensitive in most instances...
-    file_types = {'.TX','.EXP','.MAT','.tx','.exp','.mat'};%,'.tx','.tw','.exp','.mat'};
+    file_types = {'.TX','.EXP','.MAT','.tx','.exp','.mat','.dat'};%,'.tx','.tw','.exp','.mat'};
     if report
         fprintf('\tdopOSCCI recognises the following file types:\n');
         for i = 1 : numel(file_types)

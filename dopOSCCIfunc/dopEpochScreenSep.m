@@ -25,6 +25,7 @@ function [dop,okay,msg] = dopEpochScreenSep(dop_input,varargin)
 % 18-Aug-2014 NAB
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn updates
+% 12-Sep-2014 NAB absolute difference: negatives were getting through!
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -118,7 +119,7 @@ try
                         dop.tmp.filt_data = dop.tmp.data(:,j,1:2);
                 end
                 dop.tmp.diff = dop.tmp.filt_data(:,1) - dop.tmp.filt_data(:,2); %,dop.tmp.act_range_values(1,:));
-                dop.tmp.all = bsxfun(@lt,dop.tmp.diff ,dop.tmp.act_separation);
+                dop.tmp.all = bsxfun(@lt,abs(dop.tmp.diff) ,dop.tmp.act_separation);
                 dop.tmp.pct = 100*(sum(dop.tmp.all == 0)/numel(dop.tmp.diff));
                 
                 dop.epoch.sep(j) = sum(dop.tmp.all) == numel(dop.tmp.diff);

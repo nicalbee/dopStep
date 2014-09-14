@@ -12,6 +12,7 @@ function dopPlotEpochAxesAdjust(handle,~)
 % Created: 02-Sep-2014 NAB
 % Last edit:
 % 02-Sep-2014 NAB
+% 12-Sep-2014 NAB problem with mean/median using dop.plot.screen variable
 
 disp_options = {'all','median','mean'};
 if ~isnumeric(get(handle,'string')) && strcmp(get(handle,'tag'),'display') ...
@@ -68,10 +69,10 @@ switch get(handle,'tag')
         set(disp_h,'string',value);
         
         % screening
-        if ~isfield(dop,'plot') || ~isfield(dop.plot,'screen')
+%         if ~isfield(dop,'plot') || ~isfield(dop.plot,'screen')
             dop.plot.screen = ones(1,size(dop.tmp.data,2));
             dop.plot.screen = logical(dop.plot.screen);
-        end
+%         end
         
         if isnumeric(value) && ~isnan(value)
             plot_data = squeeze(dop.tmp.data(:,value,:));

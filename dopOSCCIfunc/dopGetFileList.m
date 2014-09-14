@@ -4,7 +4,9 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 % [dop,okay,msg] = dopFileList(dop,[okay],[msg],...);
 %
 % notes:
-%
+% Searches dop.data_dir or inputted data directory for recognised doppler
+% data files (see 'dopFileTypes') and returns a cell variable
+% (dop.file_list or first output if only data directory inputted).
 %
 % Use:
 %
@@ -12,33 +14,86 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 %
 %
 % where:
-% > Inputs
-% - dop_input: dop matlab structure or data matrix*
+%--- Inputs ---
+% - dop_input: dop matlab structure (including 'dop.data_dir') or data directory
+%   e.g.,
+%       dop = dopGetFileList(dop);
+%       > returns dop.file_list cell variable within the dop structure
+%   or
+%       file_list = dopGetFileList('C:\my_data_directory\');
 %
-%   Optional:
+%--- Optional, data only:
+%   > e.g., ...,0,... or ...,'string',... or ...,cell,...
 % - okay:
+%   e.g., dopFunction(dop_input,1,...) or dopFunction(dop_input,0,...)
+%       or dopFunction(dop_input,[],...)
 %   logical (0 or 1) for problem, 0 = no problem, 1 = problem. This can be
-%   carried through from previously run functions. If set to 1, the
-%   function will not be implemented.
+%   carried through from previously run functions. If set to 0, the
+%   function will not be implemented - designed to skip functions if there
+%   is a problem with the data or variable settings.
+%
 % - msg:
-%   cell variable with a history of messages from previously run functions.
+%   > e.g., dopFunction(dop_input,1,msg,...)
+%       or dopFunction(dop_input,1,[],...)
+%   Cell variable with a history of messages from previously run functions.
 %   New messages are appended to the end of the array and can be reported
 %   to examine the processing steps using 'dopMessage':
 %   e.g. dopMessage(msg) or dopMessage(dop);
 %
-%   Text only:
-% - 'nomsg':
-%   By default, messages about the processing will be reported to the
-%   MATLAB command window. If included as an input, 'nomsg' will turn off
-%   these messages. note: they will continue to be collected in the 'msg'
-%   variable.
-% - 'plot':
-%   If included as an input a plot will be produced at the conclusion of
-%   the function. The function will wait (see 'uiwait') until the figure
-%   has been closed to complete its operations.
+%   note: okay and msg will only be recognised as the 1st and 2nd inputs
+%   after the dop_input variable and only in this order.
+%       e.g., dopFunction(dop,okay,msg,...)
+%   If run without, e.g., dopFunction(dop,...), okay and msg will be reset
+%   to 1 (i.e., no problem) and empty (i.e., []) respectively.
 %
+%--- Optional, Text + value:
+%   > e.g., ...,'variable_name',X,...
+%   note: '...' indicates that other inputs can be included before or
+%   after. The inputs can be included in any order.
 %
-% > Outputs: (note, optional)
+% - 'type':
+%   > e.g., dopFunction(dop_input,okay,msg,...,'type','.EXP',...)
+%   Sets the 'type' of file (i.e., file extension) to search for. This is
+%   empty by default and all recognised Doppler data files are searched for
+%   (see 'dopFileTypes') but .TX and .EXP.
+%
+% - 'dir':
+%   > e.g., dopGetFileList(dop,okay,msg,...'dir','C:\my_data_directory\',...)
+%   Sets the data directory that will be searched. If it exists the
+%   'dop.data_dir' variable will be ignored.
+%   
+% - 'file':
+%   > e.g., dopFunction(dop_input,okay,msg,...,'file','subjectX.exp',...)
+%   file name of the data file currently being summarised. This is used for
+%   error reporting. Typically this variable is automatically populated in
+%   the 'dopSetGetInputs' function by searching the 'dop' structure
+%   variables: dop.save, dop.use, dop.def, dop.file_info.
+%   The default value is empty.
+%
+% - 'msg':
+%   > e.g., dopFunction(dop_input,okay,msg,...,'msg',1,...)
+%       or
+%           dopFunction(dop_input,okay,msg,...,'msg',0,...)
+%   This is a logical variable (1 = on, 0 = off) setting whether or not
+%   messages about the progress of the processing are printed to the MATLAB
+%   command window.
+%   The default value is 1 = on, messages are printed
+%
+% - 'wait_warn': e.g., ...,'wait_warn',1,... or ....,'wait_warn',0,...
+%   This is a logical variable (1 = on, 0 = off) setting whether or not,
+%   when 'okay' changes to 0 (i.e. an error), progress through the scripts
+%   waits for the warning dialog popup to be closed.
+%
+%--- Outputs ---
+%   note: outputs are optional, included at the left hand side of the call
+%   to a function. The order is fixed
+%   > e.g.,
+%       dop = dopFunction(...);
+%   or
+%       [dop,okay] = dopFunction(...);
+%   or
+%       [dop,okay,msg] = dopFunction(...);
+%
 % - dop = dop matlab sructure
 %
 % - okay = logical (0 or 1) for problem, 0 = no problem, 1 = problem
@@ -46,7 +101,7 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 %
 % Created: 05-Sep-2014 NAB
 % Edits:
-% XX-Sep-2014 NAB
+% 09-Sep-2014 NAB updated documentation/help information
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -97,6 +152,7 @@ try
         %% main code
         if okay
             dop.file_list = [];
+            dop.use.file_list = [];
             if ~isempty(dop.tmp.type)
                 switch dop.tmp.type
                     case {'.TW','.TX'}%,'.tx','.tw'}
@@ -140,6 +196,7 @@ try
             case 'dop'
                 dop.okay = okay;
                 dop.msg = msg;
+                dop.use.file_list = dop.file_list;
             case 'folder'
                 dop = dop.file_list;
         end
