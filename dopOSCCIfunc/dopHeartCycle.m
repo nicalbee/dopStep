@@ -224,11 +224,11 @@ try
             dop.data.hc_data = [dop.tmp.data(:,1:2),dop.data.hc_events*max(dop.tmp.data(:,1))*1.1];
             dop.data.channel_labels = {'rawleft','rawright','hc_events'};
             plot_okay = 1;
-            if strcmp(dop.tmp.type,'linspace') && exist('linspace','file') && isfield(dop.data,'hc_linspace')
+            if strcmp(dop.tmp.type,'linspace') && exist('linspace','file') && isfield(dop.tmp,'hc_linspace')
                 dop.data.channel_labels(end+1:end+2) = {'correctleft','correctright'};
-                dop.data.hc_data = [dop.data.hc_data,dop.data.hc_linspace(:,1:2)];
-            elseif isfield(dop.data,'hc_correct')
-                dop.data.hc_data = [dop.data.hc_data,dop.data.hc_correct(:,1:2)];
+                dop.data.hc_data = [dop.data.hc_data,dop.tmp.hc_linspace(:,1:2)];
+            elseif isfield(dop.tmp,'hc_correct')
+                dop.data.hc_data = [dop.data.hc_data,dop.tmp.hc_correct(:,1:2)];
                 dop.data.channel_labels(end+1:end+2) = {'correctleft','correctright'};
             else
                 plot_okay = 0;
