@@ -1,15 +1,21 @@
 function [dop,okay,msg] = dopUseDataOperations(dop_input,varargin) % okay,msg,data_type)
 % dopOSCCI3: dopUseDataOperations
 %
-% Saves a record of which functions have been called/applied to this data
-% set.
+% updates the 'dop.data.use' variable (i.e., current default data) to the
+% specified input. This can be used to 'return' to earlier steps of the
+% data processing.
 %
-% * not yet implemented (08-Aug-2014)
-% save command/call history... like eeglab...
+% if dop.def.keep_data_steps = 1, then a copy of the data will be saved as
+% 'dop.data.[name]' (e.g., dop.data.norm).
+%
+% Potentially available data names include:
+%   'raw','channels','norm','down','trim','hc_data','hc_correct',
+%   'hc_linspace','act_correct','event','act_correct_plot',
+%   'epoch','base'
 %
 % Use:
 %
-% dop = dopFunctionHistory(dop,data);
+% dop = dopUseDataOperations(dop,[okay],[msg],'norm');
 %
 % where:
 % > Inputs:
@@ -25,6 +31,7 @@ function [dop,okay,msg] = dopUseDataOperations(dop_input,varargin) % okay,msg,da
 % Last edit:
 % 22-Aug-2014 NAB added dopSetBasicInputs function
 % 04-Sep-2014 NAB msg & wait_warn updates
+% 16-Sep-2014 NAB updated documentation, a bit...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -33,6 +40,8 @@ try
     if okay
                 inputs.varargin = varargin;
         inputs.defaults = struct(...
+            'keep_data_steps',0,...
+            'file',[],...
             'msg',1,...
             'wait_warn',0 ...
             );

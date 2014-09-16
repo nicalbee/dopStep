@@ -2,9 +2,8 @@ function [dop,okay,msg] = dopEventMarkers(dop_input,varargin) % ,downsample_rate
 % dopOSCCI3: dopEventMarkers
 %
 % notes:
-% create an event-marker channel
+% finds the event markers and creates the 'dop.event' variable
 %
-% * not yet implemented (17-Dec-2013)
 %
 % Use:
 %

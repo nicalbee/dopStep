@@ -32,6 +32,7 @@ function [dop,okay,msg] = dopEpochScreen(dop_input,varargin)
 % 20-Aug-2014 NAB
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 14-Sep-2014 NAB included dopEpochScreenCombine
+% 16-Sep-2014 NAB added dopEpochScreenManual
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -70,6 +71,11 @@ try
         end
         
         %% run screening functions
+        %% > dopEpochScreenManual
+        if okay
+            [dop,okay,msg] = dopEpochScreenManual(dop,okay,msg);
+            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+        end
         %% > dopEpochScreenAct
         if okay
             [dop,okay,msg] = dopEpochScreenAct(dop,okay,msg,...

@@ -4,9 +4,6 @@ function [dop,okay,msg] = dopHeartCycle(dop_input,varargin)
 % notes:
 % finds and averages over the heart cycle to remove this from the data
 %
-% ? calculates pulsitility *
-%
-% * not yet implemented (18-Dec-2013)
 %
 % Use:
 %

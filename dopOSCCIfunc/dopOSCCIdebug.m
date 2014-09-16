@@ -6,8 +6,9 @@ function save_fullfile  =  dopOSCCIdebug
 %   see also 'dopOSCCIclean' for removing debug files
 %
 % Created: ??-???-???? NAB
-% Last edit:
+% Edits:
 % 22-Aug-2014 NAB updated save_dir and variable names to be more transparent
+% 16-Sep-2014 NAB fixed up auto save directory
 
 %
 % -------------------------------------------------------------------------
@@ -41,7 +42,10 @@ function save_fullfile  =  dopOSCCIdebug
 % global dg % need this for gui adjustment - if available
 dopOSCCIindent;
 tmp  =  dbstack;
-crash_func  =  tmp(2).name;
+crash_func = 'test';
+if numel(tmp) > 1
+    crash_func  =  tmp(2).name;
+end
 commandwindow; % bring command window to front
 fprintf('\n%s\n',['!!! Caught dopOSCCI crash in ',crash_func,'!!!']);
 
@@ -61,7 +65,7 @@ try
 end
 % set save path on same level as dopOSCCI but different directory
 
-save_dir = fullfile(dop_dir,'Data',mfilename);
+save_dir = fullfile([dop_dir,'Data'],mfilename);
 % check that the directory exists
 if ~exist(save_dir,'dir')
     fprintf('\n\t%s\n','Making directory');

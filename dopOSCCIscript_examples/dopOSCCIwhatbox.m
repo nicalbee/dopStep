@@ -4,16 +4,15 @@ clc;
 % clear all;
 clear dop
 
-dop.save.save_file = 'what_box.dat';
-dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
 dop.struc_name = 'dop';
+% this is used to verify the stucture as the 'dopOSCCI' structure, best not
+% to change!
 
 % definition information
 dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
 dop.def.event_channels = 14;%9;%13; % 14 also in example
 dop.def.event_height = 1000; % 400; % greater than
-dop.def.event_sep = 35; %
-% dop.def.num_events = 40;
+dop.def.event_sep = 35; % no longer used to find events, just to check whether you're allowing enough time
 
 dop.def.downsample_rate = 25; % Hertz
 
@@ -33,45 +32,45 @@ dop.def.correct_pct = 5; % if =< x% outside range, correct with mean/median
 dop.def.act_separation = 10; % acceptable activation difference
 dop.def.act_separation_pct = 1;%0.5;%1;
 
-dop.def.screen = {'length','act','sep'};
+dop.def.screen = {'length','act','sep'}; % could add 'manual' to this
 
-dop.def.manual_file = [];
+dop.def.manual_file = []; % specify the manual screening file
+dop.def.manual_dir = []; % directory
+dop.def.manual_fullfile = []; % directory and name in single string
 
 % keep copy of proccessing steps, e.g., dop.data.norm, dop.data.down etc.
-% always keep raw for resetting
+% this allows you to go back and forth between different data steps for
+% alternate processing and also allows you to view the data at different
+% stages using, for example, dopPlot(dop,'type','norm')
+% see dopUseDataOperations for setting current dop.data.use variable to
+% certain steps.
 dop.def.keep_data_steps = 1;
 
-dop.save.extras = {'file'};%{'file','norm','base'}; % you can add your own variables to this, just need to be defined somewhere as dop.save.x = where x = variable name
-dop.save.summary = {'overall'};
-dop.save.channels = {'Difference'};
-dop.save.periods = {'baseline','poi'};
+dop.save.save_file = 'what_box_missing.dat';
+
+% define which information will be saved
+dop.save.extras = {'file'};
+% you can add your own variables to 'extras', just need to be defined
+% somewhere as dop.save.x = where x = variable name
+dop.save.summary = {'overall'}; % versus 'epoch' (not well tested yet)
+dop.save.channels = {'Difference'}; % {'Left','Right','Difference','Average'}
+dop.save.periods = {'poi'}; % {'baseline','epoch'}
 dop.save.epochs = {'screen','odd','even'};%{'all','screen','odd','even'};
 dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
 
 dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
-% in.dir = '/Users/mq20111600/Documents/nData/tmp';%'/Users/mq20111600/Documents/nData/2013/201312infant_fTCD_UniSA/'; %
-% in.file_list = dir(fullfile(in.dir,'*.exp'));
-% dop.file_list = dopGetFileList(dop.data_dir);%;dir(in.dir);
+dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
 [dop,okay,msg] = dopGetFileList(dop,okay,msg);%;dir(in.dir);
 % in.file_list = {'test.exp'};
 if okay
-   for i = 1 : numel(dop.file_list)
+    for i = 1 : numel(dop.file_list)
         in.file = dop.file_list{i};
-        %         j = in.i_collect(i);
-        %         if exist(fullfile(dop.data_dir,dop.file_list(j).name),'file') && isTX(dop.file_list(j).name)
-        %             if iscell(in.file_list)
-        %                 % loop through cell array
-        %                in.file = dop.file_list{j};%'ISD999.exp'; %'__21-03-2012 3rd.exp';%
-        %             else
-        %                 % loop through structure array
-        %                 in.file = dop.file_list(j).name;
-        %             end
+        
         dop.save.file = in.file; % dop.save.extras will save this as a column in the file
         
-        %             in.fnl = fullfile(dop.data_dir,in.file);
         fprintf('%u: %s\n',i,in.file);
-        %         in.i_collect(end+1) = i;
+        
         [dop,okay,msg] = dopImport(dop,'file',in.file);
         % extract signal and event channels from larger set of data columns
         % this is called within dopImport as well
@@ -79,7 +78,8 @@ if okay
         
         % probably done on import if channel information is available
         % [dop,okay,msg] = dopChannelAdjust(dop); % haven't adjusted for dopSetGetInputs
-        % dopReportMsg(msg); % or dopReportMsg(dop); % reports latest set of messages
+        
+        % dopMessage(msg); % or dopMessage(dop); % reports latest set of messages
         
         [dop,okay,msg] = dopDownsample(dop,okay,msg); % or dop.data.down = dopDownSample(dop.data.raw,25,100)
         
@@ -97,12 +97,13 @@ if okay
         % samples currently 10-Aug-2014)
         % [dop,okay,msg] = dopHeartCycle(dop,'plot');
         
+        
+        [dop,okay,msg] = dopActCorrect(dop,okay,msg);%,'plot');
+        
+        [dop,okay,msg] = dopNorm(dop,okay,msg,'norm_method','epoch');
+        
         % [dop,okay,msg] = dopEpoch(dop); % automatically in dopNorm(dop,[],[],'norm_method','epoch') or dopNorm(dop,[],[],'norm_method','deppe_epoch')
-%         [dop,okay,msg] = dopActCorrect(dop,okay,msg);%,'plot');
-        
-        [dop,okay,msg] = dopNorm(dop,okay,msg);%,'norm_method',dop.test.norm{j});
-        
-        [dop,okay,msg] = dopEpoch(dop,okay,msg);
+        %         [dop,okay,msg] = dopEpoch(dop,okay,msg);
         
         [dop,okay,msg] = dopEpochScreen(dop,okay,msg);
         % dopEpochScreen runs all of these:
@@ -116,28 +117,30 @@ if okay
         
         [dop,okay,msg] = dopBaseCorrect(dop,okay,msg);
         
-        [dop,okay,msg] = dopCalcAuto(dop,okay,msg);%'periods',{'baseline','poi'}); % ,'poi',[5 15],'act_window',2);
-        
-        [dop,okay,msg] = dopSave(dop,okay,msg);%,'save_dir',dop.save.save_dir);
-        
-%         dop = dopPlot(dop,'wait');
 
+        
+        if okay
+            [dop,okay,msg] = dopCalcAuto(dop,okay,msg);%'periods',{'baseline','poi'}); % ,'poi',[5 15],'act_window',2);
+            %% collect grp data?
+            [dop,okay,msg] = dopDataCollect(dop,okay,msg);
+            fprintf('%u: %u %s\n',i,okay,in.file);
+            % forcing the same function, even if an error is thrown due to too
+            % few trials when calculating the LI. This will results in default
+            % values of 999 for the variables but at least you'll know what
+            % happened to the file.
+            [dop,okay,msg] = dopSave(dop,1,msg);%,'save_dir',dop.save.save_dir);
+        else
+            fprintf('%u: %u %s\n',i,okay,in.file);
+        end
+        %         dop = dopPlot(dop,'wait');
+        
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');
-        fprintf('%u: %u %s\n',i,okay,in.file);
-        %         if ~okay && isempty(dop)
-        %             pause;
-        %         end
-        %% collect grp data?
-        %     dop.grp.Difference.poi.data(:,j) = dop.overall.Difference.poi.data;
-        [dop] = dopDataCollect(dop,okay,msg);
-        %         end
-%         if ~okay
-%             keyboard
-%             % type 'return' to exit keyboard mode
-%         end
+        
+        
     end
 end
 [dop,okay,msg] = dopPlot(dop,'collect');
 
 dopCloseMsg;
+dopOSCCIalert('finish');

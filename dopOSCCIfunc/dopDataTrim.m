@@ -2,14 +2,13 @@ function [dop,okay,msg] = dopDataTrim(dop_input,varargin)
 % dopOSCCI3: dopDataTrim
 %
 % notes:
-% cut the any extra data off the beginning and end of the data based upon
+% cuts the any extra data off the beginning and end of the data based upon
 % the lower and upper epoch values and event markers
 %
-% * not yet implemented (19-Dec-2013)
 %
 % Use:
 %
-% dop = dopDataTrim(dop);
+% dop = dopDataTrim(dop,[okay],[msg]);
 %
 % where:
 % > Inputs:

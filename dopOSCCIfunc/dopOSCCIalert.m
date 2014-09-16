@@ -62,7 +62,8 @@ try
     if ~isempty(tmp_file)
         load(tmp_file);
         player = audioplayer(y, Fs);
-        play(player);
+%         play(player);
+        playblocking(player);
     end
     varargout{1} = player; % give it the handle as an optional output
     dopOSCCIindent('done');
