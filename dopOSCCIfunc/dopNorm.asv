@@ -24,10 +24,6 @@ function [dop,okay,msg] = dopNorm(dop_input,varargin)
 % 10-Aug-2014 NAB
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn updates
-% 17-Sep-2014 NAB testing on MATLAB 2011 and bsxfun(@mrdivide,... is not
-%   available. Added a try/catch to bsxfun(@rdivide and it's running and
-%   seems to be doing the same thing - perhaps mrdivide is quicker
-%   note: version = 7.11.1.866 (R2010b) Service Pack 1
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -86,11 +82,7 @@ try
                                     if tmp_base(1) < 1
                                         tmp_base = tmp_base + diff([tmp_base(1),1]);
                                     end
-                                    try
                                     dop.data.norm(:,i,:) = bsxfun(@mrdivide,dop.tmp.data(:,i,:),mean(dop.tmp.data(tmp_base(1):tmp_base(2),i,:)))*100;
-                                    catch
-                                        dop.data.norm(:,i,:) = bsxfun(@rdivide,dop.tmp.data(:,i,:),mean(dop.tmp.data(tmp_base(1):tmp_base(2),i,:)))*100;
-                                    end
                             end
                         end
                     end
@@ -109,15 +101,9 @@ try
             case 'overall'
                 dop.data.norm = dop.tmp.data; % save a copy of the data, columns 1 and 2 will be overwritten
                 dop.tmp.channels = [1 2]; % only want to norm the left and right channels
-                try
                 dop.data.norm(:,dop.tmp.channels) = ...
                     bsxfun(@mrdivide,dop.tmp.data(:,dop.tmp.channels)*100,...
                     mean(dop.tmp.data(:,dop.tmp.channels)));
-                catch
-                    dop.data.norm(:,dop.tmp.channels) = ...
-                    bsxfun(@rdivide,dop.tmp.data(:,dop.tmp.channels)*100,...
-                    mean(dop.tmp.data(:,dop.tmp.channels)));
-                end
                 dop.tmp.ev_channels = ones(1,size(dop.tmp.data,2)); % 1 to # of columns
                 dop.tmp.ev_channels(dop.tmp.channels) = 0;
                 dop.data.norm(:,logical(dop.tmp.ev_channels)) = ...

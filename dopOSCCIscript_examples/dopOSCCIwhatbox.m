@@ -58,9 +58,11 @@ dop.save.periods = {'poi'}; % {'baseline','epoch'}
 dop.save.epochs = {'screen','odd','even'};%{'all','screen','odd','even'};
 dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
 
-dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
+dop.save.save_dir = 'C:\Users\mq20111600\Documents\nData\dopStep';
+% dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
-dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
+dop.data_dir = 'C:\Users\mq20111600\Desktop\UniSA Infant TCD';
+% dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
 [dop,okay,msg] = dopGetFileList(dop,okay,msg);%;dir(in.dir);
 % in.file_list = {'test.exp'};
 if okay
