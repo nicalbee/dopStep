@@ -65,10 +65,11 @@ try
                 if ~isfield(dop,'collect') || ~isfield(dop.collect,dop.tmp.type)
                     dop.collect.(dop.tmp.type).n = 0;
                     dop.collect.(dop.tmp.type).files = [];
-%                     dop.collect.(dop.tmp.type).times = [];
-%                     if size(dop.tmp.data,3) > 1 && isfield(dop,'epoch') && isfield(dop.epoch,'times')
-%                         dop.collect.(dop.tmp.type).times = dop.epoch.times;
-%                     end
+                    dop.collect.(dop.tmp.type).times = [];
+                    if size(dop.tmp.dataisfield(dop,'epoch') && isfield(dop.epoch,'times')
+                        % 
+                        dop.collect.(dop.tmp.type).times = dop.epoch.times;
+                    end
                     for i = 1 : numel(dop.data.channel_labels)
                         dop.collect.(dop.tmp.type).(dop.data.channel_labels{i}) = [];
                     end

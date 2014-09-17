@@ -7,6 +7,7 @@ clear dop
 
 dop.struc_name = 'dop';
 
+dop.def.task_name = 'wordGenAbbie';
 % definition information
 dop.def.signal_channels = [1 2]; % columns in file (e.g., EXP)
 dop.def.event_channels = 3;%9;%13; % 14 also in example
@@ -45,7 +46,7 @@ dop.save.periods = {'baseline','poi'};
 dop.save.epochs = {'screen'};%{'all','screen','odd','even'};
 dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
 
-dop.save.save_file = 'abbieTest.dat';
+dop.save.save_file = [];
 dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
 % in.dir = '/Users/mq20111600/Documents/nData/tmp';%'/Users/mq20111600/Documents/nData/2013/201312infant_fTCD_UniSA/'; %

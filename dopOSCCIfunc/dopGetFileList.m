@@ -102,6 +102,7 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 % Created: 05-Sep-2014 NAB
 % Edits:
 % 09-Sep-2014 NAB updated documentation/help information
+% 17-Sep-2014 NAB adjusted output if problem
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -196,7 +197,10 @@ try
             case 'dop'
                 dop.okay = okay;
                 dop.msg = msg;
-                dop.use.file_list = dop.file_list;
+                dop.use.file_list = [];
+                if okay
+                    dop.use.file_list = dop.file_list;
+                end
             case 'folder'
                 dop = dop.file_list;
         end

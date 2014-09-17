@@ -197,7 +197,7 @@ try
         %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'save_file','dopSave',...
+            'save_file','dopOSCCI',...
             'save_dir',[],...
             'save_mat',0,...
             'save_dat',1, ...
@@ -227,12 +227,12 @@ try
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         %% save file name
-        if okay && or(isempty(dop.tmp.save_file),strcmp(dop.tmp.save_file,dop.tmp.defaults.save_file))
+        if okay && or(isempty(dop.tmp.save_file),strcmp(dop.tmp.save_file,
                 if ~isfield(dop,'def') ...
                     || ~isfield(dop.def,'task_name') ...
                     || isempty(dop.def.task_name)
                
-                    dop.def.task_name = dop.tmp.defaults.save_file;
+                    dop.def.task_name = dop.tmp.defaults.save_file
                 end
                 dop.tmp.save_file = sprintf('%sSaveData.dat',dop.def.task_name);
         end
@@ -240,10 +240,10 @@ try
         if okay
             %% set variable abbreivations
             dop.save.abb = dopSaveAbbreviations;
-%             if iscell(dop.tmp.delim)
-%                 dop.tmp.delim = dop.tmp.delim{1};
-%             end
-            dop.tmp.delims = {dop.tmp.delim,'\n',1};
+            if iscell(dop.tmp.delim)
+                dop.tmp.delim = dop.tmp.delim{1};
+            end
+            dop.save.delim = {dop.tmp.delim,'\n',1};
             
             
             %% save a mat file
@@ -312,12 +312,12 @@ try
         if okay && ~exist(dop.save.fullfile_dat,'file')
             % write the labels
             dop.save.fid = fopen(dop.save.fullfile_dat,'w');
-            dop.tmp.delims{3} = 1; % reset delimiter
+            dop.save.delim{3} = 1; % reset delimiter
             for i = 1 : numel(dop.save.labels)
                 if i == numel(dop.save.labels)
-                    dop.tmp.delims{3} = 2; % new line
+                    dop.save.delim{3} = 2; % new line
                 end
-                fprintf(dop.save.fid,['%s',dop.tmp.delims{dop.tmp.delims{3}}],dop.save.labels{i});
+                fprintf(dop.save.fid,['%s',dop.save.delim{dop.save.delim{3}}],dop.save.labels{i});
             end
             fclose(dop.save.fid);
         end
@@ -325,7 +325,7 @@ try
         if okay
             dop.save.fid = fopen(dop.save.fullfile_dat,'a');
             k = 0;
-            dop.tmp.delims{3} = 1; % reset delimiter
+            dop.save.delim{3} = 1; % reset delimiter
             for i = 1 : numel(dop.tmp.extras)
                 k = k + 1;
                 dop.tmp.data_name = dop.tmp.extras{i};
@@ -336,7 +336,7 @@ try
                         dop.tmp.value = dop.(tmp.check{j}).(dop.tmp.data_name);
                         fprintf(dop.save.fid,...
                             [dopVarType(dop.tmp.value),...
-                            dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                            dop.save.delim{dop.save.delim{3}}],dop.tmp.value);
                         break
                     end
                 end
@@ -359,24 +359,24 @@ try
                                     case 'overall'
                                         k = k + 1;
                                         if k == numel(dop.save.labels)
-                                            dop.tmp.delims{3} = 2; % new line
+                                            dop.save.delim{3} = 2; % new line
                                         end
                                         % overall data
                                         dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).(dop.tmp.var);
                                         fprintf(dop.save.fid,...
                                             [dopVarType(dop.tmp.value),...
-                                            dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                            dop.save.delim{dop.save.delim{3}}],dop.tmp.value);
                                         
                                     case 'epoch'
                                         for j = 1 : dop.event.n % for the moment
                                             k = k + 1;
                                             if k == numel(dop.save.labels)
-                                                dop.tmp.delims{3} = 2; % new line
+                                                dop.save.delim{3} = 2; % new line
                                             end
                                             dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).(dop.tmp.var)(j);
                                             fprintf(dop.save.fid,...
                                                 [dopVarType(dop.tmp.value),...
-                                                dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                                dop.save.delim{dop.save.delim{3}}],dop.tmp.value);
                                         end
                                         
                                 end
