@@ -15,6 +15,7 @@ dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
 dop.def.event_channels = 14;%9;%13; % 14 also in example
 dop.def.event_height = 1000; % 400; % greater than
 dop.def.event_sep = 35; % no longer used to find events, just to check whether you're allowing enough time
+% dop.def.num_events = 40; % maximum number of events, important for saving epoch data
 
 dop.def.downsample_rate = 25; % Hertz
 
@@ -64,7 +65,11 @@ dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
 
 dop.save.save_file = []; % this will be auto completed based upon the dop.def.task_name variable
 % dop.save.save_dir = 'C:\Users\mq20111600\Documents\nData\dopStep';
-dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
+[dop,okay,msg] = dopSaveDir(dop);
+% or
+% dop.save.save_dir = dopSaveDir(dop,'dir_only',1);
+% or
+% dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
 % dop.data_dir = 'C:\Users\mq20111600\Desktop\UniSA Infant TCD';
 dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
@@ -72,13 +77,14 @@ dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
 % in.file_list = {'test.exp'};
 if okay
     for i = 1 : numel(dop.file_list)
-        in.file = dop.file_list{i};
-        
+        in.fullfile = dop.file_list{i};
+        [~,in.file_noext,in.file_ext] = fileparts(in.fullfile);
+        in.file = [in.file_noext,in.file_ext];
         dop.save.file = in.file; % dop.save.extras will save this as a column in the file
         
         fprintf('%u: %s\n',i,in.file);
         
-        [dop,okay,msg] = dopImport(dop,'file',in.file);
+        [dop,okay,msg] = dopImport(dop,'file',in.fullfile);
         % extract signal and event channels from larger set of data columns
         % this is called within dopImport as well
         [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
@@ -144,10 +150,11 @@ if okay
         
         
     end
-    % plot the 'collected' data for all okay files
-    [dop,okay,msg] = dopPlot(dop,'collect');
     % save the 'collected' data for all okay files
     [dop,okay,msg] = dopSaveCollect(dop);
+    % plot the 'collected' data for all okay files
+    [dop,okay,msg] = dopPlot(dop,'collect');
+    
     dopCloseMsg;
 end
 

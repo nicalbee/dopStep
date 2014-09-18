@@ -153,7 +153,7 @@ try
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
         if isfield(dop,'collect')
-            if isfield(dop.collect,dop.tmp.type)
+            if isfield(dop.collect,dop.tmp.type) && isfield(dop.collect.(dop.tmp.type),'data')
                 dop.tmp.data = dop.collect.(dop.tmp.type).data;
             elseif strcmp(dop.tmp.type,'use') && isfield(dop,'data') ...
                     && isfield(dop.data,'use_type') && ~isempty(dop.data.use_type)
@@ -208,7 +208,7 @@ try
                     
                     dop.def.task_name = dop.tmp.defaults.collect_file;
                 end
-                dop.tmp.collect_file = sprintf('%s_%sData.dat',...
+                dop.tmp.collect_file = sprintf('%sCollect_%sData.dat',...
                     dop.def.task_name,dop.tmp.type);
                 dop.tmp.collect_fullfile = fullfile(dop.tmp.collect_dir,dop.tmp.collect_file);
             end
@@ -250,6 +250,10 @@ try
             dlmwrite(dop.tmp.collect_fullfile,...
                 [dop.tmp.times' reshape(dop.tmp.data,size(dop.tmp.data,1),size(dop.tmp.data,2)*size(dop.tmp.data,3))],...
                 'delimiter',dop.tmp.delim,'-append');
+            msg{end+1} = sprintf(['''dop.collect'' data saved to:'...
+                '\n\tFile: %s\n\tDir: %s'],...
+                dop.tmp.collect_file,dop.tmp.collect_dir);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

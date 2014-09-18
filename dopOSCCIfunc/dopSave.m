@@ -186,6 +186,8 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 08-Sep-2014 NAB fixed fileparts exclusion for naming
 % 09-Sep-2014 NAB updated documentation
 % 10-Sep-2014 NAB more documentation
+% 17-Sep-2014 NAB save file name adjusted
+% 18-Sep-2014 NAB save file name updated
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -197,7 +199,7 @@ try
         %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'save_file','dopSave',...
+            'save_file','dopSave',... 'task_name','dopSave',...
             'save_dir',[],...
             'save_mat',0,...
             'save_dat',1, ...
@@ -234,7 +236,7 @@ try
                
                     dop.def.task_name = dop.tmp.defaults.save_file;
                 end
-                dop.tmp.save_file = sprintf('%sSaveData.dat',dop.def.task_name);
+                dop.tmp.save_file = sprintf('%sSummaryData.dat',dop.def.task_name);
         end
         %% main code
         if okay

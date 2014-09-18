@@ -1,28 +1,61 @@
-function abbreviations = dopSaveAbbreviations(comment)
-% dopOSCCI3: dopNew
+function output = dopSaveAbbreviations(varargin)
+% dopOSCCI3: dopSaveAbbreviations
 %
 % notes:
-% basic structure of a function to save time when creating a new one
+% list of variable_name names and abbreviations used to shorten their
+% representation as save variable and in save directories.
 %
-% * not yet implemented (19-Dec-2013)
 %
 % Use:
 %
-% [dop,okay,msg] = dopNew(dop,[]);
+% ouput = dopSaveAbbreviations([msg],[variable_name]);
 %
 % where:
 % > Inputs:
-% - dop = dop matlab structure
+% - msg: logical (1 = yes, 0 = no) to display messages inside function
 %
-% > Outputs: (note, varargout - therefore optional or as many as you want)
-% - dop = dop matlab sructure
+% - variable_name: character/string array
 %
-% - okay = logical (0 or 1) for problem, 0 = no problem, 1 = problem
-% - msg = message about progress/events within function
+% > Outputs:
+%   if 'variable_name' is included as an input, a single abbreviation
+%   character string will be ouputed
+% - e.g., abbreviation = dopSaveAbbreviations('baseline')
+%
+%   if no inputs of just the 'msg' input are included, the output will be a
+%   structure variable with a list of variable names and associated
+%   abbreviations:
+% - e.g., abbreviations = dopSaveAbbreviations(1);
+%   or
+%   abbreviations = dopSaveAbbreviations;
+%
+%   where, abbreviations include:
+%            overall: ''
+%               Left: 'L'
+%              Right: 'R'
+%         Difference: 'Diff'
+%            Average: 'Avg'
+%                poi: 'poi'
+%           baseline: 'base'
+%              epoch: 'ep'
+%                all: 'all'
+%             screen: 'srn'
+%                odd: 'odd'
+%               even: 'even'
+%                act: 'act'
+%                sep: 'sep'
+%     period_samples: 'period_samples'
+%        period_mean: 'period_mean'
+%          period_sd: 'period_sd'
+%     period_latency: 'period_latency'
+%             peak_n: 'n'
+%          peak_mean: 'mean'
+%            peak_sd: 'sd'
+%       peak_latency: 'latency'
 %
 % Created: 15-Aug-2014 NAB
 % Last edit:
 % 15-Aug-2014 NAB
+% 18-Sep-2014 NAB added variable name output option
 
 % if ~exist('okay','var') || isempty(okay)
 %     okay = 0;
@@ -32,14 +65,22 @@ function abbreviations = dopSaveAbbreviations(comment)
 % end
 % msg{end+1} = sprintf('Run: %s',mfilename);
 %
-if ~exist('comment','var') || isempty(comment)
-    comment = 0;
+msg = 0;
+variable_name = [];
+if nargin
+    for i = 1 : numel(varargin)
+        if isnumeric(varargin{i}) && numel(varargin{i}) == 1
+            msg = varargin{i};
+        elseif ischar(varargin{i})
+            variable_name = varargin{i};
+        end
+    end
 end
 try
-    dopOSCCIindent('run',comment);%fprintf('\nRunning %s:\n',mfilename);
+    dopOSCCIindent('run',msg);%fprintf('\nRunning %s:\n',mfilename);
     
     abbreviations = struct(...
-        'overall','',... this isn't used to denote 'overall' variable names
+        'overall','',... this isn't used to denote 'overall' variable_name names
         'Left','L',...
         'Right','R',...
         'Difference','Diff',...
@@ -63,13 +104,21 @@ try
         'peak_latency','latency' ...
         );
     tmp.fields = fields(abbreviations);
-    if comment
-    for i = 1 : numel(tmp.fields);
-        fprintf('\t%u: %s = ''%s''\n',i,tmp.fields{i},abbreviations.(tmp.fields{i}));
+    if msg
+        for i = 1 : numel(tmp.fields);
+            fprintf('\t%u: %s = ''%s''\n',i,tmp.fields{i},abbreviations.(tmp.fields{i}));
+        end
     end
+    output = abbreviations;
+    if ~isempty(variable_name) && isfield(abbreviations,(variable_name))
+        output = abbreviations.(variable_name);
+        if msg
+            fprintf('\n\t''%s'' variable abbreviation requested, returning: %s\n\n',...
+                variable_name,output);
+        end
     end
     
-    dopOSCCIindent('done',comment);%fprintf('\nRunning %s:\n',mfilename);
+    dopOSCCIindent('done',msg);%fprintf('\nRunning %s:\n',mfilename);
 catch err
     save(dopOSCCIdebug);rethrow(err);
 end
