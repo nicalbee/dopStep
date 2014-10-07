@@ -215,6 +215,7 @@ try
                 dop.tmp.window_data = mean(dop.tmp.window_data,2);
             end
             
+            dop_output.sig = ttest(dop.tmp.window_data,2);
             dop_output.peak_mean = mean(mean(dop.tmp.window_data,2));
             % standard deviation is always related to the mean, doesn't
             % make any sense if there's a single epoch
