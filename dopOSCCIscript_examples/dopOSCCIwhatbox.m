@@ -62,6 +62,8 @@ dop.save.periods = {'poi'}; % {'baseline','epoch'}
 dop.save.epochs = {'screen','odd','even'};%{'all','screen','odd','even'};
 dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
 
+dop.save.messages = 1;
+
 
 dop.save.save_file = []; % this will be auto completed based upon the dop.def.task_name variable
 % dop.save.save_dir = 'C:\Users\mq20111600\Documents\nData\dopStep';

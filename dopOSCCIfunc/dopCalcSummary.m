@@ -28,6 +28,7 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 %   again!
 %   + concerned about calculations when samples outside of the period of
 %   interest may be required. Happy about this now
+% 04-Oct-2014 NAB on HMP tip, fixed the activation window definition
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -204,8 +205,11 @@ try
                     dop.tmp.window(j,:) = [dop.tmp.n_pts - (dop.tmp.act_window/(1/dop.tmp.sample_rate)) dop.tmp.n_pts];
                 end
             end
-            
-            dop.tmp.window_data = dop.tmp.data(dop.tmp.window,:);
+%             if size(dop.tmp.window,1) == 1
+%                 dop.tmp.window_data = dop.tmp.data(dop.tmp.window(1):dop.tmp.window(2),:);
+%             else
+                dop.tmp.window_data = dop.tmp.data(dop.tmp.window(:,1):dop.tmp.window(:,2),:);
+%             end
             if strcmp(dop.tmp.summary,'overall')
                 % across all epochs (i.e., the average of all epochs)
                 dop.tmp.window_data = mean(dop.tmp.window_data,2);

@@ -125,6 +125,8 @@ function [dop,okay,msg] = dopEpoch(dop_input,varargin)
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 06-Sep-2014 NAB basic description - varargin still needed
 % 07-Sep-2014 NAB completed input descriptions
+% 07-Oct-2014 NAB updated dop.data.epoch assignment to be compatiable with
+%   negative or positive epoch numbers
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -182,7 +184,7 @@ try
             % rows = time, columns = epochs/trials, 3rd dim = hemisphere
             % (left/right)
             dop.data.epoch_labels = {'Left','Right','Difference','Average'};
-            dop.data.epoch = zeros(sum(abs(dop.epoch.samples))+1,numel(dop.event.samples),numel(dop.data.epoch_labels));
+            dop.data.epoch = zeros(numel(dop.epoch.times),numel(dop.event.samples),numel(dop.data.epoch_labels));
             % consider keeping data in dop.epoch structure as well: 10-Aug-2014
             dop.epoch.length_note = 'logical variable denoting epochs of acceptable length';
             dop.epoch.length = zeros(1,numel(dop.event.samples));
