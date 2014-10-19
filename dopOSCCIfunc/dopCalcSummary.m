@@ -215,6 +215,12 @@ try
                 dop.tmp.window_data = mean(dop.tmp.window_data,2);
             end
             
+            [dop_output.tsig,dop_output.tp,...
+                dop_output.ci,dop_output.stats] = ttest(dop.tmp.window_data);
+            dop_output.t_value = dop_output.stats.tstat;
+            dop_output.t_df = dop_output.stats.df;
+            dop_output.t_sd = dop_output.stats.sd;
+            
             dop_output.peak_mean = mean(mean(dop.tmp.window_data,2));
             % standard deviation is always related to the mean, doesn't
             % make any sense if there's a single epoch

@@ -125,6 +125,8 @@ function [dop,okay,msg] = dopSaveCollect(dop_input,varargin)
 % Created: XX-Sep-2014 NAB
 % Edits:
 % 08-Sep-2014 NAB - continually updating list of input help information
+% 19-Oct-2014 NAB - updating the dop.tmp.times variable to look for and use
+%   dop.epoch.times if it exists.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -182,7 +184,11 @@ try
             
         end
         if okay && isempty(dop.tmp.times)
-            dop.tmp.times = (1:size(dop.tmp.data,1))*(1/dop.tmp.sample_rate);
+            if isfield(dop,'epoch') && isfield(dop.epoch,'times') && ~isempty(dop.epoch.times)
+                dop.tmp.times = dop.epoch.times;
+            else
+                dop.tmp.times = (1:size(dop.tmp.data,1))*(1/dop.tmp.sample_rate);
+            end
         end
         %% check save directory
         if okay
