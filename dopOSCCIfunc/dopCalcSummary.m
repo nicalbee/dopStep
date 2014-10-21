@@ -29,6 +29,9 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 %   + concerned about calculations when samples outside of the period of
 %   interest may be required. Happy about this now
 % 04-Oct-2014 NAB on HMP tip, fixed the activation window definition
+% 21-Oct-2014 NAB put 'ttest' exist check in, in case statistics toolbox
+%   isn't there... hmm, still not working - might be a version issue for
+%   Lisa in Adelaide.
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -50,7 +53,10 @@ dop_output = struct(...
     'period_n',tmp_default,...
     'peak_n',tmp_default,...
     'peak_latency_sample',tmp_default,...
-    'peak_latency',tmp_default ...
+    'peak_latency',tmp_default, ...
+    't_value',tmp_default, ...
+    't_df',tmp_default, ...
+    't_sd',tmp_default ...
     );
 
          
@@ -76,6 +82,7 @@ try
             'peak','max',... % 'min'
             'value','abs', ... 'raw'
             'baseline',[],...
+            'ttest',0,... % turn on the ttest, not by default
             'poi',[] ...
             );
         % cells don't work in struct function...
@@ -215,12 +222,19 @@ try
                 dop.tmp.window_data = mean(dop.tmp.window_data,2);
             end
             
-            [dop_output.tsig,dop_output.tp,...
-                dop_output.ci,dop_output.stats] = ttest(dop.tmp.window_data);
-            dop_output.t_value = dop_output.stats.tstat;
-            dop_output.t_df = dop_output.stats.df;
-            dop_output.t_sd = dop_output.stats.sd;
-            
+            if exist('ttest','file') && dop.tmp.ttest
+                [dop_output.tsig,dop_output.tp,...
+                    dop_output.ci,dop_output.stats] = ttest(dop.tmp.window_data);
+                dop_output.t_value = dop_output.stats.tstat;
+                dop_output.t_df = dop_output.stats.df;
+                dop_output.t_sd = dop_output.stats.sd;
+            elseif ~dop.tmp.ttest
+                msg{end+1} = '''ttest'' variable set to 0, not running';
+                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            else
+                msg{end+1} = '''ttest'' function is not available - missing statistics toolbox';
+                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
             dop_output.peak_mean = mean(mean(dop.tmp.window_data,2));
             % standard deviation is always related to the mean, doesn't
             % make any sense if there's a single epoch
