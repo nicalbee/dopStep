@@ -230,7 +230,7 @@ try
            
             
             
-            [dop_output.tsig,dop_output.p,dop_output.ci,dop_output.stats] = ttest(dop.tmp.window_data);
+            [dop_output.tsig,dop_output.p,dop_output.ci,dop_output.stats] = ttest(dop_output.peak_);
             
             
             %e
