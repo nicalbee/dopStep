@@ -40,6 +40,9 @@ function [dop,okay,msg] = dopEventChannels(dop_input,varargin)
 % 27-Aug-2014 NAB
 % 02-Sep-2014 NAB attempting to create 'patch' information
 % 04-Sep-2014 NAB msg & wait_warn updates
+% 27-Oct-2014 NAB fixed issue with multiple samples of the same value for k
+%   line 128. Could be a one-off issue with the data file but I've made a
+%   kludge
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -120,6 +123,12 @@ try
                         
                         % get the index for the next sample value
                         k = find(dop.data.([dop.tmp.prd,'_plot'])(:,2) == dop.event.samples(j));
+                        % a kludge for multiple samples of the same
+                        % value... might have been a one-off funny data
+                        % file 27-Oct-2014 from Lisa Kurylowicz
+                        if numel(k) > 1
+                            k = k(1);
+                        end
                         % lower & uppers points of period in samples
                         kpt(jj) = k + dop.tmp.(dop.tmp.prd)(jj)/(1/dop.tmp.sample_rate);
                         % make sure it's not outside the limits - all of
