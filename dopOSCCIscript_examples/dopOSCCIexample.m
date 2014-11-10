@@ -137,3 +137,4 @@ if okay
     dopCloseMsg;
 end
 
+dopOSCCIalert('finish');

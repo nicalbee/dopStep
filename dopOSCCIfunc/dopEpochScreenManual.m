@@ -104,6 +104,8 @@ function [dop,okay,msg] = dopEpochScreenManual(dop_input,varargin)
 %
 % Created: 14-Sep-2014 NAB
 % Edits:
+% 10-Nov-2014 NAB added '.txt' to acceptable inputs
+% 10-Nov-2014 NAB updated exclude msg report
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -211,10 +213,20 @@ try
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 else
                     dop.tmp.exclude = dop.tmp.man.manual_exclude{dop.tmp.match};
+                    msg{end+1} = sprintf(['file (%s) not found in'...
+                        'manual screening file: %s\n\t'...
+                        '%u epochs to exclude'],dop.file,dop.tmp.manual_file,numel(dop.tmp.exclude));
+                    if numel(dop.tmp.exclude)
+                         msg{end} = strrep(msg{end},'exclude',...
+                             sprintf(['exclude: ',dopVarType(dop.tmp.exclude)],dop.tmp.exclude));
+                    end
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    
                 end
             end
             %% exclude epochs
             if isfield(dop.tmp,'exclude') && ~isempty(dop.tmp.exclude)
+                
                 dop.epoch.manual(dop.tmp.exclude) = 0;
             end
             dop.epoch.manual = logical(dop.epoch.manual);

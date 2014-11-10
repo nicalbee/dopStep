@@ -103,6 +103,7 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 % Edits:
 % 09-Sep-2014 NAB updated documentation/help information
 % 17-Sep-2014 NAB adjusted output if problem
+% 10-Nov-2014 NAB added '.txt' to switch to avoid confusion with .TX files
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -174,6 +175,11 @@ try
                             % these tend to have a number after the
                             % extension - quite annoying really!
                             dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.types{i})));
+                            for j = 1 : numel(dop.file_lists{i})
+                                if ~isempty(strfind(dop.file_lists{i}(j).name,'.txt'))
+                                    dop.file_lists{i}(j) = [];
+                                end
+                            end
                         otherwise
                             dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.types{i})));
                     end

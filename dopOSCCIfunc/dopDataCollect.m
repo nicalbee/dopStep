@@ -44,7 +44,7 @@ try
             );
         %         inputs.required = ...
         %             {'epoch'};
-        [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg,1);
+        [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg,0);
         %% data check
         
         %% main code
