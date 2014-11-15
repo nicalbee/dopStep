@@ -165,21 +165,35 @@ try
                         dop.file_list = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.type)));
                 end
             else
-                dop.tmp.types = dopFileTypes;
+                dop.tmp.types = upper(dopFileTypes);
                 % stupid case sensitivity....
                 dop.tmp.types = unique(upper(dop.tmp.types));
-                dop.file_lists = cell(1,numel(dop.tmp.types));
+ dop.file_lists = cell(1,numel(dop.tmp.types));
                 for i = 1 : numel(dop.tmp.types)
                     switch dop.tmp.types{i}
+%                         case {'.TXT','.txt'}
+% %                             for j = 1 : numel(dop.file_lists{i})
+% %                                 if ~isempty(strfind(dop.file_lists{i}(j).name,'.txt'))
+% %                                     dop.file_lists{i}(j) = [];
+% %                                 end
+% %                             end
+% dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.types{i})));
                         case '.TX'%,'.tx','.tw'}
                             % these tend to have a number after the
                             % extension - quite annoying really!
                             dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.types{i})));
-                            for j = 1 : numel(dop.file_lists{i})
+                            dop.tmp.txt_files = zeros(1,numel(dop.file_lists{i}));
+                            for j = 1 : numel(dop.tmp.txt_files)
                                 if ~isempty(strfind(dop.file_lists{i}(j).name,'.txt'))
-                                    dop.file_lists{i}(j) = [];
+                                    dop.tmp.txt_files(j) = 1;
                                 end
                             end
+                            if sum(dop.tmp.txt_files) == numel(dop.tmp.txt_files)
+                                dop.file_lists{i} = [];
+                            elseif sum(dop.tmp.txt_files)
+                                dop.file_lists{i}(logical(dop.tmp.txt_files)) = [];
+                            end
+                                
                         otherwise
                             dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.types{i})));
                     end

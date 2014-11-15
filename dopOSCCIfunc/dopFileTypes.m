@@ -1,5 +1,5 @@
-function file_types = dopFileTypes(report)
-% dopOSCCI3: dopNew ~ 18-Dec-2013 (last edit)
+function file_types = dopFileTypes(report,varargin)
+% dopOSCCI3: dopFileType
 %
 % notes:
 % returns a cell array of known dopOSCCI file types
@@ -10,6 +10,8 @@ function file_types = dopFileTypes(report)
 %
 % where:
 % > Inputs:
+% - report = logical variable (yes = 1, 0 = no) to report list to the
+%   command window when running. Default is 'no'.
 %
 % > Outputs:
 % - dop = dop matlab sructure
@@ -21,9 +23,13 @@ function file_types = dopFileTypes(report)
 % 15-Sep-2014 NAB added '.dat' file for reading in data files - primarily
 %   for dopEpochScreenManualRead but figure they'll be more down the line
 %
+% 15-Nov-2014 NAB added '.txt' but mostly because I want to ignore them...
+%   also changed so there's no repeition, just lowercase...
+%   % and removed .'txt' again... troubles with dopGetFileList
 if ~exist('report','var') || isempty(report)
     report = 0;
 end
+
 try
     %     tmp  =  dbstack;
     %     left_tab = [];
@@ -36,6 +42,7 @@ try
     dopOSCCIindent('run',report);
     % hopefully not case sensitive in most instances...
     file_types = {'.TX','.EXP','.MAT','.tx','.exp','.mat','.dat'};%,'.tx','.tw','.exp','.mat'};
+%     file_types = {'.tx','.exp','.mat','.dat'};%,'.tx','.tw','.exp','.mat'};
     if report
         fprintf('\tdopOSCCI recognises the following file types:\n');
         for i = 1 : numel(file_types)
