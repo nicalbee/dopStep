@@ -20,8 +20,8 @@ dop.def.event_sep = 35; % no longer used to find events, just to check whether y
 dop.def.downsample_rate = 25; % Hertz
 
 % lower and upper values
-dop.def.epoch = [-10 16]; %[-5 20];
-dop.def.baseline = [-10 -5];
+dop.def.epoch = [-12 16]; % [-10 16]; %
+dop.def.baseline = [-12 -7];
 dop.def.poi = [5 15];
 dop.def.act_window = 2; % activation window
 
@@ -96,7 +96,7 @@ if okay
         
         % dopMessage(msg); % or dopMessage(dop); % reports latest set of messages
         
-        [dop,okay,msg] = dopDownsample(dop,okay,msg); % or dop.data.down = dopDownSample(dop.data.raw,25,100)
+        [dop,okay,msg] = dopDownsample(dop,okay,msg);
         
         [dop,okay,msg] = dopEventMarkers(dop,okay,msg); % done automatically in (and redone at end of) dopDataTrim
         

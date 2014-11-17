@@ -77,6 +77,8 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 % 05-Sep-2014 NAB starting save routine
 %   made sure 'collect' data is passed to the figure 'UserData'
 % 10-Nov-2014 NAB updated to skip 'collect' plot if data doesn't exist
+% 17-Nov-2014 NAB moved the dopPlotName above the 'epoch' check - caused a
+%   labelling issue
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -136,12 +138,7 @@ try
         end
         if okay
 %             dop.tmp.data = dop.data.(dop.tmp.type);
-            switch dop.tmp.type
-                case 'norm'
-                    if isfield(dop,'event') && size(dop.tmp.data,2) == dop.event.n
-                        dop.tmp.type = 'epoch_norm';
-                    end
-            end
+            
             
             % open the figure
             dop.fig.h = figure('Units','Normalized',...
@@ -149,8 +146,14 @@ try
                 'NumberTitle','off',...
                 'Name',dopPlotName(dop),...
                 'UserData',dop);
-            
-            
+            % moved this below the dopPlotName function - 'epoch_norm'
+            % doesn't exist in the data
+            switch dop.tmp.type
+                case 'norm'
+                    if isfield(dop,'event') && size(dop.tmp.data,2) == dop.event.n
+                        dop.tmp.type = 'epoch_norm';
+                    end
+            end
             %             dopPlotAxes(dop.fig.h);
             %             dopPlotXbuttons(dop.fig.h);
             
