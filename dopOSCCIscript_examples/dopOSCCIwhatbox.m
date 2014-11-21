@@ -20,8 +20,8 @@ dop.def.event_sep = 35; % no longer used to find events, just to check whether y
 dop.def.downsample_rate = 25; % Hertz
 
 % lower and upper values
-dop.def.epoch = [-12 16]; % [-10 16]; %
-dop.def.baseline = [-12 -7];
+dop.def.epoch = [-14 16]; % [-10 16]; %
+dop.def.baseline = [-14 -9];
 dop.def.poi = [5 15];
 dop.def.act_window = 2; % activation window
 
@@ -32,14 +32,14 @@ dop.def.act_range = [50 150];
 dop.def.correct_range = [-3 4];%[50 150]; % acceptable activation limits [-4 5]; %
 dop.def.correct_pct = 5; % if =< x% outside range, correct with mean/median
 
-dop.def.act_separation = 10; % acceptable activation difference
+dop.def.act_separation = 20; % acceptable activation difference
 dop.def.act_separation_pct = 1;%0.5;%1;
 
-dop.def.screen = {'length','act','sep'}; % could add 'manual' to this
+dop.def.screen = {'manual','length','act','sep'}; % could add 'manual' to this
 
 % manual screening:
-dop.def.manual_file = []; % specify the manual screening file
-dop.def.manual_dir = []; % directory
+dop.def.manual_file = 'whatbox_INFANT_base-14to-9_POI_5to15_NicMan13_dopStep.txt'; % specify the manual screening file
+dop.def.manual_dir = '/Users/mq20111600/Google Drive/nWorking/whatbox_methods/data'; % directory
 % use the above 2 or the below 1
 dop.def.manual_fullfile = []; % directory and name in single string
 

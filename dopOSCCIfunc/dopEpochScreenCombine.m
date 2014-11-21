@@ -23,6 +23,8 @@ function [dop,okay,msg] = dopEpochScreenCombine(dop_input,varargin)
 % Created: 14-Aug-2014 NAB
 % Edits:
 % 14-Sep-2014 NAB 
+% 21-Nov-2014 NAB include step by step epoch exclusion reporting so you can
+%   easily see what you're losing for each screen type
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -81,6 +83,12 @@ try
             for i = 1 : numel(dop.tmp.screen)
                 if isfield(dop,'epoch') && isfield(dop.epoch,dop.tmp.screen{i})
                     dop.tmp.screens(i,:) = dop.epoch.(dop.tmp.screen{i});
+                    
+                    dop.tmp.ep_nums = find(dop.epoch.(dop.tmp.screen{i}) == 0);
+                    msg{end+1} = sprintf(['\t- %s: ',dopVarType(dop.tmp.ep_nums)],...
+                        dop.tmp.screen{i},dop.tmp.ep_nums);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            
                 else
                     msg{end+1} = sprintf(['''dop.epoch.%s'' variable not' ...
                         'found, therefore not used'],dop.tmp.screen{i});
