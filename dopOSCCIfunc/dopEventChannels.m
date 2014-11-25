@@ -43,6 +43,8 @@ function [dop,okay,msg] = dopEventChannels(dop_input,varargin)
 % 27-Oct-2014 NAB fixed issue with multiple samples of the same value for k
 %   line 128. Could be a one-off issue with the data file but I've made a
 %   kludge
+% 17-Nov-2014 NAB first epoch too short - not sure why this hasn't come up
+%   before - negative numbers as indices fixed.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -117,6 +119,29 @@ try
 %                             [ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))]
                     % regular data first
                     kpt = dop.event.samples(j) + dop.tmp.(dop.tmp.prd)/(1/dop.tmp.sample_rate);
+                    
+                    jj = 1;
+                    if kpt(jj) < 1; 
+                            msg{end+1} = sprintf(['Epoch %u: lower bound' ...
+                                ' for ''%s'' period is beyond data limits:'...
+                                ' %i samples (%3.2f seconds)'],...
+                                j,dop.tmp.prd,kpt(jj),kpt(jj)*(1/dop.tmp.sample_rate));
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            kpt(jj) = 1;
+                    end
+                        jj = 2;
+                        if kpt(jj) > size(dop.data.([dop.tmp.prd,'_plot']),1) %  % size(dop.data.event,1)+2;
+                            d = kpt(jj) - size(dop.data.([dop.tmp.prd,'_plot']),1);
+                            msg{end+1} = sprintf(['Epoch %u: upper bound' ...
+                                ' for ''%s'' period is beyond data limits:'...
+                                ' %i samples (%3.2f seconds). note:'...
+                                ' not a problem for ''epoch'' - likely'...
+                                ' to be the last point or later due to procedure'],...
+                                j,dop.tmp.prd,d,d*(1/dop.tmp.sample_rate));
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            kpt(jj) = size(dop.data.([dop.tmp.prd,'_plot']),1);
+                        end
+                        
                     dop.data.event(kpt,strcmp(dop.data.channel_labels,dop.tmp.prd)) = 1;
                     % and now the plotting data
                     for jj = 1 : 2

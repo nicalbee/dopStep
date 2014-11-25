@@ -127,6 +127,7 @@ function [dop,okay,msg] = dopMessageSave(dop_input,varargin)
 % Created: XX-Sep-2014 NAB
 % Edits:
 % 08-Sep-2014 NAB - continually updating list of input help information
+% 19-Nov-2014 NAB - continuing
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -139,7 +140,8 @@ try
         %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'message_file','dopMessages',... 'task_name','dopSave',...
+            'message_fullfile',[],...
+            'message_file','dopOSCCI',... 'task_name','dopSave',...
             'message_dir',[],...
             'message',1, ...
             'delim','\t', ...
@@ -161,7 +163,13 @@ try
                 dop.tmp.message_file = sprintf('%sMessageData.dat',dop.def.task_name);
         end
         %% main code
-        
+        if okay && ~isempty(msg) && iscell(msg)
+            dop.tmp.fid = fopen(dop
+            for i = 1 : numel(msg)
+            end
+            fclose(dop.tmp.fid);
+            
+        end
         %% example msg
         msg{end+1} = 'some string';
         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);

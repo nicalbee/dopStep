@@ -104,6 +104,9 @@ function [dop,okay,msg] = dopEpochScreenManual(dop_input,varargin)
 %
 % Created: 14-Sep-2014 NAB
 % Edits:
+% 10-Nov-2014 NAB added '.txt' to acceptable inputs
+% 10-Nov-2014 NAB updated exclude msg report
+% 15-Nov-2014 NAB fixed check for exclusion of epochs greater than available
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -162,21 +165,22 @@ try
                 msg{end+1} = sprintf(['''exclude'' input variable for ''%s''',...
                     ' function must be numeric\n\t(%s)'],mfilename,dop.tmp.file);
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-            elseif ~isempty(dop.tmp.exclude) && ...
-                    sum(dop.tmp.exclude <= dop.event.n) ~= numel(dop.tmp.exclude)
-                okay = 0;
-                msg{end+1} = sprintf(['''exclude'' input variable (',...
-                    dopVarType(dop.tmp.exclude),...
-                    ' has names greater than the number of available epochs'...
-                    ' (%u)\n\t(%s: %s)'],dop.tmp.exclude,dop.event.n,...
-                    mfilename,dop.tmp.file);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%             elseif ~isempty(dop.tmp.exclude) && ...
+%                     sum(dop.tmp.exclude <= dop.event.n) ~= numel(dop.tmp.exclude)
+%                 okay = 0;
+%                 msg{end+1} = sprintf(['''exclude'' input variable (',...
+%                     dopVarType(dop.tmp.exclude),...
+%                     ' has values greater than the number of available epochs'...
+%                     ' (%u)\n\t(%s: %s)'],dop.tmp.exclude,dop.event.n,...
+%                     mfilename,dop.tmp.file);
+%                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%             else
             elseif ~isempty(dop.tmp.manual_fullfile) && exist(dop.tmp.manual_fullfile,'file')
-%                 warndlg('Not yet programmed!','Manual epoch file');
+                %                 warndlg('Not yet programmed!','Manual epoch file');
                 [dop.tmp.man,okay,msg] = dopEpochScreenManualRead(dop.tmp.manual_fullfile,okay,msg);
             elseif ~isempty(dop.tmp.manual_file) && ~isempty(dop.tmp.manual_dir) ...
-                && exist(dop.tmp.manual_dir,'dir') ...
-                && exist(fullfile(dop.tmp.manual_dir,dop.tmp.manual_file),'file')
+                    && exist(dop.tmp.manual_dir,'dir') ...
+                    && exist(fullfile(dop.tmp.manual_dir,dop.tmp.manual_file),'file')
                 [dop.tmp.man,okay,msg] = dopEpochScreenManualRead(...
                     fullfile(dop.tmp.manual_dir,dop.tmp.manual_file),okay,msg);
             elseif isempty(dop.tmp.manual_file)
@@ -204,19 +208,49 @@ try
                         end
                     end
                 end
-                if isempty(dop.tmp.match) % might be a full file list
-                    msg{end+1} = sprintf(['file (%s) not found in'...
+                if isempty(dop.tmp.match) % not found
+                    msg{end+1} = sprintf(['file (%s) not found in '...
                         'manual screening file: %s\n\t'...
                         'therefore, no epochs manually excluded'],dop.file,dop.tmp.manual_file);
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 else
                     dop.tmp.exclude = dop.tmp.man.manual_exclude{dop.tmp.match};
+                    msg{end+1} = sprintf(['file (%s) found in'...
+                        'manual screening file: %s\n\t'...
+                        '%u epochs to exclude'],dop.file,dop.tmp.manual_file,numel(dop.tmp.exclude));
+                    if numel(dop.tmp.exclude)
+                        msg{end} = strrep(msg{end},'exclude',...
+                            sprintf(['exclude: ',dopVarType(dop.tmp.exclude)],dop.tmp.exclude));
+                    end
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    
                 end
+            end
+            %% check the exclusion fits within the current set of epochs
+            if ~isempty(dop.tmp.exclude) && ...
+                    sum(dop.tmp.exclude > dop.event.n)
+                dop.tmp.greater = dop.tmp.exclude > dop.event.n;
+                okay = 0;
+                msg{end+1} = sprintf(['''exclude'' input variable (',...
+                    dopVarType(dop.tmp.exclude),')',...
+                    ' has %u values greater than the available epochs (%u).'...
+                    ' \n\tThese will be ignored.',...
+                    ' \n\t(%s: %s)'],...
+                    dop.tmp.exclude,sum(dop.tmp.greater),dop.event.n,...
+                    mfilename,dop.tmp.file);
+                if sum(dop.tmp.greater) == 1
+                    msg{end} = strrep(msg{end},'values','value');
+                    msg{end} = strrep(msg{end},'These','This');
+                end
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                okay = 1; % we can fix this, ignoring the greater values
+                dop.tmp.exclude(dop.tmp.greater) = [];% % remove from list
             end
             %% exclude epochs
             if isfield(dop.tmp,'exclude') && ~isempty(dop.tmp.exclude)
                 dop.epoch.manual(dop.tmp.exclude) = 0;
             end
+            
             dop.epoch.manual = logical(dop.epoch.manual);
         end
         

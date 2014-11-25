@@ -105,6 +105,7 @@ function [dop,okay,msg] = dopEpochScreenManualRead(dop_input,varargin)
 %
 % Created: 15-Sep-2014 NAB
 % Edits:
+% 21-Nov-2014 NAB fixed old tilda (~) delimiter read
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -169,7 +170,19 @@ try
                         dop.tmp.epochs = zeros(1,numel(dop.tmp.tilda));
                         dop.tmp.row2 = char(dop.tmp.row{2});
                         for j = 1 : numel(dop.tmp.tilda)
-                            dop.tmp.epochs(j) = str2double(dop.tmp.row2(dop.tmp.tilda(j)+1));
+                            switch j
+                                case 1
+                                    if dop.tmp.tilda(j) > 1
+                                        dop.tmp.epochs(j) = str2double(dop.tmp.row2(1:dop.tmp.tilda(j)-1));
+                                    end
+                                    % else skip
+%                                 case numel(dop.tmp.tilda)
+%                                     if dop.tmp.tilda(end) <= numel(dop.tmp.row2)
+%                                         dop.tmp.epochs(j) = str2double(dop.tmp.row2(dop.tmp.tilda(j-1)+1:dop.tmp.tilda(j)-1));
+%                                     end
+                                otherwise
+                                    dop.tmp.epochs(j) = str2double(dop.tmp.row2(dop.tmp.tilda(j-1)+1:dop.tmp.tilda(j)-1));
+                            end
                         end
                         dop.tmp.manual_exclude{i-1} = dop.tmp.epochs;
                     end

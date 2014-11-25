@@ -13,9 +13,15 @@ function dopPlotEpochAxesAdjust(handle,~)
 % Last edit:
 % 02-Sep-2014 NAB
 % 12-Sep-2014 NAB problem with mean/median using dop.plot.screen variable
+% 15-Nov-2014 NAB adjusted to get number inputs into display box working
 
 disp_options = {'all','median','mean'};
-if ~isnumeric(get(handle,'string')) && strcmp(get(handle,'tag'),'display') ...
+% if ~isnan(str2double(get(handle,'string')))
+%     value = str2double(get(handle,'string'));
+%     if
+%     
+% else
+if isnan(str2double(get(handle,'string'))) && strcmp(get(handle,'tag'),'display') ...
         && ~sum(strcmp(get(handle,'string'),disp_options))
         h = warndlg('Unacceptable string input: setting to default','Input error:');
         set(handle,'string',char(get(handle,'UserData')));

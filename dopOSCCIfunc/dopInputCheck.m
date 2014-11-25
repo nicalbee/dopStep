@@ -27,6 +27,7 @@ function [input_type,okay,msg] = dopInputCheck(dop_input,varargin)
 % Created: 07-Aug-2013 NAB
 % Edits:
 % 05-Sep-2014 NAB folder input given the okay = 1
+% 10-Nov-2014 NAB added '.txt' to acceptable inputs
 
 
 input_type = [];
@@ -87,6 +88,9 @@ try
             case file_types
                 input_type = 'file';%tmp_ext;
                 okay = 1;
+            case '.txt'
+                input_type = 'file';
+                okay = 1; % could be a text file
             otherwise
                 % maybe it's one of the old Multidop files...
                 if numel(tmp_ext) == 4
