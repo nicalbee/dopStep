@@ -35,7 +35,7 @@ dop.def.correct_pct = 5; % if =< x% outside range, correct with mean/median
 dop.def.act_separation = 10; % acceptable activation difference
 dop.def.act_separation_pct = 1;%0.5;%1;
 
-dop.def.screen = {'manual','length','act','sep'}; % could add 'manual' to this
+dop.def.screen = {'manual','length','act','sep'}; % could add 'manual' to this 
 
 % manual screening:
 dop.def.manual_file = 'whatbox_INFANT_base-14to-9_POI_5to15_NicMan13_dopStep.txt'; % specify the manual screening file
@@ -53,7 +53,7 @@ dop.def.keep_data_steps = 1;
 
 
 % define which information will be saved
-dop.save.extras = {'file'};
+dop.save.extras = {'file','clip','clip_left','clip_right','clip_left_max','clip_right_max'};
 % you can add your own variables to 'extras', just need to be defined
 % somewhere as dop.save.x = where x = variable name
 dop.save.summary = {'overall'}; % versus 'epoch' (not well tested yet)
@@ -74,7 +74,9 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 % dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
 % dop.data_dir = 'C:\Users\mq20111600\Desktop\UniSA Infant TCD';
-dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
+
+% dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
+dop.data_dir = '/Users/mq20111600/Google Drive/nWorking/whatbox_methods/data/raw/';
 [dop,okay,msg] = dopGetFileList(dop,okay,msg);
 % in.file_list = {'test.exp'};
 if okay
@@ -90,6 +92,8 @@ if okay
         % extract signal and event channels from larger set of data columns
         % this is called within dopImport as well
         [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
+        
+      
         
 %         [dop,okay,msg] = dopPlot(dop,'wait');
 %     end
@@ -107,6 +111,9 @@ if okay
         [dop,okay,msg] = dopDataTrim(dop,okay,msg);
         
         [dop,okay,msg] = dopEventChannels(dop,okay,msg);
+       
+        [dop,okay,msg] = dopClipCheck(dop,okay,msg);
+%         [dop,okay,msg] = dopPlot(dop,'wait');
         
         [dop,okay,msg] = dopHeartCycle(dop,okay,msg);
         % to have a look at the data include 'plot' as an input
