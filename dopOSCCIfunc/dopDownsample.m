@@ -4,8 +4,6 @@ function [dop,okay,msg] = dopDownsample(dop_input,varargin)
 % notes:
 % changes the sampling rate of the data using matlab's downsample or
 %
-% * not yet implemented (17-Dec-2013)
-%
 % Use:
 %
 % dop = dopDownsample(dop_input);
@@ -25,6 +23,8 @@ function [dop,okay,msg] = dopDownsample(dop_input,varargin)
 % 7-Aug-14 NAB
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn update
+% 27-Jan-2015 NAB removed part of help * not yet implemented - wasn't doing
+%   anything
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);

@@ -32,6 +32,8 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 % 21-Oct-2014 NAB put 'ttest' exist check in, in case statistics toolbox
 %   isn't there... hmm, still not working - might be a version issue for
 %   Lisa in Adelaide.
+% 27-Jan-2015 NAB zeroed latency samples: ie -1 + ...
+%
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -191,7 +193,8 @@ try
                 [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
                     eval([dop.tmp.peak,'(mean(dop.tmp.peak_data,2))']); % could be min or max
             end
-            dop_output.peak_latency_sample = dop.tmp.period_filt(1) + dop.tmp.peak_sample; % in samples
+            dop_output.peak_latency_sample = -1 + dop.tmp.period_filt(1) + dop.tmp.peak_sample; % in samples
+            % -1 here to 'zero' the latency 27-Jan-15 NAB
             dop_output.peak_latency = dop.tmp.epoch(1) + dop_output.peak_latency_sample*(1/dop.tmp.sample_rate);
             
             % calculate the activation window

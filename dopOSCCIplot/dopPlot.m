@@ -79,6 +79,9 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 % 10-Nov-2014 NAB updated to skip 'collect' plot if data doesn't exist
 % 17-Nov-2014 NAB moved the dopPlotName above the 'epoch' check - caused a
 %   labelling issue
+% 27-Jan-2015 NAB fixed activation window when peak occurs at the end of
+%   data: ie calculation was based on data earlier then the peak rather
+%   than surrouding the peak
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -160,7 +163,7 @@ try
             switch dop.tmp.type
                 case {'raw','channels','norm','down','trim','hc_data',...
                         'hc_correct','hc_linspace','act_correct','event',...
-                        'act_correct_plot'}
+                        'act_correct_plot','clip'}
                     dopPlotComponents(dop.fig.h);
                     
                     dop.fig.ch = get(dop.fig.h,'children');
@@ -314,6 +317,11 @@ try
                         'poi',dop.tmp.poi);
                     if peak_okay
                         dop.tmp.act_values = [-dop.tmp.act_window*.5 dop.tmp.act_window*.5]+dop.tmp.sum.peak_latency;
+                        % check if the peak is right at the end, adjust
+                        % activation window accordingly
+                        if dop.tmp.act_values(2) > dop.epoch.times(end)
+                            dop.tmp.act_values = [-dop.tmp.act_window 0]+dop.epoch.times(end);
+                        end
                         dop.tmp.act_windowh = ...
                             patch([dop.tmp.act_values fliplr(dop.tmp.act_values)],...
                             [ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))],...
