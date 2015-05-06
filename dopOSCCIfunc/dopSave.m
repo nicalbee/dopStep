@@ -188,6 +188,7 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 10-Sep-2014 NAB more documentation
 % 17-Sep-2014 NAB save file name adjusted
 % 18-Sep-2014 NAB save file name updated
+% 05-May-2015 NAB added dopSaveDir in case not already created
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -252,6 +253,10 @@ try
             if isempty(strfind(dop.tmp.save_file,'.mat'))
                 [~,~,tmp_ext] = fileparts(dop.tmp.save_file);
                 dop.save.save_file = strrep(dop.tmp.save_file,tmp_ext,'.mat');
+            end
+            if isempty(dop.tmp.save_dir)
+                [dop,okay,msg] = dopSaveDir(dop);
+                dop.tmp.save_dir = dop.save.save_dir;
             end
             if ~exist(dop.tmp.save_dir,'dir')
                 mkdir(dop.tmp.save_dir);

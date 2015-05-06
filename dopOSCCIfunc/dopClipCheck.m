@@ -1,13 +1,23 @@
-function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
-% dopOSCCI3: dopXXX
+function [dop,okay,msg] = dopClipCheck(dop_input,varargin)
+% dopOSCCI3: dopClipCheck
 %
-% [dop,okay,msg] = dopXXX(dop_input,[okay],[msg],...)
+% [dop,okay,msg] = dopClipCheck(dop_input,[okay],[msg],...)
 %
 % notes:
+%   The Doppler Box has a setting which sets an upper limit on the data
+%   recording such that the top of the signal is 'clipped'. This function
+%   checks for the occurence of clipping using a normality check.
+%
+%   Import to think about where you place this in the sequence of steps.
+%   Best after any trimming but before any adjustments:
+%   e.g.
+%    - 'dopHeartCycle'
+%    - 'dopActCorrect'
+%    - 'dopNorm'
 %
 % Use:
 %
-% [dop,okay,msg] = dopXXX(dop_input,[okay],[msg],...)
+% [dop,okay,msg] = dopClipCheck(dop_input,[okay],[msg],...)
 %
 % where:
 %--- Inputs ---
@@ -44,46 +54,10 @@ function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
 %   note: '...' indicates that other inputs can be included before or
 %   after. The inputs can be included in any order.
 %
-% - 'epoch':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'epoch',[-15 30],...)
-%   Lower and Upper epoch values in seconds used to divide the data
-%   surrounding the event markers.
-%
-% - 'baseline':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'baseline',[-15 -5],...)
-%   Lower and Upper baseline period values in seconds. The mean of this
-%   period is subtracted from the rest of the data within the epoch (left
-%   and right channels separately) to perform baseline correction (see
-%   dopBaseCorrect).
-%
-% - 'poi':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'epoch',[10 25],...)
-%   Lower and Upper period of interest values in seconds within which to
-%   search for peak left minus right difference for calculation of the
-%   lateralisation index.
-%
-% - 'sample_rate':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'sample_rate',25,...)
-%   The sampling rate of the data in Hertz. This is used to convert the
-%   'epoch' variable seconds to samples to divide the data into epochs.
-%   note: After dopDownsample is run, this value should be the downsampled
-%   sample rate.
-%
-% - 'event_channels':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'event_channels',13,...)
-%   Column number of data which holds the event information. Typically
-%   square signal data.
-%   note: 'event_channels' is used within this function as an input for
-%   dopEvent Markers if it hasn't previously been called. That is,
-%   'dop.event' structure variable is not found
-%
-% - 'event_height':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'event_height',1000,...)
-%   Number above which activity in the event channel/column data will be
-%   detected as an event marker.
-%   note: 'event_height' is used within this function as an input for
-%   dopEvent Markers if it hasn't previously been called. That is,
-%   'dop.event' structure variable is not found
+% - 'clip_pct_flag':
+%   > e.g., dopClipCheck(dop_input,okay,msg,...,'clip_pct_flag',1,...)
+%   Left or right channels with the percentage of samples equal to the
+%   maximum greater than this value will be flagged as 'may be' clipped.
 %
 % - 'file':
 %   > e.g., dopFunction(dop_input,okay,msg,...,'file','subjectX.exp',...)
@@ -122,9 +96,8 @@ function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
 % - okay = logical (0 or 1) for problem, 0 = no problem, 1 = problem
 % - msg = message about progress/events within function
 %
-% Created: XX-May-2015 NAB
+% Created: 14-Jan-2015 NAB
 % Edits:
-% 08-May-2015 NAB - continually updating list of input help information
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -137,26 +110,77 @@ try
         %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'epoch',[], ... % [lower upper] limits in seconds
-            'event_height',[],... % needed for dopEventMarkers
-            'event_channels',[], ... % needed for dopEventMarkers
-            'sample_rate',[], ... % not critical for dopEventMarkers
+            'clip_pct_flag',1, ... if greater than 1 pct of data, flag as potentially clipped
             'file',[],... % for error reporting mostly
             'msg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
-        inputs.required = ...
-            {'epoch'};
+        inputs.required = [];...
+%             {'epoch'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
-        
-        %% tmp check
-        [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+        if okay
+            switch dopInputCheck(dop)
+                case {'dop','matrix'}
+                    
+                    if ~isfield(dop.tmp,'data') || isempty(dop.tmp.data)
+                        okay = 0;
+                        msg{end+1} = sprintf(['Inputted data is empty. Could be'...
+                            ' to do with the screening of epochs,'...
+                            ' especially if you''re doing odd & even for'...
+                            ' split-half calculations\n(%s:%s)'],...
+                            mfilename,dop.tmp.file);
+                    else
+                        msg{end+1} = 'Using inputted data';
+                    end
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                otherwise
+                    okay = 0;
+                    msg{end+1} = sprintf(['Input doesn''t include recognised data',...
+                        '\n(%s:%s)'],mfilename,dop.tmp.file);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
+        end
+%         %% tmp check
+%         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         
         %% main code
+        dop.tmp.ch_indices = [1 2]; 
+        if isfield(dop,'data') && isfield(dop.data,'channel_labels')
+                dop.tmp.ch_indices = find(ismember(dop.data.channel_labels,{'left','right'}));
+        end
+        
+        dop.tmp.max = max(dop.tmp.data(:,dop.tmp.ch_indices));
+        dop.tmp.clip = 100*sum(bsxfun(@eq,dop.tmp.data(:,dop.tmp.ch_indices),dop.tmp.max))/length(dop.tmp.data(:,dop.tmp.ch_indices));
+        % output variables to be saved
+        dop.save.clip_left_max = dop.tmp.max(1);
+        dop.save.clip_right_max = dop.tmp.max(2);
+        dop.save.clip_left = dop.tmp.clip(1);
+        dop.save.clip_right = dop.tmp.clip(2);
+        dop.save.clip = 0;
+        dop.tmp.text = 'unlikely to';
+        if sum(dop.tmp.clip > dop.tmp.clip_pct_flag)
+            dop.save.clip = 1;
+            dop.tmp.text = 'may';
+        end
         
         %% example msg
-        msg{end+1} = 'some string';
+        msg{end+1} = sprintf(['%3.2f%% of left data equal to max (%3.2f)\n'...
+            '\t%3.2f%% of right data equal to max (%3.2f)\n'...
+            '\t > data %s be clipped.'],...
+            dop.tmp.clip(1),dop.tmp.max(1),dop.tmp.clip(2),dop.tmp.max(2),...
+            dop.tmp.text);
+        
+        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+        
+        msg{end+1} = sprintf(['To include this information in data file add the following '...
+            'to the dop.save.extras variable:\n',...
+            '\t- ''clip'' = logical (yes = 1, no = 0) either channel percentage greater than %u\n',...
+            '\t- ''clip_left'' = percentage samples at max value for left channel\n',...
+            '\t- ''clip_right'' = percentage samples at max value for right channel\n',...
+            '\t- ''clip_left_max'' = max value for left channel\n',...
+            '\t- ''clip_left_max'' = max value for right channel\n'],dop.tmp.clip_pct_flag);
+        
         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         
         %% save okay & msg to 'dop' structure

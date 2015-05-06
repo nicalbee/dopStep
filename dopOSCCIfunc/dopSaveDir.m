@@ -18,7 +18,7 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 %
 % An alternative to these is to not include any inputs. In this instance,
 % just a directory string will be outputted in the form of
-% 'dopOSCCI_yyyymmddTHHMMSS'. This uses MATLAB's 'datestr' function,
+% 'a_task/yyyymmddTHHMMSS'. This uses MATLAB's 'datestr' function,
 % specifically datestr(now,30).
 %
 % Another alternative is to set the first input as empty and then include
@@ -87,6 +87,13 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 %   search for peak left minus right difference for calculation of the
 %   lateralisation index.
 %
+% - 'prefix' or 'suffix':
+%   > e.g., dopFunction(dop_input,okay,msg,...,'prefix','mynote',...)
+%   Inclues variable before (prefix) or after (suffix) the directory name.
+%   e.g., mynote_ep-10to20_base-10to-5_poi10to20_act_sep10
+%   or
+%   e.g., ep-10to20_base-10to-5_poi10to20_act_sep10_mynote
+%
 % - 'name_variables':
 %   > e.g., dopFunction(dop_input,okay,msg,...,'name_variables',{'epoch','baseline','poi'},...)
 %   sets which variables are included in the directory name
@@ -131,6 +138,10 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 %
 % Created: 18-Sep-2014 NAB
 % Edits:
+% 27-Jan-2015 NAB separating task name from settings in directory structure
+%   + added activation separation to the labelling by default (act_sep)
+% 27-Jan-2015 NAB added prefix and suffix options
+%
 if ~exist('dop_input','var')
     dop_input = [];
 end
@@ -149,12 +160,15 @@ try
             'epoch',[], ... % [lower upper] limits in seconds
             'baseline',[],...
             'poi',[],...
+            'act_separation',[],...
+            'prefix',[],... % string to add before the variables/folder name
+            'suffix',[],... % string to add after the variables/folder name
             'dir_out',0,...
             'file',[],... % for error reporting mostly
             'msg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
-        inputs.defaults.name_variables = {'epoch','baseline','poi'};
+        inputs.defaults.name_variables = {'epoch','baseline','poi','act_separation'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
         
@@ -178,22 +192,68 @@ try
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         dop.tmp.base_dir = [dop_dir,'Data'];
-        dop.tmp.save_name = dop.tmp.task_name;
+        dop.tmp.save_name = []; %datestr(now,30); %dop.tmp.task_name;
         dop.tmp.var_found = 0;
         for i = 1 : numel(dop.tmp.name_variables)
             dop.tmp.vn = dop.tmp.name_variables{i}; % variable name
             if isfield(dop.tmp,dop.tmp.vn) && ~isempty(dop.tmp.(dop.tmp.vn));
                 dop.tmp.var_found = dop.tmp.var_found + 1;
-                dop.tmp.save_name = sprintf('%s_%s%ito%i',dop.tmp.save_name,...
-                    dopSaveAbbreviations(dop.tmp.vn),dop.tmp.(dop.tmp.vn));
-                msg{end+1} = sprintf('''%s'' variable included in directory name: %s',...
-                    dop.tmp.vn,dop.tmp.save_name);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                %                 if isempty(dop.tmp.save_name)
+                dop.tmp.programmed = 1;
+                switch numel(dop.tmp.(dop.tmp.vn))
+                    case 1
+                        dop.tmp.save_name = sprintf('%s_%s%i',dop.tmp.save_name,...
+                            dopSaveAbbreviations(dop.tmp.vn),dop.tmp.(dop.tmp.vn));
+                    case 2
+                        dop.tmp.save_name = sprintf('%s_%s%ito%i',dop.tmp.save_name,...
+                            dopSaveAbbreviations(dop.tmp.vn),dop.tmp.(dop.tmp.vn));
+                    otherwise
+                        dop.tmp.programmed = 0;
+                        msg{end+1} = sprintf(['''%s'' variable not',...
+                            ' included in directory name: not setup for %u item variables'],...
+                            dop.tmp.vn, numel(dop.tmp.(dop.tmp.vn)));
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        
+                end
+                if dop.tmp.programmed
+                    msg{end+1} = sprintf('''%s'' variable included in directory name: %s',...
+                        dop.tmp.vn,dop.tmp.save_name);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                end
             end
         end
-        if ~dop.tmp.var_found
-            dop.tmp.save_name = sprintf('%s_%s',dop.tmp.task_name,datestr(now,30));
+        if isempty(dop.tmp.save_name) %datestr(now,30);
+            dop.tmp.save_name = datestr(now,30);
+        else
+            % add a prefix
+            dop.tmp.amendments = {'prefix','suffix'};
+            for i = 1 : numel(dop.tmp.amendments)
+                dop.tmp.vn = dop.tmp.amendments{i};
+                if ~isempty(dop.tmp.(dop.tmp.vn))
+                    switch dop.tmp.vn
+                        case 'prefix'
+                            dop.tmp.save_name = sprintf([dopVarType(dop.tmp.(dop.tmp.vn)),'_%s'],...
+                        dop.tmp.(dop.tmp.vn),dop.tmp.save_name);
+                        case 'suffix'
+                            dop.tmp.save_name = sprintf(['%s_',dopVarType(dop.tmp.(dop.tmp.vn))],...
+                        dop.tmp.save_name,dop.tmp.(dop.tmp.vn));
+                    end
+                    
+                    msg{end+1} = sprintf(['%s (''',...
+                        dopVarType(dop.tmp.(dop.tmp.vn)),''') added to directory name: %s'],...
+                        dop.tmp.vn,dop.tmp.(dop.tmp.vn),dop.tmp.save_name);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                end
+            end
+            % if the first character an underscore?
+            if strncmp(dop.tmp.save_name(1),'_',1)
+                dop.tmp.save_name = dop.tmp.save_name(2:end);
+            end
+            % add a 'suffix'
         end
+        %         if ~dop.tmp.var_found
+        %             dop.tmp.save_name = sprintf('%s',);
+        %         end
         %         if ~isempty(dop.tmp.epoch)
         %             dop.tmp.save_name = sprintf('%s_ep%ito%i',dop.tmp.task_name,dop.tmp.epoch);
         %         end
@@ -205,13 +265,13 @@ try
         %         end
         
         while 1
-            dop.tmp.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.save_name);
+            dop.tmp.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.task_name,dop.tmp.save_name);
             if ~exist(dop.tmp.save_dir,'dir')
                 break
             end
             dop.tmp.save_name = [dop.tmp.save_name,'+'];
         end
-        dop.save.save_dir = dop.tmp.save_dir;
+        dop.save.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.task_name,dop.tmp.save_name);%dop.tmp.save_dir;
         msg{end+1} = sprintf('Original directory name: %s',...
             dop.save.save_dir);
         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
