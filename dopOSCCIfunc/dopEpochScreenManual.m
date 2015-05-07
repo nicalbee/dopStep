@@ -108,6 +108,7 @@ function [dop,okay,msg] = dopEpochScreenManual(dop_input,varargin)
 % 10-Nov-2014 NAB updated exclude msg report
 % 15-Nov-2014 NAB fixed check for exclusion of epochs greater than available
 % 01-Apr-2015 HMP/NAB or statement in file name matching ~ line 207
+% 08-May-2015 NAB/HMP added 'ismember' statmeent regarding file matching
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -204,9 +205,15 @@ try
                     while isempty(dop.tmp.match) && i < numel(dop.tmp.man.manual_list)
                         i = i + 1;
                         [~,tmp_file,tmp_ext] = fileparts(dop.tmp.man.manual_list{i});
-                        if strcmp([tmp_file,tmp_ext],dop.file) || ~isempty(strfind(dop.tmp.man.manual_list,dop.file))
-                            % or from Heather Payne 01-Apr-2015
+                        if strcmp([tmp_file,tmp_ext],dop.file)
                             dop.tmp.match = i;
+                        elseif  ismember(dop.tmp.man.manula_list,dop.file) %~isempty(strfind(dop.tmp.man.manual_list,dop.file))
+                            % or from Heather Payne 01-Apr-2015
+                            % update NAB 08-May-2015
+                            dop.tmp.match = find(ismember(dop.tmp.man.manula_list,dop.file));
+                            if isempty(dop.tmp.match)
+                                dop.tmp.match = 0;
+                            end
                         end
                     end
                 end
