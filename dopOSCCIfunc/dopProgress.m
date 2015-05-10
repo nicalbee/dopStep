@@ -1,13 +1,15 @@
-function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
-% dopOSCCI3: dopXXX
+function [dop,okay,msg] = dopProgress(dop_input,varargin)
+
+% dopOSCCI3: dopProgress
 %
-% [dop,okay,msg] = dopXXX(dop_input,[okay],[msg],...)
+% [dop,okay,msg] = dopProgress(dop_input,[okay],[msg],...)
 %
 % notes:
-%
+%   Uses the MATLAB 'waitbar' function to display progress through folder
+%   of files
 % Use:
 %
-% [dop,okay,msg] = dopXXX(dop_input,[okay],[msg],...)
+% [dop,okay,msg] = dopProgress(dop_input,[okay],[msg],...)
 %
 % where:
 %--- Inputs ---
@@ -43,47 +45,6 @@ function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
 %   > e.g., ...,'variable_name',X,...
 %   note: '...' indicates that other inputs can be included before or
 %   after. The inputs can be included in any order.
-%
-% - 'epoch':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'epoch',[-15 30],...)
-%   Lower and Upper epoch values in seconds used to divide the data
-%   surrounding the event markers.
-%
-% - 'baseline':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'baseline',[-15 -5],...)
-%   Lower and Upper baseline period values in seconds. The mean of this
-%   period is subtracted from the rest of the data within the epoch (left
-%   and right channels separately) to perform baseline correction (see
-%   dopBaseCorrect).
-%
-% - 'poi':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'epoch',[10 25],...)
-%   Lower and Upper period of interest values in seconds within which to
-%   search for peak left minus right difference for calculation of the
-%   lateralisation index.
-%
-% - 'sample_rate':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'sample_rate',25,...)
-%   The sampling rate of the data in Hertz. This is used to convert the
-%   'epoch' variable seconds to samples to divide the data into epochs.
-%   note: After dopDownsample is run, this value should be the downsampled
-%   sample rate.
-%
-% - 'event_channels':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'event_channels',13,...)
-%   Column number of data which holds the event information. Typically
-%   square signal data.
-%   note: 'event_channels' is used within this function as an input for
-%   dopEvent Markers if it hasn't previously been called. That is,
-%   'dop.event' structure variable is not found
-%
-% - 'event_height':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'event_height',1000,...)
-%   Number above which activity in the event channel/column data will be
-%   detected as an event marker.
-%   note: 'event_height' is used within this function as an input for
-%   dopEvent Markers if it hasn't previously been called. That is,
-%   'dop.event' structure variable is not found
 %
 % - 'file':
 %   > e.g., dopFunction(dop_input,okay,msg,...,'file','subjectX.exp',...)
@@ -122,9 +83,10 @@ function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
 % - okay = logical (0 or 1) for problem, 0 = no problem, 1 = problem
 % - msg = message about progress/events within function
 %
-% Created: XX-May-2015 NAB
+% Created: 05-May-2015 NAB
 % Edits:
-% 08-May-2015 NAB - continually updating list of input help information
+% 
+
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -137,27 +99,64 @@ try
         %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'epoch',[], ... % [lower upper] limits in seconds
-            'event_height',[],... % needed for dopEventMarkers
-            'event_channels',[], ... % needed for dopEventMarkers
-            'sample_rate',[], ... % not critical for dopEventMarkers
+            'pos',[.1 .9],... % top left x & y portion of screen
+            'dim',[.2 .05],... % x and y dimensions as portion of screen
             'file',[],... % for error reporting mostly
             'msg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
-        inputs.required = ...
-            {'epoch'};
+
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
         
-        %% tmp check
-        [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-        
         %% main code
-        
-        %% example msg
-        msg{end+1} = 'some string';
-        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+        if okay
+            if ~isfield(dop,'file_list') && isempty(dop.file_list)
+                okay = 0;
+                msg{end+1} = 'A progress bar isn''t necessary if you aren''t processing a list of files';
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
+        end
+        if okay
+            dop.progress.current = find(ismember(dop.file_list,dop.file),1,'first');
+            if isempty(dop.progress.current)
+                dop.progress.current = find(ismember(dop.file_list,dop.fullfile),1,'first');
+            end
+            if isempty(dop.progress.current)
+                okay = 0;
+                msg{end+1} = sprintf('Can''t find current file (%s) in list so can''t update progress',dop.file);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
+        end
+        if okay
+            if dop.progress.current == 1 || ~isfield(dop.progress,'h')
+                if isfield(dop.progress,'h')
+                    dop.progress = rmfield( dop.progress,'h');
+                end
+                
+                dop.progress.n = numel(dop.file_list);
+                dop.progress.msg = 'dopOSSCI waitbar initialising...';
+                dop.progress.screen_size = get(0,'ScreenSize');
+                dop.progress.pos = [dop.tmp.pos dop.tmp.dim].* ...
+                    repmat(dop.progress.screen_size([3 4]),1,2);
+
+                dop.progress.h = waitbar(0,dop.progress.msg,'Position',dop.progress.pos);
+                dop.progress.h_axes = get(dop.progress.h,'CurrentAxes');
+                dop.progress.h_title = get(dop.progress.h_axes,'Title');
+                
+            end
+                dop.progress.portion = dop.progress.current/dop.progress.n;
+            
+            % could add task name to this
+            dop.progress.msg = sprintf('dopOSCCI progress: %u%% (file %u of %u)',round(dop.progress.portion*100,0),dop.progress.current,dop.progress.n);
+            waitbar(dop.progress.portion,dop.progress.h); % update the progress bar
+            set(dop.progress.h_title,'String',dop.progress.msg); % update the message
+            figure(dop.progress.h); % bring to front to make sure it's on top
+            drawnow;
+            if dop.progress.portion == 1
+                close(dop.progress.h);
+            end
+        end
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
