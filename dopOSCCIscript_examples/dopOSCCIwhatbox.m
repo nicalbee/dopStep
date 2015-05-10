@@ -19,9 +19,15 @@ dop.def.event_sep = 35; % no longer used to find events, just to check whether y
 
 dop.def.downsample_rate = 25; % Hertz
 
-% lower and upper values - confirmed 19-Jan-2015
-dop.def.epoch = [-14 15]; % [-10 16]; %
-dop.def.baseline = [-14 -9];
+% <<<<<<< HEAD
+% % lower and upper values - confirmed 19-Jan-2015
+% dop.def.epoch = [-14 15]; % [-10 16]; %
+% dop.def.baseline = [-14 -9];
+% =======
+% lower and upper values
+dop.def.epoch =  [-14 15]; % [-6 15]; %[-10 15]; %
+dop.def.baseline = [-14 -9]; % [-6 -1]; %[-10 -5]; %
+% >>>>>>> forHeather
 dop.def.poi = [5 15];
 dop.def.act_window = 2; % activation window
 
@@ -39,7 +45,9 @@ dop.def.screen = {'manual','length','act','sep'}; % could add 'manual' to this
 
 % manual screening:
 dop.def.manual_file = 'whatbox_INFANT_base-14to-9_POI_5to15_NicMan13_dopStep.txt'; % specify the manual screening file
+
 dop.def.manual_dir = '/Users/mq20111600/Google Drive/nProjects/whatbox_methods/data/manual_screening/'; % directory
+
 % use the above 2 or the below 1
 dop.def.manual_fullfile = []; % directory and name in single string
 
@@ -67,7 +75,12 @@ dop.save.messages = 1;
 
 dop.save.save_file = []; % this will be auto completed based upon the dop.def.task_name variable
 % dop.save.save_dir = 'C:\Users\mq20111600\Documents\nData\dopStep';
-[dop,okay,msg] = dopSaveDir(dop,'suffix','clipped');
+% <<<<<<< HEAD
+% [dop,okay,msg] = dopSaveDir(dop,'suffix','clipped');
+% =======
+[dop,okay,msg] = dopSaveDir(dop);
+[dop,okay,msg] = dopSaveDef(dop,okay,msg);
+
 % or
 % dop.save.save_dir = dopSaveDir(dop,'dir_only',1);
 % or
@@ -75,8 +88,11 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 
 % dop.data_dir = 'C:\Users\mq20111600\Desktop\UniSA Infant TCD';
 
+
 % dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
-dop.data_dir = '/Users/mq20111600/Google Drive/nProjects/whatbox_methods/data/raw/';
+
+dop.data_dir = '/Users/mq20111600/Google Drive/nProjects/whatbox_methods/data/raw/'; %'/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
+
 [dop,okay,msg] = dopGetFileList(dop,okay,msg);
 % in.file_list = {'test.exp'};
 if okay
@@ -158,9 +174,15 @@ if okay
         
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');
+
         
         
-    end % regular loop
+%     end % regular loop
+% =======
+%         keyboard
+        dop = dopProgress(dop);
+    end
+
     % save the 'collected' data for all okay files
     [dop,okay,msg] = dopSaveCollect(dop);
     % plot the 'collected' data for all okay files
