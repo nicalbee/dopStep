@@ -19,16 +19,31 @@ dop.def.event_sep = 35; % no longer used to find events, just to check whether y
 
 dop.def.downsample_rate = 25; % Hertz
 
-% <<<<<<< HEAD
+
 % % lower and upper values - confirmed 19-Jan-2015
 % dop.def.epoch = [-14 15]; % [-10 16]; %
 % dop.def.baseline = [-14 -9];
-% =======
+
 % lower and upper values
-dop.def.epoch =  [-14 15]; % [-6 15]; %[-10 15]; %
-dop.def.baseline = [-14 -9]; % [-6 -1]; %[-10 -5]; %
-% >>>>>>> forHeather
-dop.def.poi = [5 15];
+% background onset activity: 10 seconds after 'Shh' onset
+% dop.def.epoch =  [-14 15]; 
+% dop.def.baseline = [-14 -9]; 
+% facedown onset activity: 10 seconds after background onset
+% dop.def.epoch =  [-9 15]; 
+% dop.def.baseline = [-9 -4]; 
+% faceup onset activity: 10 seconds after facedown onset
+% dop.def.epoch =  [-4 26]; 
+% dop.def.baseline = [-4 1];
+
+% immediately before stim onset
+% dop.def.epoch =  [-5 15]; 
+% dop.def.baseline = [-5 0];
+
+% % immediately before 'Look' linguistic content
+dop.def.epoch =  [-8 15]; 
+dop.def.baseline = [-8 -3];
+
+dop.def.poi = [1 15];
 dop.def.act_window = 2; % activation window
 
 [dop,okay,msg] = dopPeriodChecks(dop,'wait_warn',1);
