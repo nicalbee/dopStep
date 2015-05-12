@@ -40,10 +40,10 @@ dop.def.downsample_rate = 25; % Hertz
 % dop.def.baseline = [-5 0];
 
 % % immediately before 'Look' linguistic content
-dop.def.epoch =  [-8 15]; 
-dop.def.baseline = [-8 -3];
+dop.def.epoch =  [-4 30]; 
+dop.def.baseline = [-4 1];
 
-dop.def.poi = [1 15];
+dop.def.poi = [5 15];
 dop.def.act_window = 2; % activation window
 
 [dop,okay,msg] = dopPeriodChecks(dop,'wait_warn',1);
@@ -161,6 +161,7 @@ if okay
         %         [dop,okay,msg] = dopEpoch(dop,okay,msg);
         
         [dop,okay,msg] = dopEpochScreen(dop,okay,msg);
+        
         % dopEpochScreen runs all of these:
         %
         %         [dop,okay,msg] = dopEpochScreenAct(dop,okay,msg);
@@ -189,19 +190,15 @@ if okay
         
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');
+   
 
-        
-        
-%     end % regular loop
-% =======
-%         keyboard
         dop = dopProgress(dop);
     end
 
     % save the 'collected' data for all okay files
-    [dop,okay,msg] = dopSaveCollect(dop);
+    [dop,okay,msg] = dopSaveCollect(dop);%,'type','norm');
     % plot the 'collected' data for all okay files
-    [dop,okay,msg] = dopPlot(dop,'collect');
+    [dop,okay,msg] = dopPlot(dop,'collect');%,'type','norm');
     
     dopCloseMsg;
 end

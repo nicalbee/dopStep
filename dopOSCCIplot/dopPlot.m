@@ -82,6 +82,7 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 % 27-Jan-2015 NAB fixed activation window when peak occurs at the end of
 %   data: ie calculation was based on data earlier then the peak rather
 %   than surrouding the peak
+% 13-May-2015 NAB fixed defaulting to use_type instead of 'type' input
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -119,7 +120,7 @@ try
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         elseif ~strcmp(dop.tmp.type,dop.tmp.defaults.type) && isfield(dop.data,dop.tmp.type)
             dop.tmp.data = dop.data.(dop.tmp.type);
-            dop.tmp.type = dop.data.use_type; % default data
+%             dop.tmp.type = dop.data.use_type; % default data
             msg{end+1} = sprintf('Type variable inputted ''%s'' and data found',dop.tmp.type);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         elseif ~isempty(dop.tmp.type)
