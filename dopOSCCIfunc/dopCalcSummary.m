@@ -225,6 +225,32 @@ try
                 dop.tmp.window_data = mean(dop.tmp.window_data,2);
             end
             
+<<<<<<< HEAD
+            
+            %dop_output.peak_mean = mean(mean(dop.tmp.window_data,2));
+            %^^^^^ I think the above uses the already meaned value from
+            %line 215, so I think we need instead...
+            
+            
+            dop_output.peak_mean = mean(dop.tmp.window_data);
+            
+            
+            %single sample t-test: tests whether average LI is
+            %significantly different from zero (i.e. significantly right or
+            %left lateralised). 
+           
+            
+            
+            [dop_output.tsig,dop_output.p,dop_output.ci,dop_output.stats] = ttest(dop.tmp.window_data);
+            
+            
+            %e
+            dop_output.t_value = dop_output.stats.tstat;
+            dop_output.t_df = dop_output.stats.df;
+            dop_output.t_sd = dop_output.stats.sd;
+            
+            
+=======
             if exist('ttest','file') && dop.tmp.ttest
                 [dop_output.tsig,dop_output.tp,...
                     dop_output.ci,dop_output.stats] = ttest(dop.tmp.window_data);
@@ -239,6 +265,7 @@ try
                  dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
             dop_output.peak_mean = mean(mean(dop.tmp.window_data,2));
+>>>>>>> 9c2a967571e67b74b44f0dc6c472daa11c99d71c
             % standard deviation is always related to the mean, doesn't
             % make any sense if there's a single epoch
             dop_output.peak_sd = std(mean(dop.tmp.window_data,2));

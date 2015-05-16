@@ -214,11 +214,11 @@ try
         inputs.defaults.channels = {'Difference'};
         inputs.defaults.periods = {'poi'};
         inputs.defaults.epochs = {'screen'}; % 'screen','odd','even','all','act','sep'
-        inputs.defaults.variables = {'n','mean','sd','latency'};
+        inputs.defaults.variables = {'n','mean','sd','latency','tsig','tp'};
         %     inputs.defaults.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
         %         inputs.required = ...
         %             {};
-        [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
+      [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
         %% data check
         if okay && ~isfield(dop,'sum')
