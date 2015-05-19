@@ -104,6 +104,8 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 % 09-Sep-2014 NAB updated documentation/help information
 % 17-Sep-2014 NAB adjusted output if problem
 % 10-Nov-2014 NAB added '.txt' to switch to avoid confusion with .TX files
+% 19-May-2015 NAB updated to pull 'type' inputted list out of structure
+%   array, into cell array.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -205,6 +207,14 @@ try
                             dop.file_list{end+1} = fullfile(dop.tmp.dir,dop.file_lists{i}(j).name);
                         end
                     end
+                end
+            end
+            if ~isempty(dop.file_list) && isstruct(dop.file_list)
+                % pull the list out of the structure
+                dop.tmp.file_list = dop.file_list;
+                dop.file_list = cell(1,numel(dop.tmp.file_list));
+                for i = 1 : numel(dop.file_list)
+                    dop.file_list{i} = fullfile(dop.tmp.dir,dop.tmp.file_list(i).name);
                 end
             end
             msg{end+1} = sprintf('Found %u files in total\n',...

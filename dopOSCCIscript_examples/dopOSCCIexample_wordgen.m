@@ -7,10 +7,10 @@ clear dop
 
 dop.struc_name = 'dop';
 
-dop.def.task_name = 'wordGenPilot';
+dop.def.task_name = 'wordGenValidation';
 % definition information
 dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
-dop.def.event_channels = 7; % TX/TW files
+dop.def.event_channels = 5; % TX/TW files
 dop.def.event_height = 1000; % 400; % greater than
 dop.def.event_sep = 50; %
 % dop.def.num_events = 40;
@@ -55,7 +55,9 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 % dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
 % in.dir = '/Users/mq20111600/Documents/nData/tmp';%'/Users/mq20111600/Documents/nData/2013/201312infant_fTCD_UniSA/'; %
-dop.data_dir = '/Users/mq20111600/Google Drive/tmp/';%'/Users/mq20111600/Documents/nData/Study AA (Abbie doppler stories)/data/raw/dopTrials/wordGen';
+% dop.data_dir = '/Users/mq20111600/Google Drive/tmp/';%'/Users/mq20111600/Documents/nData/Study AA (Abbie doppler stories)/data/raw/dopTrials/wordGen';
+dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/wordGen/';
+
 % in.file_list = dir(fullfile(in.dir,'*.exp'));
 % dop.file_list = dopGetFileList(dop.data_dir);%;dir(in.dir);
 [dop,okay] = dopGetFileList(dop);%;dir(in.dir);
@@ -111,7 +113,7 @@ if okay
         
         [dop,okay,msg] = dopSave(dop,okay,msg);%,'save_dir',dop.save.save_dir);
         
-                dop = dopPlot(dop,'wait');
+%                 dop = dopPlot(dop,'wait');
         
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');

@@ -25,6 +25,8 @@ function [dop,okay,msg] = dopMATsave(dop_input,varargin)
 % 19-Aug-2014 NAB
 % 06-Sep-2014 NAB updated to current dopSetBasics & removed embedded
 %   function
+% 19-May-2015 NAB haven't really tested this before, giving it a go today
+%   using the whatbox files
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -86,7 +88,7 @@ try
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 elseif isfield(dop,'fullfile') && ~isempty(dop.fullfile)
                     dop.tmp.mat_dir = dop.fullfile(...
-                        1:strfind(dop.fullfile,tmp_file)-1));
+                        1:strfind(dop.fullfile,tmp_file)-1);
                 else
                     okay = 0;
                     msg{end+1} = sprintf(['Can''t find ''dop.dir'' or'...
@@ -95,12 +97,12 @@ try
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 end
             end
-            if okay && isempty(dop.tmp,'mat_fullfile');
+            if okay && isfield(dop.tmp,'mat_fullfile') && isempty(dop.tmp.mat_fullfile);
                 dop.tmp.mat_fullfile = fullfile(dop.tmp.mat_dir,dop.tmp.mat_file);
             end
             if okay
-                save(dop.mat.fullfile,'dop');
-                msg{end+1} = sprintf('''.mat'' file saved:\n\t%s',dop.mat.fullfile);
+                save(dop.tmp.mat_fullfile,'dop');
+                msg{end+1} = sprintf('''.mat'' file saved:\n\t%s',dop.tmp.mat_fullfile);
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
         end

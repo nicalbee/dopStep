@@ -65,7 +65,7 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 
 % dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/pacedProduction3down/';
 
-dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/pacedProduction1down/';
+dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/pacedProduction1down_PP2/';
 
 % in.file_list = dir(fullfile(in.dir,'*.exp'));
 % dop.file_list = dopGetFileList(dop.data_dir);%;dir(in.dir);
@@ -122,7 +122,7 @@ if okay
         
         [dop,okay,msg] = dopSave(dop,okay,msg);%,'save_dir',dop.save.save_dir);
         
-                dop = dopPlot(dop,'wait');
+%                 dop = dopPlot(dop,'wait');
         
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');

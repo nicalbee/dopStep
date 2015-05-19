@@ -64,6 +64,12 @@ function [dop,okay,msg] = dopImport(dop_input,varargin)
 %   command window.
 %   The default value is 1 = on, messages are printed
 %
+%--- Optional, Text only:
+%
+% - 'nomat':
+%   > e.g., dopFunction(dop_input,okay,msg,...,'nomat')
+%   Even if a .mat file exists, it will not be imported
+%
 % - 'wait_warn': e.g., ...,'wait_warn',1,... or ....,'wait_warn',0,...
 %   This is a logical variable (1 = on, 0 = off) setting whether or not,
 %   when 'okay' changes to 0 (i.e. an error), progress through the scripts
@@ -96,7 +102,7 @@ try
     if okay
         dopOSCCIindent;%fprintf('Running %s:\n',mfilename);
         %% Inputs
-%         inputs.turnOff = {'comment'};
+        inputs.turnOn = {'nomat'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'file',[], ...
@@ -151,7 +157,7 @@ try
             dop.tmp.mat_file = [dop.file_name,'.mat'];
             dop.tmp.mat_fullfile = fullfile(dop.tmp.mat_dir,dop.tmp.mat_file);
             
-            if exist(dop.tmp.mat_fullfile,'file') == 2
+            if exist(dop.tmp.mat_fullfile,'file') == 2 && ~dop.tmp.nomat
                 %             current_dop = dop;
                 % add the mat information to the file details
                 dop.mat.info = '.mat file details for quicker import etc.';
@@ -161,9 +167,11 @@ try
                 
                 msg{end+1} = sprintf('''.mat'' file found, importing:\n\t\t%s',dop.mat.fullfile);
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                dop = dopMATread(dop.mat.fullfile,dop);
+                [dop,okay,msg] = dopMATread(dop,'mat_file',dop.mat.fullfile);
                 %             load(dop.tmp.mat_fullfile);
-
+                if ~okay
+                    [dop,okay,msg] = dopImport(dop,'nomat');
+                end
             elseif isTX(dop.fullfile)
                 [dop.data.raw,dop.file_info] = readTWfromTX(dop.fullfile);
             elseif isEXP(dop.fullfile)

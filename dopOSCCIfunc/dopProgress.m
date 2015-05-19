@@ -85,7 +85,7 @@ function [dop,okay,msg] = dopProgress(dop_input,varargin)
 %
 % Created: 05-May-2015 NAB
 % Edits:
-% 
+% 19-May-2015 NAB added validity check to handle (ie 'isvalid' function)
 
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -129,9 +129,11 @@ try
             end
         end
         if okay
-            if dop.progress.current == 1 || ~isfield(dop.progress,'h')
+            if dop.progress.current == 1 || ~isfield(dop.progress,'h') || ~isvalid(dop.progress.h)
+                % if not numeric, could be a string that indicates that
+                % it's been deleted
                 if isfield(dop.progress,'h')
-                    dop.progress = rmfield( dop.progress,'h');
+                    dop.progress = rmfield(dop.progress,'h');
                 end
                 
                 dop.progress.n = numel(dop.file_list);

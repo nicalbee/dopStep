@@ -21,27 +21,16 @@ dop.def.downsample_rate = 25; % Hertz
 
 
 % % lower and upper values - confirmed 19-Jan-2015
-% dop.def.epoch = [-14 15]; % [-10 16]; %
+% dop.def.epoch = [-14 15];
 % dop.def.baseline = [-14 -9];
 
-% lower and upper values
-% background onset activity: 10 seconds after 'Shh' onset
-% dop.def.epoch =  [-14 15]; 
-% dop.def.baseline = [-14 -9]; 
-% facedown onset activity: 10 seconds after background onset
-% dop.def.epoch =  [-9 15]; 
-% dop.def.baseline = [-9 -4]; 
-% faceup onset activity: 10 seconds after facedown onset
-% dop.def.epoch =  [-4 26]; 
+% middle:
+dop.def.epoch =  [-9 15];
+dop.def.baseline = [-9 -4];
+
+% used - shortest
+% dop.def.epoch =  [-4 15];
 % dop.def.baseline = [-4 1];
-
-% immediately before stim onset
-% dop.def.epoch =  [-5 15]; 
-% dop.def.baseline = [-5 0];
-
-% % immediately before 'Look' linguistic content
-dop.def.epoch =  [-4 30]; 
-dop.def.baseline = [-4 1];
 
 dop.def.poi = [5 15];
 dop.def.act_window = 2; % activation window
@@ -53,10 +42,10 @@ dop.def.act_range = [50 150];
 dop.def.correct_range = [-3 4];%[50 150]; % acceptable activation limits [-4 5]; %
 dop.def.correct_pct = 5; % if =< x% outside range, correct with mean/median
 
-dop.def.act_separation = 10; % acceptable activation difference
+dop.def.act_separation = 20; % acceptable activation difference
 dop.def.act_separation_pct = 1;%0.5;%1;
 
-dop.def.screen = {'manual','length','act','sep'}; % could add 'manual' to this 
+dop.def.screen = {'manual','length','act','sep'}; % could add 'manual' to this
 
 % manual screening:
 dop.def.manual_file = 'whatbox_INFANT_base-14to-9_POI_5to15_NicMan13_dopStep.txt'; % specify the manual screening file
@@ -108,7 +97,7 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 
 dop.data_dir = '/Users/mq20111600/Google Drive/nProjects/whatbox_methods/data/raw/'; %'/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
 
-[dop,okay,msg] = dopGetFileList(dop,okay,msg);
+[dop,okay,msg] = dopGetFileList(dop,okay,msg,'type','EXP');
 % in.file_list = {'test.exp'};
 if okay
     for i = 1 : numel(dop.file_list)
@@ -120,15 +109,18 @@ if okay
         fprintf('%u: %s\n',i,in.file);
         
         [dop,okay,msg] = dopImport(dop,'file',in.fullfile);
+%         if ~exist(strrep(in.fullfile,'.exp','.mat'),'file')
+%             [dop,okay,msg] = dopMATsave(dop,okay,msg);
+%         end
         % extract signal and event channels from larger set of data columns
         % this is called within dopImport as well
         [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
         
         % could do this if you wanted to check the effect of clipping
-        [dop,okay,msg] = dopClip(dop,okay,msg,'upper',133);
+        %         [dop,okay,msg] = dopClip(dop,okay,msg,'upper',133);
         
-%         [dop,okay,msg] = dopPlot(dop,'wait');
-%     end
+        %         [dop,okay,msg] = dopPlot(dop,'wait');
+        %     end
         % probably done on import if channel information is available
         % [dop,okay,msg] = dopChannelAdjust(dop); % haven't adjusted for dopSetGetInputs
         
@@ -143,9 +135,9 @@ if okay
         [dop,okay,msg] = dopDataTrim(dop,okay,msg);
         
         [dop,okay,msg] = dopEventChannels(dop,okay,msg);
-       
+        
         [dop,okay,msg] = dopClipCheck(dop,okay,msg);
-%         [dop,okay,msg] = dopPlot(dop,'wait');
+        %         [dop,okay,msg] = dopPlot(dop,'wait');
         
         [dop,okay,msg] = dopHeartCycle(dop,okay,msg);
         % to have a look at the data include 'plot' as an input
@@ -172,7 +164,7 @@ if okay
         %
         
         [dop,okay,msg] = dopBaseCorrect(dop,okay,msg);
-
+        
         if okay
             [dop,okay,msg] = dopCalcAuto(dop,okay,msg);%'periods',{'baseline','poi'}); % ,'poi',[5 15],'act_window',2);
             %% collect grp data?
@@ -190,11 +182,11 @@ if okay
         
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');
-   
-
+        
+        
         dop = dopProgress(dop);
     end
-
+    
     % save the 'collected' data for all okay files
     [dop,okay,msg] = dopSaveCollect(dop);%,'type','norm');
     % plot the 'collected' data for all okay files
@@ -203,4 +195,4 @@ if okay
     dopCloseMsg;
 end
 
-dopOSCCIalert('finish');
+ dopOSCCIalert('finish');

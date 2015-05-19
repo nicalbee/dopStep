@@ -189,6 +189,12 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 17-Sep-2014 NAB save file name adjusted
 % 18-Sep-2014 NAB save file name updated
 % 05-May-2015 NAB added dopSaveDir in case not already created
+% 19-May-2015 NAB added dopMultiFuncTmpCheck after dopSaveDir so that
+%   dop.tmp variables carry on specific to dopSave function
+% 19-May-2015 NAB inputs.defaults.variables changed the way it works...
+%   very strange - not at all sure why but wants 'peak_*' now instead of
+%   '*' which apparently worked yesterday...
+%   > some of the definition information wasn't/isn't make it through
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -214,8 +220,8 @@ try
         inputs.defaults.channels = {'Difference'};
         inputs.defaults.periods = {'poi'};
         inputs.defaults.epochs = {'screen'}; % 'screen','odd','even','all','act','sep'
-        inputs.defaults.variables = {'n','mean','sd','latency'};
-        %     inputs.defaults.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
+%         inputs.defaults.variables = {'n','mean','sd','latency'};
+            inputs.defaults.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
         %         inputs.required = ...
         %             {};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
@@ -256,6 +262,7 @@ try
             end
             if isempty(dop.tmp.save_dir)
                 [dop,okay,msg] = dopSaveDir(dop);
+                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                 dop.tmp.save_dir = dop.save.save_dir;
             end
             if ~exist(dop.tmp.save_dir,'dir')
