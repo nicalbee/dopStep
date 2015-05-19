@@ -106,6 +106,7 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 % 10-Nov-2014 NAB added '.txt' to switch to avoid confusion with .TX files
 % 19-May-2015 NAB updated to pull 'type' inputted list out of structure
 %   array, into cell array.
+% 20-May-2015 NAB changed 'folder' to 'dir' as input - more intuitive
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -142,7 +143,7 @@ try
                         dop.tmp.dir = dop.data_dir;
                     end
                 end
-            case 'folder'
+            case 'dir'%,'folder'}
                 dop.tmp.dir = dop_input;
             otherwise
                 okay = 0;

@@ -1,13 +1,16 @@
-function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
-% dopOSCCI3: dopXXX
+function [dop,okay,msg] = dop2mat(dop_input,varargin)
+% dopOSCCI3: dop2mat
 %
-% [dop,okay,msg] = dopXXX(dop_input,[okay],[msg],...)
+% [dop,okay,msg] = dop2mat(dop_input,[okay],[msg],...)
 %
 % notes:
 %
+% opens raw doppler file and saves a .mat file. Completed for single or
+% folders of files.
+%
 % Use:
 %
-% [dop,okay,msg] = dopXXX(dop_input,[okay],[msg],...)
+% [dop,okay,msg] = dop2mat(dop_input,[okay],[msg],...)
 %
 % where:
 %--- Inputs ---
@@ -122,9 +125,9 @@ function [dop,okay,msg] = dopOSCCInew_func(dop_input,varargin)
 % - okay = logical (0 or 1) for problem, 0 = no problem, 1 = problem
 % - msg = message about progress/events within function
 %
-% Created: XX-May-2015 NAB
+% Created: 20-May-2015 NAB
 % Edits:
-% DD-MMM-2015 NAB - continually updating list of input help information
+% 20-May-2015 NAB work in progress...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -137,27 +140,83 @@ try
         %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'epoch',[], ... % [lower upper] limits in seconds
-            'event_height',[],... % needed for dopEventMarkers
-            'event_channels',[], ... % needed for dopEventMarkers
-            'sample_rate',[], ... % not critical for dopEventMarkers
+            'mat_file',[], ...
+            'mat_dir',[], ...
+            'mat_fullfile',[], ...
+            'mat_dir_ext','_mat',... % add this to the end of regular directory
             'file',[],... % for error reporting mostly
             'msg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
-        inputs.required = ...
-            {'epoch'};
+        inputs.required = {};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
-        %% data check
         
-        %% tmp check
-        [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+        %% input check & main code
+        switch dopInputCheck(dop_input)
+            case 'dop'
+                % check for file information and mat_file information
+            case 'file'
+                % must be full file or on the path - based on dopInputCheck
+                [dop.tmp.dir,dop.tmp.file_noext,dop.tmp.ext] = fileparts(dop_input);
+                if ~isempty(dop.tmp.dir)
+                    dop.data_dir = dop.tmp.dir;
+                    dop.fullfile = dop_input;
+                end
+                dop.file = [dop.tmp.file_noext,dop.tmp.ext];
+                
+                if ischar(varargin{1}) && ...
+                        or(~isempty(strfind(varargin{1},'.mat')),...
+                        ~isempty(strfind(varargin{1},'.MAT')))
+                    if ~isempty(strfind(varargin{1},filesep))
+                        % there's some folder information in here - assume
+                        % that it's the full path
+                        dop.tmp.mat_fullfile = varargin{1};
+                        [dop.tmp.mat_dir,dop.tmp.file_noext,dop.tmp.ext] = fileparts(dop.tmp.mat_fullfile);
+                        dop.tmp.mat_file = [dop.tmp.file_noext,dop.tmp.ext];
+                        msg{end+1} = 'fullfile with .mat extension found as second input';
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    else
+                        dop.tmp.mat_file = varargin{1};
+                    end
+                elseif isempty(varargin)
+                    dop.tmp.mat_file = strrep(dop.file,dop.tmp.ext,'.mat');
+                end
+                
+            case 'dir'
+                dop.data_dir = dop_input;
+                if ~exist(dop.tmp.dir,'dir')
+                    okay = 0;
+                    msg{end+1} = sprintf('inputted direcotry doesn''t exist, can''t continue (%s)',dop.tmp.dir);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                else
+                    [dop,okay,msg] = dopGetFileList(dop,okay,msg);
+                    [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                end
+                if okay
+                    if ischar(varargin{1}) && ~isempty(strfind(varargin{1},filesep))
+                        % it's a character array and has a filesep
+                        dop.tmp.mat_dir = varargin{1};
+                    elseif isempty(varargin)
+                        % set mat directory
+                        if ~isempty(strcmp(dop.data_dir(end),filesep))
+                            dop.tmp.mat_dir = [dop.data_dir(1:end-1),dop.tmp.mat_dir_ext];
+                        else
+                            dop.tmp.mat_dir = [dop.data_dir,dop.tmp.mat_dir_ext];
+                        end
+                    end
+                    
+                    for i = 1 : numel(dop.file_list)
+                        [dop,okay,msg] = dopImport(dop,'fullfile',dop.file_list{i});
+                        [dop,okay,msg] = dopMATsave(dop,okay,msg);
+                    end
+                end
+            otherwise
+                okay = 0;
+                msg{end+1} = sprtinf('Input not recognised: ''%s'' aborted',mfilename);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+        end
         
-        %% main code
         
-        %% example msg
-        msg{end+1} = 'some string';
-        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
@@ -169,8 +228,3 @@ catch err
     save(dopOSCCIdebug);rethrow(err);
 end
 end
-        %% tmp check
-%         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-        %% example msg
-%         msg{end+1} = 'some string';
-%         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);

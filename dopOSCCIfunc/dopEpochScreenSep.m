@@ -26,6 +26,7 @@ function [dop,okay,msg] = dopEpochScreenSep(dop_input,varargin)
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 12-Sep-2014 NAB absolute difference: negatives were getting through!
+% 19-May-2015 NAB adding some descriptives to look at
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -92,6 +93,13 @@ try
             msg{end+1} = dop.epoch.sep_note;
            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             dop.epoch.sep = ones(1,dop.tmp.n_epochs);
+            
+            % some descriptives
+            dop.epoch.act_sep_mean_ep = dop.epoch.sep;
+            dop.epoch.act_sep_sd_ep = dop.epoch.sep;
+%             dop.epoch.act_sep_min = dop.epoch.sep;
+            dop.epoch.act_sep_max_ep = dop.epoch.sep;
+            
             for j = 1 : dop.tmp.n_epochs
                 switch dop.tmp.data_type
                     case 'continuous'
@@ -122,6 +130,11 @@ try
                 dop.tmp.all = bsxfun(@lt,abs(dop.tmp.diff) ,dop.tmp.act_separation);
                 dop.tmp.pct = 100*(sum(dop.tmp.all == 0)/numel(dop.tmp.diff));
                 
+                dop.epoch.act_sep_mean_ep(j) = mean(dop.tmp.diff);
+            dop.epoch.act_sep_sd_ep(j) = std(dop.tmp.diff);
+%             dop.epoch.act_sep_min(j) = min(dop.tmp.diff);
+            dop.epoch.act_sep_max_ep(j) = max(abs(dop.tmp.diff));
+                
                 dop.epoch.sep(j) = sum(dop.tmp.all) == numel(dop.tmp.diff);
                 if ~dop.epoch.sep(j)
                     if dop.tmp.pct <= dop.tmp.act_separation_pct
@@ -142,6 +155,11 @@ try
             end
             dop.epoch.sep = logical(dop.epoch.sep);
             
+            
+            dop.epoch.act_sep_mean = mean(dop.epoch.act_sep_max);
+            dop.epoch.act_sep_sd = sd(dop.epoch.act_sep_max);
+            dop.epoch.act_sep_min = min(dop.epoch.act_sep_max);
+            dop.epoch.act_sep_max = max(dop.epoch.act_sep_max);
         end
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

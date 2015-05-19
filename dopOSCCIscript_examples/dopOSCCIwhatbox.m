@@ -25,12 +25,12 @@ dop.def.downsample_rate = 25; % Hertz
 % dop.def.baseline = [-14 -9];
 
 % middle:
-dop.def.epoch =  [-9 15];
-dop.def.baseline = [-9 -4];
+% dop.def.epoch =  [-9 15];
+% dop.def.baseline = [-9 -4];
 
 % used - shortest
-% dop.def.epoch =  [-4 15];
-% dop.def.baseline = [-4 1];
+dop.def.epoch =  [-4 15];
+dop.def.baseline = [-4 1];
 
 dop.def.poi = [5 15];
 dop.def.act_window = 2; % activation window
@@ -65,7 +65,8 @@ dop.def.keep_data_steps = 1;
 
 
 % define which information will be saved
-dop.save.extras = {'file','clip','clip_left','clip_right','clip_left_max','clip_right_max'};
+dop.save.extras = {'file','clip','clip_left','clip_right','clip_left_max','clip_right_max',...
+    'act_sep_mean','act_sep_sd','act_sep_max'};
 % you can add your own variables to 'extras', just need to be defined
 % somewhere as dop.save.x = where x = variable name
 dop.save.summary = {'overall'}; % versus 'epoch' (not well tested yet)

@@ -195,6 +195,7 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   very strange - not at all sure why but wants 'peak_*' now instead of
 %   '*' which apparently worked yesterday...
 %   > some of the definition information wasn't/isn't make it through
+% 19-May-2015 NAB added 'epoch' stucture to look in for variables to save
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -343,7 +344,7 @@ try
             for i = 1 : numel(dop.tmp.extras)
                 k = k + 1;
                 dop.tmp.data_name = dop.tmp.extras{i};
-                tmp.check = {'save','use','def','file_info'}; % order of these matters
+                tmp.check = {'save','epoch','use','def','file_info'}; % order of these matters
                 for j = 1 : numel(tmp.check)
                     if isfield(dop,tmp.check{j}) ...
                             && isfield(dop.(tmp.check{j}),dop.tmp.data_name)

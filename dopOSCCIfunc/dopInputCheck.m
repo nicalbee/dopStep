@@ -28,7 +28,7 @@ function [input_type,okay,msg] = dopInputCheck(dop_input,varargin)
 % Edits:
 % 05-Sep-2014 NAB folder input given the okay = 1
 % 10-Nov-2014 NAB added '.txt' to acceptable inputs
-
+% 20-May-2015 NAB changed 'folder' to 'dir' as input - more intuitive
 
 input_type = [];
 okay = 0;
@@ -107,7 +107,7 @@ try
         
     elseif exist(dop_input,'dir') == 7
         okay = 1;
-        input_type = 'folder';
+        input_type = 'dir';%'folder';
         % note: not sure what we'll do with this yet (7-Aug-2013) so not
         % okay at this stage
         % 05-Sep-2014 needed for the dopGetFileList function NAB

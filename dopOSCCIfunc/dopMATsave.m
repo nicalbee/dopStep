@@ -27,6 +27,7 @@ function [dop,okay,msg] = dopMATsave(dop_input,varargin)
 %   function
 % 19-May-2015 NAB haven't really tested this before, giving it a go today
 %   using the whatbox files
+% 19-May-2015 NAB was older than I thought - old input check removed
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -45,21 +46,25 @@ try
             'mat_dir',[], ...
             'mat_fullfile',[] ...
             );
+        inputs.defaults.save_variables = {'data','file_info'};
         inputs.required = [];
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
-        switch dopInputCheck(dop_input)
-            case 'dop'
-                msg{end+1} = '''dop'' structure input recognised:';
-                dop = dop_input;
-            case dopFileTypes
-                msg{end+1} = 'Doppler data file input recognised:';
-                [dop,okay,msg] = dopImport(dop_input,okay,msg);
-            otherwise
-                okay = 0;
-                msg{end+1} = 'Input not recognised';
-                if dop.tmp.comment; fprintf('\t%s\n',msg{end}); end
-        end
+%         switch dopInputCheck(dop_input)
+%             case 'dop'
+%                 msg{end+1} = '''dop'' structure input recognised:';
+%                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%                 dop = dop_input;
+%             case dopFileTypes
+%                 msg{end+1} = 'Doppler data file input recognised,importing';
+%                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%                 [dop,okay,msg] = dopImport(dop_input,okay,msg);
+%                 [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+%             otherwise
+%                 okay = 0;
+%                 msg{end+1} = 'Input not recognised';
+%                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%         end
         
         %% create file names
         if okay
@@ -101,7 +106,12 @@ try
                 dop.tmp.mat_fullfile = fullfile(dop.tmp.mat_dir,dop.tmp.mat_file);
             end
             if okay
-                save(dop.tmp.mat_fullfile,'dop');
+%                 dop.tmp.save_variables = {'data','file_info'};
+                dop_mat = [];
+                for i = 1 : numel(dop.tmp.save_variables)
+                    dop_mat.(dop.tmp.save_variables{i}) = dop.(dop.tmp.save_variables{i});
+                end
+                save(dop.tmp.mat_fullfile,'dop_mat');
                 msg{end+1} = sprintf('''.mat'' file saved:\n\t%s',dop.tmp.mat_fullfile);
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end

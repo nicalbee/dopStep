@@ -128,6 +128,7 @@ function [dop,okay,msg] = dopMessageSave(dop_input,varargin)
 % Edits:
 % 08-Sep-2014 NAB - continually updating list of input help information
 % 19-Nov-2014 NAB - continuing
+% 19-May-2015 NAB - added some help information on finding msgbox handles
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -152,15 +153,15 @@ try
         inputs.required = ...
             {'epoch'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
-%% save file name
+        %% save file name
         if okay && or(isempty(dop.tmp.message_file),strcmp(dop.tmp.message_file,dop.tmp.defaults.message_file))
-                if ~isfield(dop,'def') ...
+            if ~isfield(dop,'def') ...
                     || ~isfield(dop.def,'task_name') ...
                     || isempty(dop.def.task_name)
-               
-                    dop.def.task_name = dop.tmp.defaults.message_file;
-                end
-                dop.tmp.message_file = sprintf('%sMessageData.dat',dop.def.task_name);
+                
+                dop.def.task_name = dop.tmp.defaults.message_file;
+            end
+            dop.tmp.message_file = sprintf('%sMessageData.dat',dop.def.task_name);
         end
         %% main code
         if okay && ~isempty(msg) && iscell(msg)
@@ -168,7 +169,14 @@ try
             for i = 1 : numel(msg)
             end
             fclose(dop.tmp.fid);
-            
+            %% might be helpful
+%             allHandle = allchild(0);
+%             allTag = get(allHandle, 'Tag');
+%             isMsgbox = strncmp(allTag, 'Msgbox_', 7);
+%             delete(allHandle(isMsgbox));
+%             
+%             If you have a newer Matlab version, FINDOBJ can apply regular expression, which allows for a more compact version:
+%             delete(findobj(allchild(0), '-regexp', 'Tag', '^Msgbox_'))
         end
         %% example msg
         msg{end+1} = 'some string';

@@ -37,30 +37,32 @@ try
             'msg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
+        inputs.defaults.load_variables = {'data','file_info'};
         inputs.required = ...
             {'mat_file'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         switch dopInputCheck(dop.tmp.mat_file)
             case 'file' %{'.mat','.MAT'}
-                tmp_dop_use = dop; % dop_struc;
+%                 tmp_dop_use = dop; % dop_struc;
                 load(dop.tmp.mat_file);
                 
                 % really just want to grab the data & file info
-                if exist('dop','var')
-                    tmp_dop_import = dop;
-                dop = tmp_dop_use;
-                dop.tmp.get_fields = {'data','file_info'};
-                for i = 1 : numel(dop.tmp.get_fields)
-                    if isfield(tmp_dop_import,dop.tmp.get_fields{i})
-                        dop.(dop.tmp.get_fields{i}) = tmp_dop_import.(dop.tmp.get_fields{i});
+                if exist('dop_mat','var')
+%                     tmp_dop_import = dop;
+%                 dop = tmp_dop_use;
+%                 dop.tmp.load_variables = {'data','file_info'};
+                for i = 1 : numel(dop.tmp.load_variables)
+                    if isfield(dop_mat,dop.tmp.load_variables{i})
+                        dop.(dop.tmp.load_variables{i}) = dop_mat.(dop.tmp.load_variables{i});
                     else
                         okay = 0;
                         msg{end+1} = sprintf(['''%s'' data field not found ',...
                             'in mat file(%s): this is necessary.\n'],...
-                            dop.tmp.get_fields{i},dop.tmp.mat_file);
+                            dop.tmp.load_variables{i},dop.tmp.mat_file);
                         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                     end
                 end
+                clear dop_mat
 %                     tmp_fields = fieldnames(tmp_dop);
 %                     fprintf('\t > checking fields in new vs old structure:\n');
 %                     for i = 1 : numel(tmp_fields)
