@@ -32,6 +32,7 @@ function [dop,okay,msg] = dopUseDataOperations(dop_input,varargin) % okay,msg,da
 % 22-Aug-2014 NAB added dopSetBasicInputs function
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 16-Sep-2014 NAB updated documentation, a bit...
+% 20-May-2015 NAB dop = dop_input deprecated
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -42,20 +43,20 @@ try
         inputs.defaults = struct(...
             'keep_data_steps',0,...
             'file',[],...
-            'msg',1,...
+            'showmsg',1,...
             'wait_warn',0 ...
             );
 %         inputs.required = ...
 %             {'epoch','baseline','poi'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
-        dopOSCCIindent('run',dop.tmp.msg);%fprintf('\nRunning %s:\n',mfilename);
+        dopOSCCIindent('run',dop.tmp.showmsg);%fprintf('\nRunning %s:\n',mfilename);
         
         %% check if the 'dop' structure has been included:
         if exist('dop_input','var') && ~isempty(dop_input)
             switch dopInputCheck(dop_input)
                 case 'dop'
-                    dop = dop_input;
+%                     dop = dop_input;
                 otherwise
                     dop.data.operations = [];
             end
@@ -81,19 +82,19 @@ try
                 dop.data.use = dop.data.(data_type);
                 msg{end+1} = sprintf(['Updating ''dop.data.use'' variable to'...
                     ' ''%s'' data'],data_type);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 dop.data.use_type = data_type;
             else
                 okay = 0;
                 msg{end+1} = sprintf(['''dop.data.%s'' variable doesn''t',...
                     ' exist'],data_type);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         else
             msg{end+1} = sprintf(['No ''data_type'' variable found. Assuming'...
                 ' ''dop.data.use'' variable updated externally to this'...
                 ' function (%s)'],mfilename);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
         dop.use.data_type = dop.data.use_type; % doubling up on information again...
         if okay && isfield(dop,'def') && isfield(dop.def,'keep_data_steps')
@@ -101,7 +102,7 @@ try
                 msg{end+1} = sprintf(['''dop.data.%s'' being kept based on' ...
                     ' ''dop.def.keep_data_steps'' variable'],...
                     data_type);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             else
                 msg{end+1} = sprintf(['''dop.data.%s'' being cleared based on' ...
                     ' ''dop.def.keep_data_steps'' variable'],...
@@ -109,7 +110,7 @@ try
                 if isfield(dop.data,data_type)
                     dop.data = rmfield(dop.data,data_type);
                 end
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         end
         dop.okay = okay;

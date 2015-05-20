@@ -55,7 +55,7 @@ function [dop,okay,msg] = dopImport(dop_input,varargin)
 %   directory of the data file to be imported.
 %   The default value is empty.
 %
-% - 'msg':
+% - 'showmsg':
 %   > e.g., dopFunction(dop_input,okay,msg,...,'msg',1,...)
 %       or
 %           dopFunction(dop_input,okay,msg,...,'msg',0,...)
@@ -107,7 +107,7 @@ try
         inputs.defaults = struct(...
             'file',[], ...
             'dir',[], ...
-            'msg',1,... % show messages
+            'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
         inputs.required = ...
@@ -122,18 +122,18 @@ try
         if okay && exist(dop.tmp.file,'file')
             dop.tmp.fullfile = dop.tmp.file;
             msg{end+1} = 'Full path to file inputted';
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         elseif okay && ~isempty(dop.tmp.dir) && exist(fullfile(dop.tmp.dir,dop.tmp.file),'file')
             dop.tmp.fullfile = fullfile(dop.tmp.dir,dop.tmp.file);
             msg{end+1} = 'Combined ''dir'' and ''file'' inputs for full path to file';
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        else
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+        elseif okay
             okay = 0;
             msg{end+1} = sprintf(['''file'' input (''%s'') needs to be a full' ...
                 ' file path or on MATLAB paths\n\t',...
                 'OR ''dir'' + ''file'' inputs needs to give a full file path'],...
                 dop.tmp.file);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
         
         %% > check file
@@ -150,7 +150,7 @@ try
             msg{end+1} = sprintf(['> Importing:\n\tFile = %s\n\t'...
                 'Dir = %s\n\tExtension = %s\n\n'],...
                 dop.use.file,dop.use.dir,dop.file_ext);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             %             tmp_file,tmp_dir,tmp_ext);
             % check for a mat file first
             dop.tmp.mat_dir = dop.dir;
@@ -166,7 +166,7 @@ try
                 dop.mat.fullfile = dop.tmp.mat_fullfile;
                 
                 msg{end+1} = sprintf('''.mat'' file found, importing:\n\t\t%s',dop.mat.fullfile);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 [dop,okay,msg] = dopMATread(dop,'mat_file',dop.mat.fullfile);
                 %             load(dop.tmp.mat_fullfile);
                 if ~okay
@@ -180,14 +180,18 @@ try
                 msg{end+1} = sprintf(['> File type not recognised:'...
                     '\n\tExtension = %s\n\t'...
                     'Expected ''.EXP'' or ''.TX'''],dop.file_ext);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
             if isfield(dop,'data') && isfield(dop.data,'raw')
                 % update the sample rate - this will change after downsampling
                 if isfield(dop.file_info,'sampleRate')
                     dop.use.sample_rate = dop.file_info.sampleRate;
-                else
+                elseif isfield(dop.file_info,'sample_rate')
                 dop.use.sample_rate = dop.file_info.sample_rate;
+                else
+                    okay = 0;
+                    msg{end+1} = 'Sample rate information not found: this is a problem';
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 end
                 [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'raw');
 %                 if dop.tmp.extract

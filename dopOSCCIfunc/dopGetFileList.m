@@ -122,7 +122,7 @@ try
             'type',[],...
             'dir',[],...
             'file',[],... % for error reporting mostly
-            'msg',1,... % show messages
+            'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
         %         inputs.defaults.types = dopFileTypes;
@@ -138,7 +138,7 @@ try
                         msg{end+1} = sprintf(['No data directory'...
                             ' inputted or available in ''dop.tmp.dir''\n\t(%s)'],...
                             mfilename);
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     else
                         dop.tmp.dir = dop.data_dir;
                     end
@@ -149,7 +149,7 @@ try
                 okay = 0;
                 msg{end+1} = sprintf('Input not recognised\n\t(%s)',...
                     mfilename);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
         %         %% tmp check
         %         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
@@ -203,7 +203,7 @@ try
                     if ~isempty(dop.file_lists{i})
                         msg{end+1} = sprintf('Found %u %s files\n',...
                             numel(dop.file_lists{i}),dop.tmp.types{i});
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                         for j = 1 : numel(dop.file_lists{i})
                             dop.file_list{end+1} = fullfile(dop.tmp.dir,dop.file_lists{i}(j).name);
                         end
@@ -220,7 +220,7 @@ try
             end
             msg{end+1} = sprintf('Found %u files in total\n',...
                 numel(dop.file_list));
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
         
         %% save okay & msg to 'dop' structure

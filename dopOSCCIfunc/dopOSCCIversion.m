@@ -12,6 +12,8 @@ function varargout = dopOSCCIversion%(output)
 % -------------------------------------------------------------------------
 % 3.0.0 24-Apr-2013 revising dopOSCCI2... nearly from scratch
 % 3.0.0 05-Sep-2014 continuing with Heather Payne's input
+% 3.0.0 20-May-2015 revisiting for whatbox processing... not very good at
+%   updating version date
 
 %
 % -------------------------------------------------------------------------
@@ -48,7 +50,7 @@ try
 %     end
     
     dop_version = '3.0.0';
-    dop_date = 'Friday 5th of September 2014';
+    dop_date = 'Wednesday 20th of May 2015';
     dop_out = [dop_version,': ',dop_date];
     fprintf('Matlab version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n',...

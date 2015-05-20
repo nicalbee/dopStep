@@ -148,10 +148,10 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   variables: dop.save, dop.use, dop.def, dop.file_info.
 %   The default value is empty.
 %
-% - 'msg':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'msg',1,...)
+% - 'showmsg':
+%   > e.g., dopFunction(dop_input,okay,msg,...,'showmsg',1,...)
 %       or
-%           dopFunction(dop_input,okay,msg,...,'msg',0,...)
+%           dopFunction(dop_input,okay,msg,...,'showmsg',0,...)
 %   This is a logical variable (1 = on, 0 = off) setting whether or not
 %   messages about the progress of the processing are printed to the MATLAB
 %   command window.
@@ -213,7 +213,7 @@ try
             'save_dat',1, ...
             'delim','\t', ...
             'file',[],...
-            'msg',1,...
+            'showmsg',1,...
             'wait_warn',0 ...
             );
         inputs.defaults.extras = {'file'};
@@ -234,7 +234,7 @@ try
                 ' run ''dopCalc'' to create summary variables otherwise' ...
                 ' there''s nothing to save\n\t(%s: %s)'],...
                 mfilename,dop.tmp.file);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
         %% save file name
         if okay && or(isempty(dop.tmp.save_file),strcmp(dop.tmp.save_file,dop.tmp.defaults.save_file))
@@ -273,7 +273,7 @@ try
             if dop.tmp.save_mat
                 save(dop.save.fullfile_mat,'dop');
                 msg{end+1} = sprintf('''.mat'' file saved: %s',dop.save.fullfile_mat);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
             % to load
             % load(dop.save.fullfile);

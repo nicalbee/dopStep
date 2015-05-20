@@ -106,7 +106,7 @@ try
             'pos',[.1 .9],... % top left x & y portion of screen
             'dim',[.3 .1],... % x and y dimensions as portion of screen
             'file',[],... % for error reporting mostly
-            'msg',1,... % show messages
+            'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
 
@@ -118,7 +118,7 @@ try
             if ~isfield(dop,'file_list') && isempty(dop.file_list)
                 okay = 0;
                 msg{end+1} = 'A progress bar isn''t necessary if you aren''t processing a list of files';
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         end
         if okay
@@ -129,7 +129,7 @@ try
             if isempty(dop.progress.current)
                 okay = 0;
                 msg{end+1} = sprintf('Can''t find current file (%s) in list so can''t update progress',dop.file);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         end
         if okay

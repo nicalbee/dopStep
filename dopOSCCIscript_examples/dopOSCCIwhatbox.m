@@ -5,6 +5,9 @@ clc;
 clear dop
 
 dop.struc_name = 'dop';
+dop.showmsg = 1; % turn on or off message reporting
+% not sure this is exactly what I want though
+
 % this is used to verify the stucture as the 'dopOSCCI' structure, best not
 % to change!
 

@@ -34,7 +34,7 @@ try
             'mat_file',[],...
             'file',[], ...
             'dir',[], ...
-            'msg',1,... % show messages
+            'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
         inputs.defaults.load_variables = {'data','file_info'};
@@ -59,7 +59,7 @@ try
                         msg{end+1} = sprintf(['''%s'' data field not found ',...
                             'in mat file(%s): this is necessary.\n'],...
                             dop.tmp.load_variables{i},dop.tmp.mat_file);
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     end
                 end
                 clear dop_mat
@@ -74,12 +74,12 @@ try
                 else
                     okay = 0;
                     msg{end+1} = sprintf('Input from file not recognised (%s)\n',dop.tmp.mat_file);
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 end
             otherwise
                 okay = 0;
                 msg{end+1} = sprintf('This is not a ''.mat'' file (%s)\n',dop.tmp.mat_file);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
         dop.msg = msg;
         dop.okay = okay;

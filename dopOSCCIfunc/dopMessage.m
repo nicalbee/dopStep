@@ -41,6 +41,8 @@ function dopMessage(dop_input,report,last,okay,wait_warn)
 % 19-Aug-2014 NAB
 % 04-Sep-2014 NAB including warning flags and popups
 % 05-Sep-2014 NAB deleted figure if wait_warn is on
+% 20-May-2015 NAB need a way to turn these off... adjust report but this is
+%   different to the warnings I thinkg
 
 if ~exist('report','var') || isempty(report)
     report = 1;
@@ -52,7 +54,6 @@ end
 if ~exist('okay','var') || isempty(okay)
     okay = 1;
 end
-
 if ~exist('wait_warn','var') || isempty(wait_warn)
     wait_warn = 0;
 end

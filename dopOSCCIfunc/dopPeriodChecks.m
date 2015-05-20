@@ -134,7 +134,7 @@ try
             'poi',[], ... 
             'event_sep',[], ...
             'file',[],...
-            'msg',1,...
+            'showmsg',1,...
             'wait_warn',0 ...
             );
         inputs.required = ...
@@ -161,7 +161,7 @@ try
                         dop.tmp.(dop.length.fields{i}),...
                         dop.length.(dop.length.fields{i}),...
                         mfilename,dop.tmp.file);
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 end
             end
         end
@@ -182,7 +182,7 @@ try
                     msg{end} = strrep(msg{end},'greater than','equal to');
                     msg{end} = strrep(msg{end},'opposite','different');
                 end
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         end
         %% check baseline & poi are within epoch
@@ -201,7 +201,7 @@ try
                 if sum(dop.tmp.(dop.tmp.prd) > dop.tmp.epoch(2))
                     msg{end} = strrep(msg{end},'less than lower','greater than upper');
                 end
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         end
         
@@ -229,7 +229,7 @@ try
                     ' be the case\n(%s: %s)'],...
                     dop.tmp.baseline,dop.tmp.poi,...
                     mfilename,dop.tmp.file);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end        
         end
         
@@ -246,7 +246,7 @@ try
                     '\n\t(%s: %s)'],...
                     dop.tmp.epoch,diff(dop.tmp.epoch),dop.tmp.event_sep,...
                     mfilename,dop.tmp.file);
-                dopMessage(msg,dop.tmp.msg,1,sokay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,sokay,dop.tmp.wait_warn);
             end
         end
         

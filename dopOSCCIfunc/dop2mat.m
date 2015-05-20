@@ -47,47 +47,6 @@ function [dop,okay,msg] = dop2mat(dop_input,varargin)
 %   note: '...' indicates that other inputs can be included before or
 %   after. The inputs can be included in any order.
 %
-% - 'epoch':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'epoch',[-15 30],...)
-%   Lower and Upper epoch values in seconds used to divide the data
-%   surrounding the event markers.
-%
-% - 'baseline':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'baseline',[-15 -5],...)
-%   Lower and Upper baseline period values in seconds. The mean of this
-%   period is subtracted from the rest of the data within the epoch (left
-%   and right channels separately) to perform baseline correction (see
-%   dopBaseCorrect).
-%
-% - 'poi':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'epoch',[10 25],...)
-%   Lower and Upper period of interest values in seconds within which to
-%   search for peak left minus right difference for calculation of the
-%   lateralisation index.
-%
-% - 'sample_rate':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'sample_rate',25,...)
-%   The sampling rate of the data in Hertz. This is used to convert the
-%   'epoch' variable seconds to samples to divide the data into epochs.
-%   note: After dopDownsample is run, this value should be the downsampled
-%   sample rate.
-%
-% - 'event_channels':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'event_channels',13,...)
-%   Column number of data which holds the event information. Typically
-%   square signal data.
-%   note: 'event_channels' is used within this function as an input for
-%   dopEvent Markers if it hasn't previously been called. That is,
-%   'dop.event' structure variable is not found
-%
-% - 'event_height':
-%   > e.g., dopFunction(dop_input,okay,msg,...,'event_height',1000,...)
-%   Number above which activity in the event channel/column data will be
-%   detected as an event marker.
-%   note: 'event_height' is used within this function as an input for
-%   dopEvent Markers if it hasn't previously been called. That is,
-%   'dop.event' structure variable is not found
-%
 % - 'file':
 %   > e.g., dopFunction(dop_input,okay,msg,...,'file','subjectX.exp',...)
 %   file name of the data file currently being summarised. This is used for
@@ -128,6 +87,7 @@ function [dop,okay,msg] = dop2mat(dop_input,varargin)
 % Created: 20-May-2015 NAB
 % Edits:
 % 20-May-2015 NAB work in progress...
+% 20-May-2015 NAB working for directory
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -144,8 +104,9 @@ try
             'mat_dir',[], ...
             'mat_fullfile',[], ...
             'mat_dir_ext','_mat',... % add this to the end of regular directory
+            'dir',[],...
             'file',[],... % for error reporting mostly
-            'msg',1,... % show messages
+            'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
         inputs.required = {};
@@ -174,7 +135,7 @@ try
                         [dop.tmp.mat_dir,dop.tmp.file_noext,dop.tmp.ext] = fileparts(dop.tmp.mat_fullfile);
                         dop.tmp.mat_file = [dop.tmp.file_noext,dop.tmp.ext];
                         msg{end+1} = 'fullfile with .mat extension found as second input';
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     else
                         dop.tmp.mat_file = varargin{1};
                     end
@@ -184,10 +145,10 @@ try
                 
             case 'dir'
                 dop.data_dir = dop_input;
-                if ~exist(dop.tmp.dir,'dir')
+                if ~exist(dop.data_dir,'dir')
                     okay = 0;
                     msg{end+1} = sprintf('inputted direcotry doesn''t exist, can''t continue (%s)',dop.tmp.dir);
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 else
                     [dop,okay,msg] = dopGetFileList(dop,okay,msg);
                     [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
@@ -196,7 +157,7 @@ try
                     if ischar(varargin{1}) && ~isempty(strfind(varargin{1},filesep))
                         % it's a character array and has a filesep
                         dop.tmp.mat_dir = varargin{1};
-                    elseif isempty(varargin)
+                    elseif isempty(varargin{1})
                         % set mat directory
                         if ~isempty(strcmp(dop.data_dir(end),filesep))
                             dop.tmp.mat_dir = [dop.data_dir(1:end-1),dop.tmp.mat_dir_ext];
@@ -204,16 +165,32 @@ try
                             dop.tmp.mat_dir = [dop.data_dir,dop.tmp.mat_dir_ext];
                         end
                     end
-                    
+                    if ~exist(dop.tmp.mat_dir,'dir')
+                        mkdir(dop.tmp.mat_dir);
+                    end
                     for i = 1 : numel(dop.file_list)
-                        [dop,okay,msg] = dopImport(dop,'fullfile',dop.file_list{i});
-                        [dop,okay,msg] = dopMATsave(dop,okay,msg);
+                        [dop,okay,msg] = dopImport(dop,'file',dop.file_list{i});
+                        [dop,~,msg] = dopMultiFuncTmpCheck(dop,1,msg);
+                        [dop,okay,msg] = dopMATsave(dop,okay,msg,'mat_dir',dop.tmp.mat_dir);
+                        if okay
+                        dop.mat_file = dop.tmp.mat_file;
+                        dop.mat_dir = dop.tmp.mat_dir;
+                        end
+                        [dop,~,msg] = dopMultiFuncTmpCheck(dop,1,msg);
+                        if okay
+                            msg{end+1} = sprintf('%s saved to %s (%s)',dop.file_list{i},dop.mat_file,dop.mat_dir);
+                            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        else
+                            %                             okay = 1; % don't need to abort though... probably
+                            msg{end+1} = sprintf('Problem with %s: couldn''t save as .mat file',dop.file_list{i});
+                            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        end
                     end
                 end
             otherwise
                 okay = 0;
                 msg{end+1} = sprtinf('Input not recognised: ''%s'' aborted',mfilename);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
         
         
