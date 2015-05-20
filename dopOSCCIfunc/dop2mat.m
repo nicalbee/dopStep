@@ -88,6 +88,7 @@ function [dop,okay,msg] = dop2mat(dop_input,varargin)
 % Edits:
 % 20-May-2015 NAB work in progress...
 % 20-May-2015 NAB working for directory
+% 21-May-2015 NAB included progress waitbar - just for fun
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -169,7 +170,8 @@ try
                         mkdir(dop.tmp.mat_dir);
                     end
                     for i = 1 : numel(dop.file_list)
-                        [dop,okay,msg] = dopImport(dop,'file',dop.file_list{i});
+                        dop.file = dop.file_list{i};
+                        [dop,okay,msg] = dopImport(dop,'file',dop.file);
                         [dop,~,msg] = dopMultiFuncTmpCheck(dop,1,msg);
                         [dop,okay,msg] = dopMATsave(dop,okay,msg,'mat_dir',dop.tmp.mat_dir);
                         if okay
@@ -185,6 +187,7 @@ try
                             msg{end+1} = sprintf('Problem with %s: couldn''t save as .mat file',dop.file_list{i});
                             dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                         end
+                        dop = dopProgress(dop);
                     end
                 end
             otherwise
@@ -192,7 +195,6 @@ try
                 msg{end+1} = sprtinf('Input not recognised: ''%s'' aborted',mfilename);
                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
-        
         
         
         %% save okay & msg to 'dop' structure

@@ -32,7 +32,7 @@ dop.def.downsample_rate = 25; % Hertz
 % dop.def.baseline = [-9 -4];
 
 % used - shortest
-dop.def.epoch =  [-4 15];
+dop.def.epoch =  [-4 30];
 dop.def.baseline = [-4 1];
 
 dop.def.poi = [5 15];
@@ -70,7 +70,8 @@ dop.def.keep_data_steps = 1;
 % define which information will be saved
 dop.save.extras = {'file','clip','clip_left','clip_right','clip_left_max','clip_right_max',...
     'act_removed','act_sep_removed','manual_removed','screen_removed',...
-    'act_sep_mean','act_sep_sd','act_sep_median','act_sep_iqr','act_sep_max'};
+    'act_mean','act_std','act_median','act_iqr','act_max',...
+    'act_sep_mean','act_sep_std','act_sep_median','act_sep_iqr','act_sep_max'};
 % you can add your own variables to 'extras', just need to be defined
 % somewhere as dop.save.x = where x = variable name
 dop.save.summary = {'overall'}; % versus 'epoch' (not well tested yet)
@@ -79,7 +80,7 @@ dop.save.periods = {'poi'}; % {'baseline','epoch'}
 dop.save.epochs = {'screen','odd','even'};%{'all','screen','odd','even'};
 dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
 
-dop.save.messages = 1;
+dop.save.messages = 1; % not sure what this does at the moment...
 
 
 dop.save.save_file = []; % this will be auto completed based upon the dop.def.task_name variable
@@ -195,7 +196,7 @@ if okay
     % save the 'collected' data for all okay files
     [dop,okay,msg] = dopSaveCollect(dop);%,'type','norm');
     % plot the 'collected' data for all okay files
-    [dop,okay,msg] = dopPlot(dop,'collect');%,'type','norm');
+    [dop,okay,msg] = dopPlot(dop,'collect','type','base');
     
     dopCloseMsg;
 end
