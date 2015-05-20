@@ -92,6 +92,9 @@ try
             end
             switch tmp_ext
                 case dopFileTypes
+                    if ~isstruct(dop)
+                        dop = [];
+                    end
                     dop.dir = tmp_dir;
                     dop.file_ext = tmp_ext;
                     if isTX(dop_file)

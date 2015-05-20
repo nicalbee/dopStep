@@ -24,6 +24,7 @@ function [dop,okay,msg] = dopHeartCycle(dop_input,varargin)
 % 31-Aug-2014 NAB fixed first and last events as could be incomplete, using
 %   next and previous values respectively
 % 04-Sep-2014 NAB msg & warn_wait updates
+% 20-May-2015 NAB added 'showmsg'
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -34,7 +35,7 @@ try
         inputs.turnOff = {'comment'};%,'correct','linspace'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'msg',1,...
+            'showmsg',1,...
             'wait_warn',0,...
             'sample_rate',[], ...
             'signal_channels',[2 3],...
@@ -52,7 +53,7 @@ try
         if size(dop.tmp.data,3) > 1
             okay = 0;
             msg{end+1} = 'Data already epoched. Reset data to pre-epoched; e.g., dop.data.raw or dop.data.down or dop.data.norm (with ''overall'' method)';
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         elseif size(dop.tmp.data,2) >= max(dop.tmp.event_channels) && numel(unique(dop.tmp.data(:,dop.tmp.event_channels(1)))) > 2
             [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);          
@@ -60,7 +61,7 @@ try
                 size(dop.tmp.data,2) == numel([dop.tmp.signal_channels,dop.tmp.event_channels]) ...
                 || numel(unique(dop.tmp.data(:,dop.tmp.event_channels(1)))) == 2
             msg{end+1} = 'Event channels in ''dop.tmp.data''';
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         else
             okay = 0;
             msg{end+1} = sprintf(['Can''t create ''dop.data.event'' variable, as data'...
@@ -68,7 +69,7 @@ try
                 ' event channel is %u\n\tThis is likely to be a problem at' ...
                 ' some point down the track - e.g, dopEpoch.'],...
                 size(dop.tmp.data,2),max(dop.tmp.event_channels));
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
         
         %     if okay && or(size(dop.tmp.data,2) > 2, size(dop.tmp.data,3) > 1)
@@ -76,11 +77,11 @@ try
         %         dop.tmp.in_data = dop.tmp.data;
         %         dop.tmp.data = dop.tmp.data(:,dop.tmp.signal_channels);
         %         msg{end+1} = 'Pulling out the signal channels';
-        %         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+        %         dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         %         elseif size(dop.tmp.data,3) > 1
         %             okay = 0;
         %             msg{end+1} = 'Data already epoched. Reset data to pre-epoched; e.g., dop.data.raw or dop.data.down or dop.data.norm (with ''overall'' method)';
-        %         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+        %         dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         %         end
         %     end
         if okay
@@ -143,7 +144,7 @@ try
                 case {'correct','linspace'}
                     if strcmp(dop.tmp.type,'correct')
                         msg{end+1} = 'Correcting for heart cycles using deppe method';
-                       dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                       dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     end
                     % might be an elegant way to do this but I'm not sure
                     dop.tmp.hc_correct = zeros(size(dop.tmp.data));
@@ -151,7 +152,7 @@ try
                     
                     if strcmp(dop.tmp.type,'linspace')
                         msg{end+1} = 'Correcting for heart cycles using deppe method + ''linspace'' adjustment';
-                       dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                       dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                         dop.tmp.hc_linspace = dop.tmp.hc_correct;
                     end
                     for i = 2 : numel(dop.tmp.systolic)+1
@@ -205,7 +206,7 @@ try
                     okay = 0;
                     msg{end+1} = sprintf('''%s'' correction type not recognised',...
                         dop.tmp.type);
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
             
             %% look at the data?
@@ -269,7 +270,7 @@ try
                         case 'linspace'
                             if exist('linspace','file')
                                 msg{end+1} = 'Smoothing heart cycles corrected data (corrected using deppe method)';
-                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                                 
                                 dop.data.hc_linspace = dop.tmp.hc_linspace;
                                 [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'hc_linspace');
@@ -277,9 +278,10 @@ try
                             elseif ~exist('linspace','file')
                                 msg{end+1} = ['Smoothing heart cycles requested but requires' ...
                                     '''linspace'' MATLAB function which is not on path'];
-                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                             end
                 end
+                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
             end
             %% pulsitility
             % maybe one day... but then again, perhaps better for the machine to

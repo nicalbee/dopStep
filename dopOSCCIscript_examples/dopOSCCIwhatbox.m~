@@ -70,7 +70,7 @@ dop.def.keep_data_steps = 1;
 % define which information will be saved
 dop.save.extras = {'file','clip','clip_left','clip_right','clip_left_max','clip_right_max',...
     'act_removed','act_sep_removed','manual_removed','screen_removed',...
-    'act_sep_mean','act_sep_sd','act_sep_median','act_sep_iqr','act_sep_max'};
+    'act_sep_mean','act_sep_sd','act_sep_max'};
 % you can add your own variables to 'extras', just need to be defined
 % somewhere as dop.save.x = where x = variable name
 dop.save.summary = {'overall'}; % versus 'epoch' (not well tested yet)

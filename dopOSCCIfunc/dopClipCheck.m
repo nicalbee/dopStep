@@ -98,6 +98,7 @@ function [dop,okay,msg] = dopClipCheck(dop_input,varargin)
 %
 % Created: 14-Jan-2015 NAB
 % Edits:
+% 20-May-2015 NAB added 'showmsg'
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -112,7 +113,7 @@ try
         inputs.defaults = struct(...
             'clip_pct_flag',1, ... if greater than 1 pct of data, flag as potentially clipped
             'file',[],... % for error reporting mostly
-            'msg',1,... % show messages
+            'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
         inputs.required = [];...
@@ -133,12 +134,12 @@ try
                     else
                         msg{end+1} = 'Using inputted data';
                     end
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 otherwise
                     okay = 0;
                     msg{end+1} = sprintf(['Input doesn''t include recognised data',...
                         '\n(%s:%s)'],mfilename,dop.tmp.file);
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         end
 %         %% tmp check
@@ -171,7 +172,7 @@ try
             dop.tmp.clip(1),dop.tmp.max(1),dop.tmp.clip(2),dop.tmp.max(2),...
             dop.tmp.text);
         
-        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         
         msg{end+1} = sprintf(['To include this information in data file add the following '...
             'to the dop.save.extras variable:\n',...
@@ -179,9 +180,9 @@ try
             '\t- ''clip_left'' = percentage samples at max value for left channel\n',...
             '\t- ''clip_right'' = percentage samples at max value for right channel\n',...
             '\t- ''clip_left_max'' = max value for left channel\n',...
-            '\t- ''clip_left_max'' = max value for right channel\n'],dop.tmp.clip_pct_flag);
+            '\t- ''clip_right_max'' = max value for right channel\n'],dop.tmp.clip_pct_flag);
         
-        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

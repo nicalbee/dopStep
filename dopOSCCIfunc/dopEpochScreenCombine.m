@@ -25,6 +25,7 @@ function [dop,okay,msg] = dopEpochScreenCombine(dop_input,varargin)
 % 14-Sep-2014 NAB 
 % 21-Nov-2014 NAB include step by step epoch exclusion reporting so you can
 %   easily see what you're losing for each screen type
+% 20-May-2015 NAB added 'showmsg' & screen_remove output variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -37,7 +38,7 @@ try
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'file',[],...
-            'msg',1,...
+            'showmsg',1,...
             'wait_warn',0 ...
             );
         inputs.defaults.screen = {'manual','length','act','sep'};
@@ -48,7 +49,7 @@ try
         %% data check
         if okay && or(size(dop.tmp.data,3) == 1, ~isfield(dop,'epoch'))
             msg{end+1} = 'Data hasn''t been epoched - let''s do that';
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             [dop,okay,msg] = dopEpoch(dop,okay,msg,...
                 'epoch',dop.tmp.epoch,'sample_rate',dop.tmp.sample_rate,...
                 'event_height',dop.tmp.event_height,...
@@ -77,7 +78,7 @@ try
         if okay
             msg{end+1} = sprintf(['Combining screens: ',...
                 repmat('%s ',1,numel(dop.tmp.screen))],dop.tmp.screen{:});
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             % matrix with screen # rows & epoch # columns
             dop.tmp.screens = ones(numel(dop.tmp.screen),size(dop.tmp.data,2));
             for i = 1 : numel(dop.tmp.screen)
@@ -87,12 +88,12 @@ try
                     dop.tmp.ep_nums = find(dop.epoch.(dop.tmp.screen{i}) == 0);
                     msg{end+1} = sprintf(['\t- %s: ',dopVarType(dop.tmp.ep_nums)],...
                         dop.tmp.screen{i},dop.tmp.ep_nums);
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             
                 else
                     msg{end+1} = sprintf(['''dop.epoch.%s'' variable not' ...
                         'found, therefore not used'],dop.tmp.screen{i});
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 end
             end
             dop.epoch.screen = sum(dop.tmp.screens) == size(dop.tmp.screens,1);
@@ -105,16 +106,18 @@ try
                 repmat('%s ',1,numel(dop.tmp.screen))],...
                 sum(dop.epoch.screen),numel(dop.epoch.screen),...
                 dop.tmp.screen{:});
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             % report unnaceptable
             if numel(dop.epoch.screen) ~= sum(dop.epoch.screen)
                 msg{end+1} = sprintf(['unnacceptable epoch number/s = ' ...
                     repmat('%u ',1,numel(dop.epoch.screen) - sum(dop.epoch.screen))], ...
                     find(~dop.epoch.screen));
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         end
         dop.epoch.screen = logical(dop.epoch.screen);
+        dop.epoch.screen_removed = sum(dop.epoch.screen == 0);
+        
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;

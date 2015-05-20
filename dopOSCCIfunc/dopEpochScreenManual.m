@@ -109,6 +109,7 @@ function [dop,okay,msg] = dopEpochScreenManual(dop_input,varargin)
 % 15-Nov-2014 NAB fixed check for exclusion of epochs greater than available
 % 01-Apr-2015 HMP/NAB or statement in file name matching ~ line 207
 % 08-May-2015 NAB/HMP added 'ismember' statmeent regarding file matching
+% 20-May-2015 NAB added 'showmsg' & sep_remove output variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -126,7 +127,7 @@ try
             'manual_dir',[],...
             'manual_file',[],...
             'file',[],... % for error reporting mostly
-            'msg',1,... % show messages
+            'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
         %         inputs.required = ...
@@ -154,19 +155,19 @@ try
                         msg{end} = strrep(msg{end},'values in ''dop.tmp.exclude'' variable are zero. These have',...
                             'value in ''dop.tmp.exclude'' variable is zero. This has');
                     end
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     dop.tmp.exclude(dop.tmp.exclude == 0) = [];
                 end
                 % set the excluded values to zero - that is, not used
                 dop.epoch.manual(dop.tmp.exclude) = 0;
                 msg{end+1} = sprintf(['Manual exclusion of epochs: ' ...
                     dopVarType(dop.tmp.exclude)],dop.tmp.exclude);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             elseif ~isempty(dop.tmp.exclude) && ~isnumeric(dop.tmp.exclude)
                 okay = 0;
                 msg{end+1} = sprintf(['''exclude'' input variable for ''%s''',...
                     ' function must be numeric\n\t(%s)'],mfilename,dop.tmp.file);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
 %             elseif ~isempty(dop.tmp.exclude) && ...
 %                     sum(dop.tmp.exclude <= dop.event.n) ~= numel(dop.tmp.exclude)
 %                 okay = 0;
@@ -175,7 +176,7 @@ try
 %                     ' has values greater than the number of available epochs'...
 %                     ' (%u)\n\t(%s: %s)'],dop.tmp.exclude,dop.event.n,...
 %                     mfilename,dop.tmp.file);
-%                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
 %             else
             elseif ~isempty(dop.tmp.manual_fullfile) && exist(dop.tmp.manual_fullfile,'file')
                 %                 warndlg('Not yet programmed!','Manual epoch file');
@@ -189,17 +190,44 @@ try
                 % may or may not be a problem so not saying it's not okay, just
                 % might not have one
                 msg{end+1} = '''dop.tmp.manual_file'' variable is empty';
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             elseif ~exist(dop.tmp.manual_file,'file')
                 okay = 0;
                 msg{end+1} = sprintf('''dop.tmp.manual_file'' does not exist: %s',dop.tmp.manual_file);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
             %% find the current file
             if isempty(dop.tmp.exclude) && isfield(dop.tmp,'man') ...
                     && isfield(dop.tmp.man,'manual_list') && isfield(dop.tmp.man,'manual_exclude') ...
                     && ~isempty(dop.file)
+                
+                
                 dop.tmp.match = find(strcmp(dop.tmp.man.manual_list,dop.file),1,'first');
+                if isempty(dop.tmp.match)
+                    % first let's check if the extension is mat
+                    [~,~,dop.tmp.manual_ext] = fileparts(dop.tmp.man.manual_list{1});
+                    [~,~,dop.tmp.file_ext] = fileparts(dop.file);
+                    if ismember(dop.tmp.file_ext,{'.mat','.MAT'}) && ...
+                            ~strcmp(dop.tmp.manual_ext,dop.tmp.file_ext) && ...
+                            find(strcmp(dop.tmp.man.manual_list,strrep(dop.file,dop.tmp.file_ext,dop.tmp.manual_ext)),1,'first')
+                        
+                        msg{end+1} = sprintf(['Assuming that %s files '...
+                            'have been converted to %s files. Adjusted '...
+                            'manual list to be %s files. Hope this is okay...'...
+                            'If not, edit the ''%s'' function around line 210'],...
+                            dop.tmp.manual_ext,dop.tmp.file_ext,dop.tmp.file_ext,...
+                            mfilename);%dop.tmp.manual_file);
+                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        
+                        for i = 1 : numel(dop.tmp.man.manual_list)
+                            dop.tmp.man.manual_list{i} = strrep(dop.tmp.man.manual_list{i},dop.tmp.manual_ext,dop.tmp.file_ext);
+                        end
+                        % let's try again
+                        dop.tmp.match = find(strcmp(dop.tmp.man.manual_list,dop.file),1,'first');
+                    end
+                    
+                end
+                
                 if isempty(dop.tmp.match) % might be a full file list
                     i = 0;
                     while isempty(dop.tmp.match) && i < numel(dop.tmp.man.manual_list)
@@ -207,7 +235,7 @@ try
                         [~,tmp_file,tmp_ext] = fileparts(dop.tmp.man.manual_list{i});
                         if strcmp([tmp_file,tmp_ext],dop.file)
                             dop.tmp.match = i;
-                        elseif  ismember(dop.tmp.man.manula_list,dop.file) %~isempty(strfind(dop.tmp.man.manual_list,dop.file))
+                        elseif  ismember(dop.tmp.man.manual_list,dop.file) %~isempty(strfind(dop.tmp.man.manual_list,dop.file))
                             % or from Heather Payne 01-Apr-2015
                             % update NAB 08-May-2015
                             dop.tmp.match = find(ismember(dop.tmp.man.manula_list,dop.file));
@@ -221,7 +249,7 @@ try
                     msg{end+1} = sprintf(['file (%s) not found in '...
                         'manual screening file: %s\n\t'...
                         'therefore, no epochs manually excluded'],dop.file,dop.tmp.manual_file);
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 else
                     dop.tmp.exclude = dop.tmp.man.manual_exclude{dop.tmp.match};
                     msg{end+1} = sprintf(['file (%s) found in'...
@@ -231,7 +259,7 @@ try
                         msg{end} = strrep(msg{end},'exclude',...
                             sprintf(['exclude: ',dopVarType(dop.tmp.exclude)],dop.tmp.exclude));
                     end
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     
                 end
             end
@@ -251,7 +279,7 @@ try
                     msg{end} = strrep(msg{end},'values','value');
                     msg{end} = strrep(msg{end},'These','This');
                 end
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 okay = 1; % we can fix this, ignoring the greater values
                 dop.tmp.exclude(dop.tmp.greater) = [];% % remove from list
             end
@@ -261,6 +289,7 @@ try
             end
             
             dop.epoch.manual = logical(dop.epoch.manual);
+            dop.epoch.manual_removed = sum(dop.epoch.manual == 0);
         end
         
         

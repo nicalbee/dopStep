@@ -48,12 +48,12 @@ try
         
         dopOSCCIindent('run',dop.tmp.showmsg);%fprintf('\nRunning %s:\n',mfilename);
         
-
-        
         if exist('dop_input','var') && ~isempty(dop_input)
             switch dopInputCheck(dop_input)
                 case 'dop'
 %                     dop = dop_input; % not needed 20-May-2015 NAB
+                    
+                    
                     %% main code
                     %     [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                     tmp.stack = dbstack;
@@ -63,6 +63,11 @@ try
                         msg{end+1} = ['Multiple functions running with setGetInputs,'...
                             ' updating ''dop.tmp'' variable'];
                         dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        
+                        % might lose a couple of the tmp bits for this
+                        % function
+                        dop.tmp_now = dop.tmp;
+                        
                         dop.tmp = dop.(tmp.stack(2).name);
                         dop = rmfield(dop,tmp.stack(2).name);
                         % current data set may have been updated also...
@@ -72,7 +77,7 @@ try
                     end
                 otherwise
                     msg{end+1} = '''dop'' input structure not found: required for this function';
-                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.dop.tmp_now.showmsg,1,okay,dop.dop.tmp_now.wait_warn);
             end
         else
             okay = 0;
@@ -84,7 +89,7 @@ try
         dop.okay = okay;
         dop.msg = msg;
         
-        dopOSCCIindent('done',dop.tmp.showmsg);%fprintf('\nRunning %s:\n',mfilename);
+        dopOSCCIindent('done',dop.tmp_now.showmsg);%fprintf('\nRunning %s:\n',mfilename);
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);

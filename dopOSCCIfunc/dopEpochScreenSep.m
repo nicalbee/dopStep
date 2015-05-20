@@ -27,6 +27,7 @@ function [dop,okay,msg] = dopEpochScreenSep(dop_input,varargin)
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 12-Sep-2014 NAB absolute difference: negatives were getting through!
 % 19-May-2015 NAB adding some descriptives to look at
+% 20-May-2015 NAB added 'showmsg' & sep_remove output variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -38,7 +39,7 @@ try
         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'msg',1,...
+            'showmsg',1,...
             'wait_warn',0,...
             'act_separation',20,...
             'act_separation_pct',1.5,...
@@ -56,12 +57,12 @@ try
             if size(dop.tmp.data,3) == 1
                 dop.tmp.data_type = 'continuous';
                 msg{end+1} = 'Continuous data (i.e., not epoched) inputted';
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+               dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 
                 msg{end+1} = sprintf(['data %u columns, assuming first',...
                     ' 2 are left and right channels'],...
                     size(dop.tmp.data,2));
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+               dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 
                 [dop,okay,msg] = dopEventMarkers(dop,okay,msg);
                 % refresh the data if necessary
@@ -70,12 +71,12 @@ try
             elseif size(dop.tmp.data,3) > 1
                 dop.tmp.data_type = 'epoched';
                 msg{end+1} = 'Epoched data inputted';
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+               dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             else
                 okay = 0;
                 msg{end+1} = ['Data type unknown: expecting continuous or'...
                     'epoched. Can''t continue function'];
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+               dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
             
         end
@@ -91,13 +92,15 @@ try
                 ' with <= %1.1f%% left minus right activation less than %u'],...
                 dop.tmp.act_separation_pct,dop.tmp.act_separation);
             msg{end+1} = dop.epoch.sep_note;
-           dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+           dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             dop.epoch.sep = ones(1,dop.tmp.n_epochs);
             
             % some descriptives
             dop.epoch.act_sep_mean_ep = dop.epoch.sep;
             dop.epoch.act_sep_sd_ep = dop.epoch.sep;
-%             dop.epoch.act_sep_min = dop.epoch.sep;
+            dop.epoch.act_sep_median_ep = dop.epoch.sep;
+            dop.epoch.act_sep_iqr_ep = dop.epoch.sep;
+            dop.epoch.act_sep_min_ep = dop.epoch.sep;
             dop.epoch.act_sep_max_ep = dop.epoch.sep;
             
             for j = 1 : dop.tmp.n_epochs
@@ -109,7 +112,7 @@ try
                                 ' %u samples (%3.2f secs). Checking avialable'],...
                                 j,abs(dop.tmp.filt_limits(1)),...
                                 dop.tmp.filt_limits(1)*(1/dop.tmp.sample_rate));
-                           dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                           dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                             dop.tmp.filt_limits(1) = 1;
                         end
                         if dop.tmp.filt_limits(2) > size(dop.tmp.data,1)
@@ -117,7 +120,7 @@ try
                                 ' %u samples (%3.2f secs). Checking avialable'],...
                                 j,size(dop.tmp.data,1) - dop.tmp.filt_limits(2),...
                                 (size(dop.tmp.data,1)-dop.tmp.filt_limits(2))*(1/dop.tmp.sample_rate));
-                           dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                           dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                             dop.tmp.filt_limits(2) = size(dop.tmp.data,1);
                         end
                         dop.tmp.filt = dop.tmp.filt_limits(1) : dop.tmp.filt_limits(2);
@@ -130,10 +133,12 @@ try
                 dop.tmp.all = bsxfun(@lt,abs(dop.tmp.diff) ,dop.tmp.act_separation);
                 dop.tmp.pct = 100*(sum(dop.tmp.all == 0)/numel(dop.tmp.diff));
                 
-                dop.epoch.act_sep_mean_ep(j) = mean(dop.tmp.diff);
-            dop.epoch.act_sep_sd_ep(j) = std(dop.tmp.diff);
-%             dop.epoch.act_sep_min(j) = min(dop.tmp.diff);
-            dop.epoch.act_sep_max_ep(j) = max(abs(dop.tmp.diff));
+                dop.epoch.act_sep_mean_ep(j) = mean(abs(dop.tmp.diff));
+                dop.epoch.act_sep_sd_ep(j) = std(abs(dop.tmp.diff));
+                dop.epoch.act_sep_median_ep(j) = median(abs(dop.tmp.diff));
+                dop.epoch.act_sep_iqr_ep(j) = iqr(abs(dop.tmp.diff));
+                dop.epoch.act_sep_min_ep(j) = min(abs(dop.tmp.diff));
+                dop.epoch.act_sep_max_ep(j) = max(abs(dop.tmp.diff));
                 
                 dop.epoch.sep(j) = sum(dop.tmp.all) == numel(dop.tmp.diff);
                 if ~dop.epoch.sep(j)
@@ -149,17 +154,20 @@ try
                             ' greater than %u (%3.2f%%)'],...
                             j,sum(dop.tmp.all == 0),dop.tmp.act_separation,dop.tmp.pct);
                     end
-                   dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                   dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 end
                 
             end
             dop.epoch.sep = logical(dop.epoch.sep);
+            dop.epoch.act_sep_removed = sum(dop.epoch.sep == 0);
             
-            
-            dop.epoch.act_sep_mean = mean(dop.epoch.act_sep_max);
-            dop.epoch.act_sep_sd = sd(dop.epoch.act_sep_max);
-            dop.epoch.act_sep_min = min(dop.epoch.act_sep_max);
-            dop.epoch.act_sep_max = max(dop.epoch.act_sep_max);
+            % not sure about this being summarised as means
+            dop.epoch.act_sep_mean = mean(dop.epoch.act_sep_mean_ep);
+            dop.epoch.act_sep_sd = mean(dop.epoch.act_sep_sd_ep);
+            dop.epoch.act_sep_median = mean(dop.epoch.act_sep_median_ep);
+            dop.epoch.act_sep_iqr = mean(dop.epoch.act_sep_iqr_ep);
+            dop.epoch.act_sep_min = mean(dop.epoch.act_sep_min_ep);
+            dop.epoch.act_sep_max = mean(dop.epoch.act_sep_max_ep);
         end
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

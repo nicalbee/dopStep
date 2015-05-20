@@ -60,13 +60,15 @@ try
                     % current dop.data.use
                     [dop,okay,msg] = dopEventMarkers(dop,okay,msg);
                     [dop,okay,msg] = dopEpoch(dop,okay,msg);
+                    [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                 else
                     [dop,okay,msg] = dopEpoch(dop,okay,msg);
+                    [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                     msg{end+1} = dopEventExistMsg;
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 end
                 if okay
-                    [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+%                     [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                     dop.data.norm = zeros(size(dop.tmp.data));
                     
                     for i = 1 : numel(dop.event.samples)

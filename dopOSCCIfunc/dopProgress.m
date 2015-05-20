@@ -161,8 +161,8 @@ try
             waitbar(dop.progress.portion,dop.progress.h); % update the progress bar
             
             set(dop.progress.h_title,'String',dop.progress.msg); % update the message
-%             figure(dop.progress.h); % bring to front to make sure it's on top
-%             drawnow;
+            figure(dop.progress.h); % bring to front to make sure it's on top
+%             drawnow; % don't think this is needed
             if dop.progress.portion == 1
                 close(dop.progress.h);
             end
