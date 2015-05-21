@@ -42,7 +42,7 @@ function [dop,okay,msg] = dopActCorrect(dop_input,varargin)
 %
 % where:
 % > Inputs
-% - dop_input: dop matlab structure or data matrix* 
+% - dop_input: dop matlab structure or data matrix*
 %
 %   Optional:
 % - okay:
@@ -80,6 +80,7 @@ function [dop,okay,msg] = dopActCorrect(dop_input,varargin)
 % 31-Aug-2014 NAB keep all columns of data, not just first 3
 % 02-Sep-2014 NAB incorporated dopPlot continuous plotting
 % 04-Sep-2014 NAB msg & wait_warn updates
+% 22-May-2015 NAB summary statistics
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -114,28 +115,28 @@ try
             if size(dop.tmp.data,3) == 1
                 dop.tmp.data_type = 'continuous';
                 msg{end+1} = 'Continuous data (i.e., not epoched) inputted';
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 msg{end+1} = sprintf(['data %u columns, assuming first',...
                     ' 2 are left and right channels'],...
                     size(dop.tmp.data,2));
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 if ~isfield(dop,'event')
                     [dop,okay,msg] = dopEventMarkers(dop,okay,msg);
                     % refresh the data if necessary
                     [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                 else
                     msg{end+1} = dopEventExistMsg;
-                   dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 end
             elseif size(dop.tmp.data,3) > 1
                 dop.tmp.data_type = 'epoched';
                 msg{end+1} = 'Epoched data inputted';
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             else
                 okay = 0;
                 msg{end+1} = ['Data type unknown: expecting continuous or'...
                     'epoched. Can''t continue function'];
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
             
         end
@@ -147,7 +148,7 @@ try
                 msg{end+1} = sprintf(['Checking for data points below %i',...
                     ' and above %i standard deviations of mean.'],...
                     dop.tmp.correct_range);
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 % activation_range_values for the left and right channels
                 % left = row 1, right = row 2
                 if size(dop.tmp.data,3) == 1
@@ -164,7 +165,7 @@ try
                 msg{end+1} = sprintf(['Lower correct range (%3.2f) is',...
                     ' higher than the upper (%3.2f) - this won''t work!'],...
                     dop.tmp.correct_range);
-               dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
         end
         %% main code
@@ -185,7 +186,7 @@ try
                 ' Right values < %3.2f or > %3.2f'],...
                 dop.tmp.correct_range_values(:,1),dop.tmp.correct_range_values(:,2));
             msg{end+1} = dop.epoch.act_correct_note;
-           dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             
             dop.epoch.act_correct = ones(1,dop.tmp.n_epochs);
             
@@ -198,7 +199,7 @@ try
                                 ' %u samples (%3.2f secs). Checking available'],...
                                 j,abs(dop.tmp.filt_limits(1)),...
                                 dop.tmp.filt_limits(1)*(1/dop.tmp.sample_rate));
-                           dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             dop.tmp.filt_limits(1) = 1;
                         end
                         if dop.tmp.filt_limits(2) > size(dop.tmp.data,1)
@@ -206,7 +207,7 @@ try
                                 ' %u samples (%3.2f secs). Checking available'],...
                                 j,size(dop.tmp.data,1) - dop.tmp.filt_limits(2),...
                                 (size(dop.tmp.data,1)-dop.tmp.filt_limits(2))*(1/dop.tmp.sample_rate));
-                           dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             dop.tmp.filt_limits(2) = size(dop.tmp.data,1);
                         end
                         dop.tmp.filt = dop.tmp.filt_limits(1) : dop.tmp.filt_limits(2);
@@ -222,120 +223,128 @@ try
                 dop.tmp.pct = sum(dop.tmp.all)/numel(dop.tmp.all)*100;
                 dop.tmp.adjust = dop.tmp.pct <= dop.tmp.correct_pct;
                 
+                dop.epoch.act_cor_pct_left_over = sum(dop.tmp.over(:,1))/numel(dop.tmp.over(:,1))*100;
+                dop.epoch.act_cor_pct_left_under = sum(dop.tmp.under(:,1))/numel(dop.tmp.under(:,1))*100;
+                dop.epoch.act_cor_pct_right_over = sum(dop.tmp.over(:,2))/numel(dop.tmp.over(:,2))*100;
+                dop.epoch.act_cor_pct_right_under = sum(dop.tmp.under(:,2))/numel(dop.tmp.under(:,2))*100;
+                
                 for i = 1 : numel(dop.tmp.adjust) % left and right channels
                     if dop.tmp.adjust(i) && dop.tmp.pct(i) % can't be zero
                         dop.epoch.act_correct(j) = 1;
                         % check if the method is okay
-                        if ~sum(strcmp({'mean','median','linspace'},dop.tmp.act_replace))
+                        if isempty(strcmp({'mean','median','linspace'},dop.tmp.act_replace))
+                            % adjusted from ~sum to isempty 22-May-2015 NAB
                             msg{end+1} = sprintf(['Activation' ...
                                 ' correction method ''%s'' not'...
                                 ' recognised: defaulting to ''%s'''],...
                                 dop.defaults.act_replace);
-                           dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%                             okay = 0;
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             dop.tmp.act_replace = dop.defaults.act_replace;
                         end
-                        
-                        msg{end+1} = sprintf(['Correcting %u samples',...
-                            ' (%3.2f%%) in %s channel with ''%s'':',...
-                            ' values < %3.2f or > %3.2f'],...
-                            sum(dop.tmp.all(:,i)),dop.tmp.pct(i),...
-                            dop.tmp.ch_labels{i},dop.tmp.act_replace,...
-                            dop.tmp.correct_range_values(:,i));
-                        
-                        if ~strcmp(dop.tmp.act_replace,'linspace')
-                            dop.tmp.replace_value = eval([dop.tmp.act_replace,'(dop.tmp.filt_data(:,i))']);
-                            msg{end} = strrep(msg{end},sprintf('''%s''',dop.tmp.act_replace),...
-                                sprintf('''%s'' = %3.2f',dop.tmp.act_replace,...
-                                dop.tmp.replace_value));
-                        end
-                        % change the message to be appropriate for epoch
-                        % correction
-                        if or(and(strcmp(dop.tmp.data_type,'continuous'),dop.tmp.by_epoch),...
-                                strcmp(dop.tmp.data_type,'epoch'))
-                            msg{end} = strrep(msg{end},'Correcting',...
-                                sprintf('Epoch %u: Correcting',j));
-                        end
-                       dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                        % could plot at this point on the way through and
-                        % possibly make decisions about whether or not you
-                        % want this correction: 03-Sep-2014 not yet
-                        % implemented
-%                         if dop.tmp.plot
-%                             dop.tmp.h = figure;
-%                             dop.tmp.xdata = dop.tmp.filt*(1/dop.tmp.sample_rate);
-%                             plot(dop.tmp.xdata,dop.tmp.filt_data(:,i),...
-%                                 'DisplayName','original');
-%                             hold;
-%                         end
-                        switch dop.tmp.act_replace
-                            case {'mean','median'}
-                                dop.tmp.filt_data(logical(dop.tmp.all(:,i)),i) = ...
-                                    eval([dop.tmp.act_replace,'(dop.tmp.filt_data(:,i))']);
-                                
-                            case 'linspace'
-                                % need to look at sections of continuous
-                                % extremes
-                                dop.tmp.pts = find(dop.tmp.all(:,i));
-                                dop.tmp.pts_diff = diff(dop.tmp.pts);
-                                dop.tmp.consecutive = find(dop.tmp.pts_diff == 1);
-                                k = 0; % set counter
-                                while okay && k < numel(dop.tmp.pts)
-                                    k = k + 1; % count up
-                                    % single sample
-                                    k1 = dop.tmp.pts(k) - ceil(dop.tmp.linspace_seconds/(1/dop.tmp.sample_rate)); % previous point
-                                    k2 = dop.tmp.pts(k) + floor(dop.tmp.linspace_seconds/(1/dop.tmp.sample_rate)); % next point
-                                    % check to see if there are consecutive
-                                    % points
-                                    if sum(dop.tmp.consecutive == k)
-                                        n_consec = find(dop.tmp.pts_diff(k:end) ~= 1,1,'first');
-                                        if isempty(n_consec)
-                                            k = numel(dop.tmp.pts)-1;
-                                        else
-                                            k = k + n_consec-1; % increase k to skip consecutive points
-                                        end
-                                        if k2 < dop.tmp.pts(k)+1
-                                            k2 = dop.tmp.pts(k)+1; % set end point for linspace to be the next point after new k position
-                                        end
-                                    end
+%                         if okay % added 22-May-2015 NAB
+                            msg{end+1} = sprintf(['Correcting %u samples',...
+                                ' (%3.2f%%) in %s channel with ''%s'':',...
+                                ' values < %3.2f or > %3.2f'],...
+                                sum(dop.tmp.all(:,i)),dop.tmp.pct(i),...
+                                dop.tmp.ch_labels{i},dop.tmp.act_replace,...
+                                dop.tmp.correct_range_values(:,i));
+                            
+                            if ~strcmp(dop.tmp.act_replace,'linspace')
+                                dop.tmp.replace_value = eval([dop.tmp.act_replace,'(dop.tmp.filt_data(:,i))']);
+                                msg{end} = strrep(msg{end},sprintf('''%s''',dop.tmp.act_replace),...
+                                    sprintf('''%s'' = %3.2f',dop.tmp.act_replace,...
+                                    dop.tmp.replace_value));
+                            end
+                            % change the message to be appropriate for epoch
+                            % correction
+                            if or(and(strcmp(dop.tmp.data_type,'continuous'),dop.tmp.by_epoch),...
+                                    strcmp(dop.tmp.data_type,'epoch'))
+                                msg{end} = strrep(msg{end},'Correcting',...
+                                    sprintf('Epoch %u: Correcting',j));
+                            end
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            % could plot at this point on the way through and
+                            % possibly make decisions about whether or not you
+                            % want this correction: 03-Sep-2014 not yet
+                            % implemented
+                            %                         if dop.tmp.plot
+                            %                             dop.tmp.h = figure;
+                            %                             dop.tmp.xdata = dop.tmp.filt*(1/dop.tmp.sample_rate);
+                            %                             plot(dop.tmp.xdata,dop.tmp.filt_data(:,i),...
+                            %                                 'DisplayName','original');
+                            %                             hold;
+                            %                         end
+                            switch dop.tmp.act_replace
+                                case {'mean','median'}
+                                    dop.tmp.filt_data(logical(dop.tmp.all(:,i)),i) = ...
+                                        eval([dop.tmp.act_replace,'(dop.tmp.filt_data(:,i))']);
                                     
-                                    
-                                    if k1 < 1
-                                        k1 = 1;
-                                        % could be big difference between
-                                        % these points so use k2_value
-                                        if k2 > size(dop.tmp.filt_data,1)
-                                            okay = 0;
-                                            msg{end+1} = 'Surprising problem with consecutive spiking or dropout';
-                                           dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                                        else
-                                            k1_value = dop.tmp.filt_data(k2,i);
-                                        end
-                                    else
-                                        k1_value = dop.tmp.filt_data(k1,i);
-                                    end
-                                    if okay
-                                        if k2 > size(dop.tmp.filt_data,1)
-                                            k2 = size(dop.tmp.filt_data,1);
-                                            k2_value = k1_value;
-                                        else
-                                            k2_value = dop.tmp.filt_data(k2,i);
+                                case 'linspace'
+                                    % need to look at sections of continuous
+                                    % extremes
+                                    dop.tmp.pts = find(dop.tmp.all(:,i));
+                                    dop.tmp.pts_diff = diff(dop.tmp.pts);
+                                    dop.tmp.consecutive = find(dop.tmp.pts_diff == 1);
+                                    k = 0; % set counter
+                                    while okay && k < numel(dop.tmp.pts)
+                                        k = k + 1; % count up
+                                        % single sample
+                                        k1 = dop.tmp.pts(k) - ceil(dop.tmp.linspace_seconds/(1/dop.tmp.sample_rate)); % previous point
+                                        k2 = dop.tmp.pts(k) + floor(dop.tmp.linspace_seconds/(1/dop.tmp.sample_rate)); % next point
+                                        % check to see if there are consecutive
+                                        % points
+                                        if sum(dop.tmp.consecutive == k)
+                                            n_consec = find(dop.tmp.pts_diff(k:end) ~= 1,1,'first');
+                                            if isempty(n_consec)
+                                                k = numel(dop.tmp.pts)-1;
+                                            else
+                                                k = k + n_consec-1; % increase k to skip consecutive points
+                                            end
+                                            if k2 < dop.tmp.pts(k)+1
+                                                k2 = dop.tmp.pts(k)+1; % set end point for linspace to be the next point after new k position
+                                            end
                                         end
                                         
-                                        dop.tmp.filt_data(k1:k2,i) = ...
-                                            linspace(k1_value,k2_value,numel(k1:k2));
-                                        dop.tmp.patch_k = dop.tmp.patch_k + 1;
-                                        % patch time in seconds
-                                        dop.data.act_correct_sample(dop.tmp.filt(1)+[k1 k2]) = 1;
-                                        dop.data.act_correct_patch(:,dop.tmp.patch_k) = (dop.tmp.filt(1)+[k1 k2 k2 k1])*(1/dop.tmp.sample_rate);%[dop.tmp.filt
+                                        
+                                        if k1 < 1
+                                            k1 = 1;
+                                            % could be big difference between
+                                            % these points so use k2_value
+                                            if k2 > size(dop.tmp.filt_data,1)
+                                                okay = 0;
+                                                msg{end+1} = 'Surprising problem with consecutive spiking or dropout';
+                                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                            else
+                                                k1_value = dop.tmp.filt_data(k2,i);
+                                            end
+                                        else
+                                            k1_value = dop.tmp.filt_data(k1,i);
+                                        end
+                                        if okay
+                                            if k2 > size(dop.tmp.filt_data,1)
+                                                k2 = size(dop.tmp.filt_data,1);
+                                                k2_value = k1_value;
+                                            else
+                                                k2_value = dop.tmp.filt_data(k2,i);
+                                            end
+                                            
+                                            dop.tmp.filt_data(k1:k2,i) = ...
+                                                linspace(k1_value,k2_value,numel(k1:k2));
+                                            dop.tmp.patch_k = dop.tmp.patch_k + 1;
+                                            % patch time in seconds
+                                            dop.data.act_correct_sample(dop.tmp.filt(1)+[k1 k2]) = 1;
+                                            dop.data.act_correct_patch(:,dop.tmp.patch_k) = (dop.tmp.filt(1)+[k1 k2 k2 k1])*(1/dop.tmp.sample_rate);%[dop.tmp.filt
+                                        end
                                     end
-                                end
-                        end
-%                         if dop.tmp.plot
-%                             plot(dop.tmp.xdata,dop.tmp.filt_data(:,i),'m',...
-%                                 'DisplayName','corrected');
-%                             legend('original','correct');
-%                             uiwait(dop.tmp.h);
-%                         end
+                            end
+%                         end % added 22-May-2015 NAB
+                        %                         if dop.tmp.plot
+                        %                             plot(dop.tmp.xdata,dop.tmp.filt_data(:,i),'m',...
+                        %                                 'DisplayName','corrected');
+                        %                             legend('original','correct');
+                        %                             uiwait(dop.tmp.h);
+                        %                         end
                     elseif dop.tmp.pct(i)
                         dop.epoch.act_correct(j) = -1;
                         msg{end+1} = sprintf(['Not correcting %u samples',...
@@ -348,7 +357,7 @@ try
                             msg{end} = strrep(msg{end},'Not',...
                                 sprintf('Epoch %u. Not',j));
                         end
-                       dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                     end
                 end
                 %% put the corrected data into the new matrix
@@ -376,10 +385,10 @@ try
                         dop.data.channel_labels = dop.tmp.channel_labels;
                     case 'epoch'
                         msg{end+1} = 'Not sure about epoched plot yet';
-                       dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 end
             end
-                %% create logical
+            %% create logical
             dop.epoch.act_correct = logical(dop.epoch.act_correct);
             if isfield(dop.data,'act_correct')
                 [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'act_correct');
