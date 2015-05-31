@@ -65,6 +65,15 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 
 % dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/pacedProduction3down/';
 
+% manual screening:
+%     dop.def.manual_file = 'whatbox_INFANT_base-14to-9_POI_5to15_NicMan13_dopStep.txt'; % specify the manual screening file
+%     
+%     dop.def.manual_dir = '/Users/mq20111600/Google Drive/nProjects/whatbox_methods/data/manual_screening/'; % directory
+    
+    % use the above 2 or the below 1
+    dop.def.manual_fullfile = []; % directory and name in single string
+    
+
 dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/pacedProduction1down_PP2/';
 
 % in.file_list = dir(fullfile(in.dir,'*.exp'));

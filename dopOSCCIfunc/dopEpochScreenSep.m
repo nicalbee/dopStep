@@ -29,6 +29,7 @@ function [dop,okay,msg] = dopEpochScreenSep(dop_input,varargin)
 % 19-May-2015 NAB adding some descriptives to look at
 % 20-May-2015 NAB added 'showmsg' & sep_remove output variable
 % 21-May-2015 NAB updated descriptives
+% 22-May-2015 NAB fixed descriptive calculation
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -140,7 +141,7 @@ try
                 
                 
                 for i = 1 : numel(dop.epoch.act_sep_descriptives)
-                    dop.epoch.(['act_',dop.epoch.act_sep_descriptives{i},'_ep'])(j) = ...
+                    dop.epoch.(['act_sep_',dop.epoch.act_sep_descriptives{i},'_ep'])(j) = ...
                         eval(sprintf('%s(abs(dop.tmp.diff))',dop.epoch.act_sep_descriptives{i}));
                 end
                 %                 dop.epoch.act_sep_mean_ep(j) = mean(abs(dop.tmp.diff));
