@@ -157,7 +157,7 @@ try
                 dop.progress.portion = dop.progress.current/dop.progress.n;
             
             % could add task name to this
-            dop.progress.msg = sprintf('dopOSCCI progress: %u%% (file %u of %u)',round(dop.progress.portion*100,0),dop.progress.current,dop.progress.n);
+            dop.progress.msg = sprintf('dopOSCCI progress: %u%% (file %u of %u)',round(dop.progress.portion*100),dop.progress.current,dop.progress.n);
             waitbar(dop.progress.portion,dop.progress.h); % update the progress bar
             
             set(dop.progress.h_title,'String',dop.progress.msg); % update the message

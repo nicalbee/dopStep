@@ -7,10 +7,13 @@ clear dop
 
 dop.struc_name = 'dop';
 
+dop.data_dir = '/Users/mq20111600/Google Drive/nData/2015/ppValidationB/PP/';%Documents/nData/2015/ppValidation/raw/validation/pacedProduction1down_PP2/';
+
+
 dop.def.task_name = 'pacedProduction';
+
 % definition information
-% dop.def.signal_channels = [1 2]; % columns in file (e.g., .TW/TX)
-% dop.def.event_channels = 3; % TX/TW files
+
 dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
 dop.def.event_channels = 5; % EXP files
 dop.def.event_height = 1000; % 400; % greater than
@@ -23,9 +26,9 @@ dop.def.downsample_rate = 100; % Hertz
 
 % lower and upper values
 
-dop.def.epoch = [-15 20]; %[-5 20];
+dop.def.epoch = [-15 15]; %[-5 20];
 dop.def.baseline = [-15 -5];
-dop.def.poi = [7 17];
+dop.def.poi = [5 15];
 
 dop.def.act_window = 2; % activation window
 
@@ -45,7 +48,7 @@ dop.def.screen = {'length','act','sep'};
 % always keep raw for resetting
 dop.def.keep_data_steps = 1;
 
-dop.save.extras = {'file'};%{'file','norm','base'}; % you can add your own variables to this, just need to be defined somewhere as dop.save.x = where x = variable name
+dop.save.extras = {'file','code'};%{'file','norm','base'}; % you can add your own variables to this, just need to be defined somewhere as dop.save.x = where x = variable name
 dop.save.summary = {'overall'}; % vs 'epoch'
 dop.save.channels = {'Difference'};
 dop.save.periods = {'poi'};
@@ -73,9 +76,6 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
     % use the above 2 or the below 1
     dop.def.manual_fullfile = []; % directory and name in single string
     
-
-dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/pacedProduction1down_PP2/';
-
 % in.file_list = dir(fullfile(in.dir,'*.exp'));
 % dop.file_list = dopGetFileList(dop.data_dir);%;dir(in.dir);
 [dop,okay] = dopGetFileList(dop);%;dir(in.dir);
@@ -88,6 +88,8 @@ if okay
         %         in.i_collect(end+1) = i;
         [dop,okay,msg] = dopImport(dop,'file',in.file);
         dop.save.file = dop.file; % dop.save.extras will save this as a column in the file
+        [dop.tmp.tok,dop.tmp.remain] = strtok(dop.file,'_');
+        dop.save.code = str2double(strtok(dop.tmp.remain,'_'));
         % extract signal and event channels from larger set of data columns
         % this is called within dopImport as well
         [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
@@ -115,9 +117,9 @@ if okay
         % [dop,okay,msg] = dopEpoch(dop); % automatically in dopNorm(dop,[],[],'norm_method','epoch') or dopNorm(dop,[],[],'norm_method','deppe_epoch')
         [dop,okay,msg] = dopActCorrect(dop,okay,msg);%,'plot');
         
-        [dop,okay,msg] = dopNorm(dop,okay,msg);%,'norm_method',dop.test.norm{j});
+        [dop,okay,msg] = dopNorm(dop,okay,msg,'norm_method','epoch');%,dop.test.norm{j});
         
-        [dop,okay,msg] = dopEpoch(dop,okay,msg);
+%         [dop,okay,msg] = dopEpoch(dop,okay,msg);
         
         [dop,okay,msg] = dopEpochScreen(dop,okay,msg);
         

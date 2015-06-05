@@ -7,22 +7,29 @@ clear dop
 
 dop.struc_name = 'dop';
 
-dop.data_dir = '/Users/mq20111600/Google Drive/nData/2015/ppValidationB/WG/';
+dop.data_dir = '/Users/mq20111600/Google Drive/nData/2015/ppValidationB/PP/';%Documents/nData/2015/ppValidation/raw/validation/pacedProduction1down_PP2/';
 
-dop.def.task_name = 'wordGenValidation';
+
+dop.def.task_name = 'pacedProduction';
+
 % definition information
+
 dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
-dop.def.event_channels = 5; % TX/TW files
+dop.def.event_channels = 5; % EXP files
 dop.def.event_height = 1000; % 400; % greater than
-dop.def.event_sep = 50; %
+
+dop.def.event_sep = 45; %
+
 % dop.def.num_events = 40;
 
 dop.def.downsample_rate = 100; % Hertz
 
 % lower and upper values
-dop.def.epoch = [-15 25]; %[-5 20];
+
+dop.def.epoch = [-15 15]; %[-5 20];
 dop.def.baseline = [-15 -5];
 dop.def.poi = [5 15];
+
 dop.def.act_window = 2; % activation window
 
 dop = dopPeriodChecks(dop,'wait_warn',1);
@@ -57,9 +64,18 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 % dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
 % in.dir = '/Users/mq20111600/Documents/nData/tmp';%'/Users/mq20111600/Documents/nData/2013/201312infant_fTCD_UniSA/'; %
-% dop.data_dir = '/Users/mq20111600/Google Drive/tmp/';%'/Users/mq20111600/Documents/nData/Study AA (Abbie doppler stories)/data/raw/dopTrials/wordGen';
-% dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/wordGen/';
-% dop.data_dir = '/Users/mq20111600/Google Drive/nData/2015/ppValidationB/WG/';
+% dop.data_dir = '/Users/mq20111600/Documents/nData/Study AA (Abbie doppler stories)/data/raw/dopTrials/wordGen';
+
+% dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/pacedProduction3down/';
+
+% manual screening:
+%     dop.def.manual_file = 'whatbox_INFANT_base-14to-9_POI_5to15_NicMan13_dopStep.txt'; % specify the manual screening file
+%     
+%     dop.def.manual_dir = '/Users/mq20111600/Google Drive/nProjects/whatbox_methods/data/manual_screening/'; % directory
+    
+    % use the above 2 or the below 1
+    dop.def.manual_fullfile = []; % directory and name in single string
+    
 % in.file_list = dir(fullfile(in.dir,'*.exp'));
 % dop.file_list = dopGetFileList(dop.data_dir);%;dir(in.dir);
 [dop,okay] = dopGetFileList(dop);%;dir(in.dir);
@@ -73,7 +89,7 @@ if okay
         [dop,okay,msg] = dopImport(dop,'file',in.file);
         dop.save.file = dop.file; % dop.save.extras will save this as a column in the file
         [dop.tmp.tok,dop.tmp.remain] = strtok(dop.file,'_');
-        dop.save.code = str2double(strtok(dop.tmp.remain,'_'));
+        dop.save.code = 
         % extract signal and event channels from larger set of data columns
         % this is called within dopImport as well
         [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
@@ -101,9 +117,9 @@ if okay
         % [dop,okay,msg] = dopEpoch(dop); % automatically in dopNorm(dop,[],[],'norm_method','epoch') or dopNorm(dop,[],[],'norm_method','deppe_epoch')
         [dop,okay,msg] = dopActCorrect(dop,okay,msg);%,'plot');
         
-        [dop,okay,msg] = dopNorm(dop,okay,msg);%,'norm_method',dop.test.norm{j});
+        [dop,okay,msg] = dopNorm(dop,okay,msg,'norm_method','epoch');%,dop.test.norm{j});
         
-        [dop,okay,msg] = dopEpoch(dop,okay,msg);
+%         [dop,okay,msg] = dopEpoch(dop,okay,msg);
         
         [dop,okay,msg] = dopEpochScreen(dop,okay,msg);
         
@@ -117,7 +133,7 @@ if okay
         
         [dop,okay,msg] = dopSave(dop,okay,msg);%,'save_dir',dop.save.save_dir);
         
-%                 dop = dopPlot(dop,'wait');
+                dop = dopPlot(dop,'wait');
         
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');

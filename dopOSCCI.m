@@ -24,3 +24,6 @@ dopOSCCIindent('done');
 % ERP-perspective, but if you have an ERP component time-window, sometimes
 % you will be flexible when looking at an individual case if the window
 % does not accurately reflect their waveform.
+
+% 01-June-2015 Hannah Rapaport wants dopOSCCI to do split-half
+% reliability... we can do this, one day...
