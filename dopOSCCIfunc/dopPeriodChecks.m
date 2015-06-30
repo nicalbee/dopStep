@@ -230,6 +230,9 @@ try
                     dop.tmp.baseline,dop.tmp.poi,...
                     mfilename,dop.tmp.file);
                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                if ~okay
+                    return
+                end
             end        
         end
         

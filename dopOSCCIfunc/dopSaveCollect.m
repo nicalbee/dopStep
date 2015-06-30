@@ -127,6 +127,7 @@ function [dop,okay,msg] = dopSaveCollect(dop_input,varargin)
 % 08-Sep-2014 NAB - continually updating list of input help information
 % 19-Oct-2014 NAB - updating the dop.tmp.times variable to look for and use
 %   dop.epoch.times if it exists.
+% 26-June-2015 NAB 'sprintf' mistype
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -169,7 +170,7 @@ try
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             elseif ~isfield(dop.collect,dop.tmp.type)
                 okay = 0;
-                msg{end+1} = sprtinf(['Requested data type (%s) does not exist in'...
+                msg{end+1} = sprintf(['Requested data type (%s) does not exist in'...
                     ' ''dop.collect'' variable, can''t be saved\n\t(%s)'],...
                     dop.tmp.type,mfilename);
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);

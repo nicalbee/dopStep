@@ -2,7 +2,7 @@
 
 k = 3;
 
-clip_on = 1;
+clip_on = 0;
 % for k = 1 : 1
 clc;
 % clear all;
@@ -60,7 +60,7 @@ dop.def.screen = {'manual','length','act','sep'}; % could add 'manual' to this
 % manual screening:
 dop.def.manual_file = 'whatbox_INFANT_base-14to-9_POI_5to15_NicMan13_dopStep.txt'; % specify the manual screening file
 
-dop.def.manual_dir = '/Users/mq20111600/Google Drive/nProjects/whatbox_methods/data/manual_screening/'; % directory
+dop.def.manual_dir = '/Users/mq20111600/Google Drive/nWorkProjects/whatbox_methods/data/manual_screening/'; % directory
 
 % use the above 2 or the below 1
 dop.def.manual_fullfile = []; % directory and name in single string
@@ -83,10 +83,10 @@ dop.save.extras = {'file','clip','clip_left','clip_right','clip_left_max','clip_
 % you can add your own variables to 'extras', just need to be defined
 % somewhere as dop.save.x = where x = variable name
 dop.save.summary = {'overall'}; % versus 'epoch' (not well tested yet)
-dop.save.channels = {'Difference'}; % {'Left','Right','Difference','Average'}
-dop.save.periods = {'poi'}; % {'baseline','epoch'}
-dop.save.epochs = {'screen','odd','even'};%{'all','screen','odd','even'};
-dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
+dop.save.channels = {'Left','Right'}; %{'Left','Right','Difference','Average'}; %{'Difference'}; % 
+dop.save.periods = {'poi','baseline','epoch'}; %{'poi'}; % 
+dop.save.epochs = {'screen'};%{'screen','odd','even'};%{'all','screen','odd','even'};
+dop.save.variables = {'period_mean','period_sd','peak_n','peak_mean','peak_sd','peak_latency'};
 
 dop.save.messages = 1; % not sure what this does at the moment...
 
@@ -112,7 +112,7 @@ end
 
 % dop.data_dir = '/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
 
-dop.data_dir = '/Users/mq20111600/Google Drive/nProjects/whatbox_methods/data/raw_mat/'; %'/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
+dop.data_dir = '/Users/mq20111600/Google Drive/nWorkProjects/whatbox_methods/data/raw_mat/'; %'/Users/mq20111600/Documents/nData/nData2014/UniSA Infant TCD';
 
 [dop,okay,msg] = dopGetFileList(dop,okay,msg);%,'type','EXP');
 

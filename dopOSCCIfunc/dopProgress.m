@@ -90,6 +90,9 @@ function [dop,okay,msg] = dopProgress(dop_input,varargin)
 %   importing old handle - it was openining something extra fixed by
 %   reducing what is saved in the mat file to data and file_info (see
 %   dopMATsave & dopMATread for more details)
+% 29-Jun-2015 NAB changed the 'dim' = dimension input/default to be in
+%   pixels as the waitbar seems better suited to absolute values rather
+%   than portions of the screen
 
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -104,7 +107,7 @@ try
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'pos',[.1 .9],... % top left x & y portion of screen
-            'dim',[.3 .1],... % x and y dimensions as portion of screen
+            'dim',[360 70],...[.15 .07],... % x and y dimensions as portion of screen or pixels
             'file',[],... % for error reporting mostly
             'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
@@ -144,9 +147,14 @@ try
                 dop.progress.n = numel(dop.file_list);
                 dop.progress.msg = 'dopOSSCI waitbar initialising...';
                 dop.progress.screen_size = get(0,'ScreenSize');
-                dop.progress.pos = [dop.tmp.pos dop.tmp.dim].* ...
-                    repmat(dop.progress.screen_size([3 4]),1,2);
-
+                if dop.tmp.dim(1) <= 1
+                    dop.progress.pos = [dop.tmp.pos dop.tmp.dim].* ...
+                        repmat(dop.progress.screen_size([3 4]),1,2);
+                else
+                    % assuming dimensions in pixels
+                    dop.progress.pos = [dop.tmp.pos.*dop.progress.screen_size([3 4])...
+                        dop.tmp.dim];
+                end
                 dop.progress.h = waitbar(0,dop.progress.msg,...
                     'Position',dop.progress.pos,'Name','dopOSCCI Progress');
                 % seems to need this done every time...
@@ -161,6 +169,7 @@ try
             waitbar(dop.progress.portion,dop.progress.h); % update the progress bar
             
             set(dop.progress.h_title,'String',dop.progress.msg); % update the message
+            drawnow;
             figure(dop.progress.h); % bring to front to make sure it's on top
 %             drawnow; % don't think this is needed
             if dop.progress.portion == 1
