@@ -110,6 +110,8 @@ function [dop,okay,msg] = dopEpochScreenManual(dop_input,varargin)
 % 01-Apr-2015 HMP/NAB or statement in file name matching ~ line 207
 % 08-May-2015 NAB/HMP added 'ismember' statmeent regarding file matching
 % 20-May-2015 NAB added 'showmsg' & sep_remove output variable
+% 06-Jul-2015 NAB playing with this before I've got data - the function
+%   doesn't expect this...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -130,16 +132,22 @@ try
             'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
-        %         inputs.required = ...
-        %             {'file'};
+%                 inputs.required = ...
+%                     {'data'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
         % need to know how many epochs there are
-        if size(dop.tmp.data,3) == 1
+        if isfield(dop,'data') && size(dop.tmp.data,3) == 1
             % data hasn't been epoched - do this
             [dop,okay,msg] = dopEventMarkers(dop,okay,msg);
             % refresh the data if necessary
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+        elseif ~isfield(dop,'data')
+            okay = 0;
+                msg{end+1} = sprintf(['There isn''t any data yet, ',...
+                    'so can''t determine the number of epochs which is ',...
+                    'important for this function'],mfilename,dop.tmp.file);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
         end
         %% main code
         if okay

@@ -45,6 +45,8 @@ function [dop,okay,msg] = dopEventChannels(dop_input,varargin)
 %   kludge
 % 17-Nov-2014 NAB first epoch too short - not sure why this hasn't come up
 %   before - negative numbers as indices fixed.
+% 07-Jul-2015 NAB second element in first epoch too short, negative as
+%   well, fixed
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -53,7 +55,7 @@ try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
-%         inputs.turnOn = {'manual'};
+        %         inputs.turnOn = {'manual'};
         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
@@ -64,7 +66,7 @@ try
             'poi',[],...
             'event_height',[],... % needed for dopEventMarkers
             'event_channels',[], ... % needed for dopEventMarkers
-            'sample_rate',[] ... 
+            'sample_rate',[] ...
             );
         inputs.required = ...
             {'epoch','baseline','poi','sample_rate'};
@@ -115,33 +117,43 @@ try
                     % patch is much easier
                     prd_sec = dop.event.samples(j)*(1/dop.tmp.sample_rate) + dop.tmp.(dop.tmp.prd);
                     dop.data.([dop.tmp.prd,'_patch'])(:,j) = [prd_sec fliplr(prd_sec)];
-%                     [dop.tmp.(dop.tmp.patches{i}) fliplr(dop.tmp.(dop.tmp.patches{i}))],...
-%                             [ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))]
+                    %                     [dop.tmp.(dop.tmp.patches{i}) fliplr(dop.tmp.(dop.tmp.patches{i}))],...
+                    %                             [ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))]
                     % regular data first
                     kpt = dop.event.samples(j) + dop.tmp.(dop.tmp.prd)/(1/dop.tmp.sample_rate);
                     
                     jj = 1;
-                    if kpt(jj) < 1; 
-                            msg{end+1} = sprintf(['Epoch %u: lower bound' ...
-                                ' for ''%s'' period is beyond data limits:'...
-                                ' %i samples (%3.2f seconds)'],...
-                                j,dop.tmp.prd,kpt(jj),kpt(jj)*(1/dop.tmp.sample_rate));
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                            kpt(jj) = 1;
+                    if kpt(jj) < 1;
+                        msg{end+1} = sprintf(['Epoch %u: lower bound' ...
+                            ' for ''%s'' period is beyond data limits:'...
+                            ' %i samples (%3.2f seconds)'],...
+                            j,dop.tmp.prd,kpt(jj),kpt(jj)*(1/dop.tmp.sample_rate));
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        kpt(jj) = 1;
                     end
-                        jj = 2;
-                        if kpt(jj) > size(dop.data.([dop.tmp.prd,'_plot']),1) %  % size(dop.data.event,1)+2;
-                            d = kpt(jj) - size(dop.data.([dop.tmp.prd,'_plot']),1);
-                            msg{end+1} = sprintf(['Epoch %u: upper bound' ...
-                                ' for ''%s'' period is beyond data limits:'...
-                                ' %i samples (%3.2f seconds). note:'...
-                                ' not a problem for ''epoch'' - likely'...
-                                ' to be the last point or later due to procedure'],...
-                                j,dop.tmp.prd,d,d*(1/dop.tmp.sample_rate));
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                            kpt(jj) = size(dop.data.([dop.tmp.prd,'_plot']),1);
-                        end
-                        
+                    jj = 2;
+                    if kpt(jj) > size(dop.data.([dop.tmp.prd,'_plot']),1) %  % size(dop.data.event,1)+2;
+                        d = kpt(jj) - size(dop.data.([dop.tmp.prd,'_plot']),1);
+                        msg{end+1} = sprintf(['Epoch %u: upper bound' ...
+                            ' for ''%s'' period is beyond data limits:'...
+                            ' %i samples (%3.2f seconds). note:'...
+                            ' not a problem for ''epoch'' - likely'...
+                            ' to be the last point or later due to procedure'],...
+                            j,dop.tmp.prd,d,d*(1/dop.tmp.sample_rate));
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        kpt(jj) = size(dop.data.([dop.tmp.prd,'_plot']),1);
+                    end
+                    if kpt(jj) < 1
+                        % completely missing first epoch
+                        msg{end+1} = sprintf(['Epoch %u: upper bound' ...
+                            ' for ''%s'' period is beyond data limits:'...
+                            ' %i samples (%3.2f seconds). note:'...
+                            ' essentially, first epoch is missing'],...
+                            j,dop.tmp.prd,kpt(jj),kpt(jj)*(1/dop.tmp.sample_rate));
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        kpt(jj) = 2;size(dop.data.([dop.tmp.prd,'_plot']),1);
+                    end
+                    
                     dop.data.event(kpt,strcmp(dop.data.channel_labels,dop.tmp.prd)) = 1;
                     % and now the plotting data
                     for jj = 1 : 2
@@ -158,38 +170,38 @@ try
                         kpt(jj) = k + dop.tmp.(dop.tmp.prd)(jj)/(1/dop.tmp.sample_rate);
                         % make sure it's not outside the limits - all of
                         % this should already have been set and checked...
-                        if kpt(jj) < 1; 
-                            msg{end+1} = sprintf(['Epoch %u: lower bound' ...
-                                ' for ''%s'' period is beyond data limits:'...
-                                ' %i samples (%3.2f seconds)'],...
-                                j,dop.tmp.prd,kpt(jj),kpt(jj)*(1/dop.tmp.sample_rate));
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        if kpt(jj) < 1;
+%                             msg{end+1} = sprintf(['Epoch %u: lower bound' ...
+%                                 ' for ''%s'' period is beyond data limits:'...
+%                                 ' %i samples (%3.2f seconds)'],...
+%                                 j,dop.tmp.prd,kpt(jj),kpt(jj)*(1/dop.tmp.sample_rate));
+%                             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             kpt(jj) = 1;
                         end
                         if kpt(jj) > size(dop.data.([dop.tmp.prd,'_plot']),1) %  % size(dop.data.event,1)+2;
                             d = kpt(jj) - size(dop.data.([dop.tmp.prd,'_plot']),1);
-                            msg{end+1} = sprintf(['Epoch %u: upper bound' ...
-                                ' for ''%s'' period is beyond data limits:'...
-                                ' %i samples (%3.2f seconds). note:'...
-                                ' not a problem for ''epoch'' - likely'...
-                                ' to be the last point or later due to procedure'],...
-                                j,dop.tmp.prd,d,d*(1/dop.tmp.sample_rate));
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%                             msg{end+1} = sprintf(['Epoch %u: upper bound' ...
+%                                 ' for ''%s'' period is beyond data limits:'...
+%                                 ' %i samples (%3.2f seconds). note:'...
+%                                 ' not a problem for ''epoch'' - likely'...
+%                                 ' to be the last point or later due to procedure'],...
+%                                 j,dop.tmp.prd,d,d*(1/dop.tmp.sample_rate));
+%                             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             kpt(jj) = size(dop.data.([dop.tmp.prd,'_plot']),1);
                         end
-%                         if jj == 1
+                        %                         if jj == 1
                         dop.data.([dop.tmp.prd,'_plot']) = vertcat(...
                             dop.data.([dop.tmp.prd,'_plot'])(1 : kpt(jj),:),...
                             [dop.tmp.period_values(i) dop.data.([dop.tmp.prd,'_plot'])(kpt(jj),2)],... % insert an extra k number
                             dop.data.([dop.tmp.prd,'_plot'])(kpt(jj) : end,:));
-%                         else
-%                             dop.data.([dop.tmp.prd,'_plot']) = vertcat(dop.data.([dop.tmp.prd,'_plot'])(1 : kpt(jj),:),...
-%                             [dop.tmp.period_values(i) kpt(jj)],... % insert an extra k number
-%                             dop.data.([dop.tmp.prd,'_plot'])(kpt(jj) : end,:));
-%                         end
+                        %                         else
+                        %                             dop.data.([dop.tmp.prd,'_plot']) = vertcat(dop.data.([dop.tmp.prd,'_plot'])(1 : kpt(jj),:),...
+                        %                             [dop.tmp.period_values(i) kpt(jj)],... % insert an extra k number
+                        %                             dop.data.([dop.tmp.prd,'_plot'])(kpt(jj) : end,:));
+                        %                         end
                         % event data channel
                         
-%                         
+                        %
                     end
                     
                     dop.tmp.filt = [min(find(dop.data.([dop.tmp.prd,'_plot'])(:,2) == ...
@@ -199,11 +211,11 @@ try
                     dop.data.([dop.tmp.prd,'_plot'])(dop.tmp.filt(1)+1:dop.tmp.filt(2)-2,1) = dop.tmp.period_values(i);
                 end
             end
-
+            
             % now they're set
             % can people do some selection?
             [dop,okay,msg] = dopUseDataOperations(dop,'event');
-           
+            
         end
         
         %% save okay & msg to 'dop' structure

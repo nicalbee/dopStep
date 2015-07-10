@@ -107,6 +107,7 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 % 19-May-2015 NAB updated to pull 'type' inputted list out of structure
 %   array, into cell array.
 % 20-May-2015 NAB changed 'folder' to 'dir' as input - more intuitive
+% 07-Jul-2015 NAB set dop.def.data_dir or dop.data_dir to be options
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -133,14 +134,16 @@ try
         switch dopInputCheck(dop_input)
             case 'dop'
                 if isempty(dop.tmp.dir)
-                    if ~isfield(dop,'data_dir') || isempty(dop.data_dir) || ~exist(dop.data_dir,'dir')
+                    if isfield(dop,'data_dir') && ~isempty(dop.data_dir)
+                        dop.tmp.dir = dop.data_dir;
+                    elseif isfield(dop,'def') && isfield(dop.def,'data_dir') && ~isempty(dop.def.data_dir)
+                        dop.tmp.dir = dop.def.data_dir;
+                    else
                         okay = 0;
                         msg{end+1} = sprintf(['No data directory'...
                             ' inputted or available in ''dop.tmp.dir''\n\t(%s)'],...
                             mfilename);
                         dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-                    else
-                        dop.tmp.dir = dop.data_dir;
                     end
                 end
             case 'dir'%,'folder'}

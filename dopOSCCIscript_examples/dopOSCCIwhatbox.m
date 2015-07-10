@@ -1,6 +1,6 @@
 % % function dopOSCCItest
 
-k = 3;
+k = 4;
 
 clip_on = 0;
 % for k = 1 : 1
@@ -41,6 +41,11 @@ switch k
         % used - shortest
         dop.def.epoch =  [-4 18];
         dop.def.baseline = [-4 1];
+        case 4
+        % used - shortest
+        dop.def.epoch =  [-4 30];
+        dop.def.baseline = [-4 1];
+
 end
 dop.def.poi = [5 18]; % 5 after onset, 18 = 12 seconds after label/name presentation
 dop.def.act_window = 2; % activation window

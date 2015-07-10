@@ -106,6 +106,8 @@ function [dop,okay,msg] = dopEpochScreenManualRead(dop_input,varargin)
 % Created: 15-Sep-2014 NAB
 % Edits:
 % 21-Nov-2014 NAB fixed old tilda (~) delimiter read
+% 06-Jul-2015 NAB added readtable function use - import data wasn't always
+%   working
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -127,8 +129,8 @@ try
             'wait_warn',0 ... % wait to close warning dialogs
             );
         inputs.defaults.column_labels = {'file_name','exclude_string'};
-%         inputs.required = ...
-%             {'file_list'};
+        %         inputs.required = ...
+        %             {'file_list'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         if okay
             dop.tmp.import_data = [];
@@ -139,7 +141,12 @@ try
                     elseif ~isempty(dop.tmp.manual_file) && ~isempty(dop.tmp.manual_dir) ...
                             && exist(dop.tmp.manual_dir,'dir') ...
                             && exist(fullfile(dop.tmp.manual_dir,dop.tmp.manual_file),'file')
-                        dop.tmp.import_data = importdata(fullfile(dop.tmp.manual_dir,dop.tmp.manual_file));
+                        if exist('readtable','file')
+                            dop.tmp.import_data = readtable(fullfile(dop.tmp.manual_dir,dop.tmp.manual_file),...
+                                'delimiter',dop.tmp.delim);
+                        else
+                            dop.tmp.import_data = importdata(fullfile(dop.tmp.manual_dir,dop.tmp.manual_file));
+                        end
                     else
                         okay = 0;
                         msg{end+1} = sprintf('input not recognised\n\t(%s: %s)',...
@@ -147,48 +154,72 @@ try
                         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                     end
                 case 'file'
-%                     dop.tmp.manual_fullfile = dop_input;
-                    dop.tmp.import_data = importdata(dop_input);
+                    %                     dop.tmp.manual_fullfile = dop_input;
+                    if exist('readtable','file')
+                        dop.tmp.import_data = readtable(dop_input,...
+                            'delimiter',dop.tmp.delim);
+                    else
+                        dop.tmp.import_data = importdata(dop_input);
+                    end
                 otherwise
                     okay = 0;
                     msg{end+1} = sprintf('Can''t find file\n\t(%s: %s)',...
                         mfilename,dop.tmp.file);
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
+            %% check the import
+            if isstruct(dop.tmp.import_data)
+                % might have an issue here...
+                okay = 0;
+                msg{end+1} = sprintf('Import problem - not as expected\n\t(%s: %s)',...
+                    mfilename,dop.tmp.file);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
             %% get the data
-            if ~isempty(dop.tmp.import_data)
-                dop.tmp.manual_list = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
-                dop.tmp.manual_exclude = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
-                for i = 2 : size(dop.tmp.import_data,1)
-                    dop.tmp.row = textscan(dop.tmp.import_data{i},'%s%s','delimiter',dop.tmp.delim);
-                    dop.tmp.manual_list{i-1} = char(dop.tmp.row{1});
-                    dop.tmp.manual_exclude{i-1} = char(dop.tmp.row{2});
-                    if ~isempty(strfind(dop.tmp.manual_exclude{i-1},'['));
-                        dop.tmp.manual_exclude{i-1} = eval(char(dop.tmp.row{2}));
-                    elseif ~isempty(sum(strfind(dop.tmp.manual_exclude{i-1},'~')));
-                        dop.tmp.tilda = strfind(dop.tmp.manual_exclude{i-1},'~');
-                        dop.tmp.epochs = zeros(1,numel(dop.tmp.tilda));
-                        dop.tmp.row2 = char(dop.tmp.row{2});
-                        for j = 1 : numel(dop.tmp.tilda)
-                            switch j
-                                case 1
-                                    if dop.tmp.tilda(j) > 1
-                                        dop.tmp.epochs(j) = str2double(dop.tmp.row2(1:dop.tmp.tilda(j)-1));
-                                    end
-                                    % else skip
-%                                 case numel(dop.tmp.tilda)
-%                                     if dop.tmp.tilda(end) <= numel(dop.tmp.row2)
-%                                         dop.tmp.epochs(j) = str2double(dop.tmp.row2(dop.tmp.tilda(j-1)+1:dop.tmp.tilda(j)-1));
-%                                     end
-                                otherwise
-                                    dop.tmp.epochs(j) = str2double(dop.tmp.row2(dop.tmp.tilda(j-1)+1:dop.tmp.tilda(j)-1));
-                            end
-                        end
-                        dop.tmp.manual_exclude{i-1} = dop.tmp.epochs;
+            if okay && ~isempty(dop.tmp.import_data)
+                if exist('istable','file') && istable(dop.tmp.import_data)
+                    dop.tmp.manual_list = table2cell(dop.tmp.import_data(:,1));
+                    dop.tmp.manual_exclude = table2cell(dop.tmp.import_data(:,2));
+                    % check for ~ or [] type of entries
+                    for i = 1 : numel(dop.tmp.manual_exclude)
+                        dop.tmp.manual_exclude{i} = checkManualString(dop.tmp.manual_exclude{i});
                     end
+                else
+                    dop.tmp.manual_list = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
+                    dop.tmp.manual_exclude = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
+                    for i = 2 : size(dop.tmp.import_data,1)
+                        dop.tmp.row = textscan(dop.tmp.import_data{i},'%s%s','delimiter',dop.tmp.delim);
+                        dop.tmp.manual_list{i-1} = char(dop.tmp.row{1});
+                        dop.tmp.manual_exclude{i-1} = char(dop.tmp.row{2});
+                        
+                        %                     if ~isempty(strfind(dop.tmp.manual_exclude{i-1},'['));
+                        %                         dop.tmp.manual_exclude{i-1} = eval(char(dop.tmp.row{2}));
+                        %                     elseif ~isempty(sum(strfind(dop.tmp.manual_exclude{i-1},'~')));
+                        %                         dop.tmp.tilda = strfind(dop.tmp.manual_exclude{i-1},'~');
+                        %                         dop.tmp.epochs = zeros(1,numel(dop.tmp.tilda));
+                        %                         dop.tmp.row2 = char(dop.tmp.row{2});
+                        %                         for j = 1 : numel(dop.tmp.tilda)
+                        %                             switch j
+                        %                                 case 1
+                        %                                     if dop.tmp.tilda(j) > 1
+                        %                                         dop.tmp.epochs(j) = str2double(dop.tmp.row2(1:dop.tmp.tilda(j)-1));
+                        %                                     end
+                        %                                     % else skip
+                        %                                     %                                 case numel(dop.tmp.tilda)
+                        %                                     %                                     if dop.tmp.tilda(end) <= numel(dop.tmp.row2)
+                        %                                     %                                         dop.tmp.epochs(j) = str2double(dop.tmp.row2(dop.tmp.tilda(j-1)+1:dop.tmp.tilda(j)-1));
+                        %                                     %                                     end
+                        %                                 otherwise
+                        %                                     dop.tmp.epochs(j) = str2double(dop.tmp.row2(dop.tmp.tilda(j-1)+1:dop.tmp.tilda(j)-1));
+                        %                             end
+                        %                         end
+                        %                         dop.tmp.manual_exclude{i-1} = dop.tmp.epochs;
+                        %                     end
+                    end
+                    
+                    dop.epoch.manual_list = dop.tmp.manual_list;
+                    dop.epoch.manual_exclude = dop.tmp.manual_exclude;
                 end
-                dop.epoch.manual_list = dop.tmp.manual_list;
-                dop.epoch.manual_exclude = dop.tmp.manual_exclude;
             else
                 okay = 0;
                 msg{end+1} = sprintf('Manual screen file is empty\n\t(%s: %s)',...
@@ -209,5 +240,35 @@ try
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);
+end
+end
+%% embedded function
+function number_out = checkManualString(string_in)
+number_out = []; % empty
+if iscell(string_in)
+    string_in = string_in{1};
+end
+if ~isempty(strfind(string_in,'['));
+    number_out = eval(char(string_in));
+elseif ~isempty(sum(strfind(string_in,'~')));
+    dop.tmp.tilda = strfind(string_in,'~');
+    dop.tmp.epochs = zeros(1,numel(dop.tmp.tilda));
+    dop.tmp.row2 = char(string_in);
+    for j = 1 : numel(dop.tmp.tilda)
+        switch j
+            case 1
+                if dop.tmp.tilda(j) > 1
+                    dop.tmp.epochs(j) = str2double(dop.tmp.row2(1:dop.tmp.tilda(j)-1));
+                end
+                % else skip
+                %                                 case numel(dop.tmp.tilda)
+                %                                     if dop.tmp.tilda(end) <= numel(dop.tmp.row2)
+                %                                         dop.tmp.epochs(j) = str2double(dop.tmp.row2(dop.tmp.tilda(j-1)+1:dop.tmp.tilda(j)-1));
+                %                                     end
+            otherwise
+                dop.tmp.epochs(j) = str2double(dop.tmp.row2(dop.tmp.tilda(j-1)+1:dop.tmp.tilda(j)-1));
+        end
+    end
+    number_out = dop.tmp.epochs;
 end
 end
