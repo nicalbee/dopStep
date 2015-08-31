@@ -26,6 +26,8 @@ function [dop,okay,msg] = dopCalcAuto(dop_input,varargin)
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 05-Sep-2014 NAB added 'file' to inputs for error reporting
+% 01-Sep-2015 NAB sorted the epoch by epoch calculations, wasn't tested
+%   previously...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -99,8 +101,8 @@ try
         if okay
             %         dop.calc.list = {'latency','LI','SD'};
             % shorten the variable names
-            for i = 1 : numel(inputs.defaults.summary)
-                dop.tmp.sum = inputs.defaults.summary{i};
+            for i = 1 : numel(dop.tmp.summary) % numel(inputs.defaults.summary)
+                dop.tmp.sum = dop.tmp.summary{i};
                 for ii = 1 : numel(dop.tmp.channels)
                     dop.tmp.ch = dop.tmp.channels{ii};
                     for iii = 1 : numel(dop.tmp.periods)
@@ -168,10 +170,10 @@ try
                             %         end
                             % specify the 'Difference' channel (# 3 of the z dimension)
                             dop.tmp.channel_filt = strcmp(dop.data.epoch_labels,dop.tmp.ch);
-%                             dop.tmp.prd_filt = (-dop.tmp.epoch(1) + dop.tmp.(dop.tmp.prd))/(1/dop.tmp.sample_rate);
-%                             if dop.tmp.prd_filt(1) < 1
-%                                 dop.tmp.prd_filt = dop.tmp.prd_filt+1;
-%                             end
+                            %                             dop.tmp.prd_filt = (-dop.tmp.epoch(1) + dop.tmp.(dop.tmp.prd))/(1/dop.tmp.sample_rate);
+                            %                             if dop.tmp.prd_filt(1) < 1
+                            %                                 dop.tmp.prd_filt = dop.tmp.prd_filt+1;
+                            %                             end
                             %        for i = 1 : size(dop.tmp.data,2) % number of epochs
                             %            % define the epoch data to examine
                             %            dop.tmp.ep = squeeze(dop.tmp.data(:,i,dop.tmp.channel_filt));
@@ -180,16 +182,16 @@ try
                             % peak_n = number of epochs
                             switch dop.tmp.sum
                                 case 'overall'
-%                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
-%                                         size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2);
+                                    %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
+                                    %                                         size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2);
                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data = squeeze(...
                                         dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
-%                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data_epochs = squeeze(...
-%                                         dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
+                                    %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data_epochs = squeeze(...
+                                    %                                         dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
                                     
                                 case 'epoch'
-%                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
-%                                         ones(1,size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2));
+                                    %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
+                                    %                                         ones(1,size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2));
                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data = squeeze(...
                                         dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
                             end
@@ -197,19 +199,19 @@ try
                             
                             
                             
-%                             %% > Period calculations
-% %                             dop.tmp.use_data = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data(...
-% %                                 dop.tmp.prd_filt(1):dop.tmp.prd_filt(2),:);
-%                             
-%                             
-%                             dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).period = ...
-%                                 dopCalcPeriod(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data,...
-%                                 'period',dop.tmp.prd,...
-%                                 'epoch',dop.tmp.epoch,...
-%                                 'sample_rate',dop.tmp.sample_rate,...
-%                                 'poi',dop.tmp.poi,...
-%                                 'baseline',dop.tmp.baseline);
-%                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                            %                             %% > Period calculations
+                            % %                             dop.tmp.use_data = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data(...
+                            % %                                 dop.tmp.prd_filt(1):dop.tmp.prd_filt(2),:);
+                            %
+                            %
+                            %                             dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).period = ...
+                            %                                 dopCalcPeriod(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data,...
+                            %                                 'period',dop.tmp.prd,...
+                            %                                 'epoch',dop.tmp.epoch,...
+                            %                                 'sample_rate',dop.tmp.sample_rate,...
+                            %                                 'poi',dop.tmp.poi,...
+                            %                                 'baseline',dop.tmp.baseline);
+                            %                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                             %                             calculate summary statistcs of period
                             %                             dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).period_samples = ...
                             %                                 numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).period_data);
@@ -223,11 +225,12 @@ try
                             %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).period_mean,...
                             %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).period_sd);
                             %                             if dop.tmp.comment; fprintf('\t%s\n\n',msg{end}); end
-                       
-                        %% > summary statistics
-                        [dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps),...
-                            okay,msg] = dopCalcSummary(...
+                            
+                            %% > summary statistics
+                            [dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps),...
+                                okay,msg] = dopCalcSummary(...
                                 dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data,...
+                                'summary',dop.tmp.sum,... % 'overall' or epoch'
                                 'period',dop.tmp.prd,...
                                 'epoch',dop.tmp.epoch,...
                                 'act_window',dop.tmp.act_window,...
@@ -235,8 +238,15 @@ try
                                 'poi',dop.tmp.poi,...
                                 'baseline',dop.tmp.baseline,...
                                 'file',dop.tmp.file);
-                         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-                         end
+                            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                            if strcmp(dop.tmp.sum,'epoch')
+                                % only need to do this once - overall vs odd
+                                % vs even makes no difference, defaults to
+                                % selection of all epochs so single
+                                % calculation will do it
+                                break
+                            end
+                        end
                     end
                     if or(strcmp(dop.tmp.eps,'screen'),strcmp(dop.tmp.eps,'all')) && strcmp(dop.tmp.sum,'epoch')
                         break; % don't need to keep doing this loop

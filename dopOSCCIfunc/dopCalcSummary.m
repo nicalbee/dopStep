@@ -33,7 +33,8 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 %   isn't there... hmm, still not working - might be a version issue for
 %   Lisa in Adelaide.
 % 27-Jan-2015 NAB zeroed latency samples: ie -1 + ...
-%
+% 01-Sep-2015 NAB sorted the epoch by epoch calculations, wasn't tested
+%   previously...
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -52,6 +53,8 @@ dop_output = struct(...
     'period_sd',tmp_default,...
     'period_mean_sd',tmp_default,...
     'period_sd_of_sd',tmp_default,...
+    'peroid_mean_sd_note','Equal to standard deviation for epoch by epoch summary',...
+    'peroid_sd_of_sd_note','Equal to standard deviation for epoch by epoch summary',...
     'period_n',tmp_default,...
     'peak_n',tmp_default,...
     'peak_latency_sample',tmp_default,...
@@ -138,16 +141,40 @@ try
             %% > period calculations
             dop_output.data = dop.tmp.data(dop.tmp.period_filt(1):dop.tmp.period_filt(2),:); % keep a copy
             [dop_output.period_samples,dop_output.period_epochs] = size(dop_output.data);
-            dop_output.period_n = dop_output.period_epochs;
-            dop_output.period_mean = mean(mean(dop_output.data,2));
+            
+            % for epoch calculations, one number per epoch
+            dop_output.period_n = ones(1,dop_output.period_epochs);
+            
+            % by default, calculate for epochs, then take the summary (ie
+            % mean or std) of these for overall
+            
+            dop_output.period_mean = mean(dop_output.data);
             % standard deviation is always related to the mean, doesn't
             % make any sense if there's a single epoch
-            dop_output.period_sd = std(mean(dop_output.data,2));
+            dop_output.period_sd = std(dop_output.data);
             
             % it's possible people will want this information...
             % really defined in order to clarify the earlier mean & sd
-            dop_output.period_mean_sd = mean(std(dop_output.data,1,2));
-            dop_output.period_sd_of_sd = std(std(dop_output.data,1,2));
+            % doesn't work for epoch by epoch calculations
+            dop_output.period_mean_sd = dop_output.period_sd; %mean(std(dop_output.data,1,2));
+            dop_output.period_sd_of_sd = dop_output.period_sd; %mean(std(dop_output.data,1,2));
+            
+            
+            if ismember(dop.tmp.summary,{'overall','odd','even'})
+                % across all epochs (i.e., the average of all epochs)
+                dop_output.period_n = dop_output.period_epochs;
+                
+                dop_output.period_mean = mean(dop_output.period_mean);
+                % standard deviation is always related to the mean, doesn't
+                % make any sense if there's a single epoch
+                dop_output.period_sd = std(dop_output.period_mean);
+                
+                % it's possible people will want this information...
+                % really defined in order to clarify the earlier mean & sd
+                dop_output.period_mean_sd = mean(dop_output.period_sd);
+                dop_output.period_sd_of_sd = std(dop_output.period_sd);
+                
+            end
             
             msg{end+1} = sprintf('Summary of samples %u, # epochs %u:',...
                 dop_output.period_samples,dop_output.period_epochs);
@@ -172,7 +199,7 @@ try
             %             if strcmp(dop.tmp.summary,'overall')
             %                 dop_output.peak_data = mean(dop_output.peak_data,2);
             %             end
-            dop_output.peak_n = dop_output.peak_epochs;
+            dop_output.peak_n = ones(1,dop_output.peak_epochs);
             
             % originally written for 'Difference' waveform, absolute maximum
             % doesn't necessarily make sense of other channels
@@ -188,7 +215,7 @@ try
             % values for each epoch
             [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
                 eval([dop.tmp.peak,'(dop.tmp.peak_data)']); % could be min or max
-            if strcmp(dop.tmp.summary,'overall')
+            if ismember(dop.tmp.summary,{'overall','odd','even'})
                 % across all epochs (i.e., the average of all epochs)
                 [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
                     eval([dop.tmp.peak,'(mean(dop.tmp.peak_data,2))']); % could be min or max
@@ -220,9 +247,14 @@ try
 %             else
                 dop.tmp.window_data = dop.tmp.data(dop.tmp.window(:,1):dop.tmp.window(:,2),:);
 %             end
-            if strcmp(dop.tmp.summary,'overall')
+            if ismember(dop.tmp.summary,{'overall','odd','even'})
                 % across all epochs (i.e., the average of all epochs)
                 dop.tmp.window_data = mean(dop.tmp.window_data,2);
+            else
+                % might as well have multiples of these too
+                dop_output.t_value = ones(1,dop_output.peak_epochs)*dop_output.t_value;
+                dop_output.t_df = ones(1,dop_output.peak_epochs)*dop_output.t_df;
+                dop_output.t_sd = ones(1,dop_output.peak_epochs)*dop_output.t_sd;
             end
             
             if exist('ttest','file') && dop.tmp.ttest
@@ -238,15 +270,31 @@ try
                 msg{end+1} = '''ttest'' function is not available - missing statistics toolbox';
                  dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
-            dop_output.peak_mean = mean(mean(dop.tmp.window_data,2));
+            
+            
+            dop_output.peak_mean = mean(dop.tmp.window_data);% mean(mean(dop.tmp.window_data,2));
             % standard deviation is always related to the mean, doesn't
             % make any sense if there's a single epoch
-            dop_output.peak_sd = std(mean(dop.tmp.window_data,2));
+            dop_output.peak_sd = std(dop.tmp.window_data); % std(mean(dop.tmp.window_data,2));
             
             % it's possible people will want this information...
             % really defined in order to clarify the earlier mean & sd
-            dop_output.peak_mean_sd = mean(std(dop.tmp.window_data,1,2));
-            dop_output.peak_sd_of_sd = std(std(dop.tmp.window_data,1,2));
+            dop_output.peak_mean_sd = dop_output.peak_sd;% mean(std(dop.tmp.window_data,1,2));
+            dop_output.peak_sd_of_sd = dop_output.peak_sd; %std(std(dop.tmp.window_data,1,2));
+            
+            if ismember(dop.tmp.summary,{'overall','odd','even'})
+                
+                dop_output.peak_n = dop_output.peak_epochs;
+                dop_output.peak_mean = mean(dop_output.peak_mean);
+                % standard deviation is always related to the mean, doesn't
+                % make any sense if there's a single epoch
+                dop_output.peak_sd = std(dop_output.peak_mean);
+                
+                % it's possible people will want this information...
+                % really defined in order to clarify the earlier mean & sd
+                dop_output.peak_mean_sd = mean(dop_output.peak_sd);
+                dop_output.peak_sd_of_sd = std(dop_output.peak_sd);
+            end
 %             msg{end+1} = sprintf('Peak: # samples %u, # epochs %u:',...
 %                 dop_output.peak_samples,dop_output.peak_epochs);
 %             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);

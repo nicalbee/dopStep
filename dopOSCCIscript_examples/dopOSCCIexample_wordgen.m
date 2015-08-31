@@ -117,7 +117,7 @@ if okay
         
         [dop,okay,msg] = dopSave(dop,okay,msg);%,'save_dir',dop.save.save_dir);
         
-%                 dop = dopPlot(dop,'wait');
+                dop = dopPlot(dop,'wait');
         
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');

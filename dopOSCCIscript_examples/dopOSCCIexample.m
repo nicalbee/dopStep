@@ -9,18 +9,18 @@ dop.struc_name = 'dop';
 
 dop.def.task_name = 'wordGenAbbie';
 % definition information
-% dop.def.signal_channels = [1 2]; % columns in file (e.g., .TW/TX)
-% dop.def.event_channels = 3; % TX/TW files
-dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
-dop.def.event_channels = 5; % EXP files
+dop.def.signal_channels = [1 2]; % columns in file (e.g., .TW/TX)
+dop.def.event_channels = 3; % TX/TW files
+% dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
+% dop.def.event_channels = 5; % EXP files
 dop.def.event_height = 1000; % 400; % greater than
 dop.def.event_sep = 40; %
-% dop.def.num_events = 40;
+dop.def.num_events = 23;
 
 dop.def.downsample_rate = 100; % Hertz
 
 % lower and upper values
-dop.def.epoch = [-17 29]; %[-5 20];
+dop.def.epoch = [-17 15]; %[-5 20];
 dop.def.baseline = [-15 -5];
 dop.def.poi = [3 13];
 dop.def.act_window = 2; % activation window
@@ -42,7 +42,7 @@ dop.def.screen = {'length','act','sep'};
 dop.def.keep_data_steps = 1;
 
 dop.save.extras = {'file'};%{'file','norm','base'}; % you can add your own variables to this, just need to be defined somewhere as dop.save.x = where x = variable name
-dop.save.summary = {'overall'}; % vs 'epoch'
+dop.save.summary = {'overall','epoch'}; % vs 'epoch'
 dop.save.channels = {'Difference'};
 dop.save.periods = {'poi'};
 dop.save.epochs = {'screen','odd','even'};
@@ -57,8 +57,8 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 % dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
 % in.dir = '/Users/mq20111600/Documents/nData/tmp';%'/Users/mq20111600/Documents/nData/2013/201312infant_fTCD_UniSA/'; %
-% dop.data_dir = '/Users/mq20111600/Documents/nData/Study AA (Abbie doppler stories)/data/raw/dopTrials/wordGen';
-dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/wordGen/';
+dop.data_dir = '/Users/mq20111600/Documents/nData/Study AA (Abbie doppler stories)/data/raw/dopTrials/wordGen';
+% dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/wordGen/';
 % in.file_list = dir(fullfile(in.dir,'*.exp'));
 % dop.file_list = dopGetFileList(dop.data_dir);%;dir(in.dir);
 [dop,okay] = dopGetFileList(dop);%;dir(in.dir);
@@ -114,7 +114,7 @@ if okay
         
         [dop,okay,msg] = dopSave(dop,okay,msg);%,'save_dir',dop.save.save_dir);
         
-                dop = dopPlot(dop,'wait');
+%                 dop = dopPlot(dop,'wait');
         
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');
@@ -130,6 +130,7 @@ if okay
         %             keyboard
         %             % type 'return' to exit keyboard mode
         %         end
+        dop = dopProgress(dop);
     end
     % save the 'collected' data for all okay files
     [dop,okay,msg] = dopSaveCollect(dop);

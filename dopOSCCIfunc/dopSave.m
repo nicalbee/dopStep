@@ -196,6 +196,8 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   '*' which apparently worked yesterday...
 %   > some of the definition information wasn't/isn't make it through
 % 19-May-2015 NAB added 'epoch' stucture to look in for variables to save
+% 01-Sep-2015 NAB sorted the epoch by epoch saving, wasn't tested
+%   previously...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -211,6 +213,7 @@ try
             'save_dir',[],...
             'save_mat',0,...
             'save_dat',1, ...
+            'num_events',[],... % required for epoch by epoch labelling etc.
             'delim','\t', ...
             'file',[],...
             'showmsg',1,...
@@ -226,6 +229,10 @@ try
         %         inputs.required = ...
         %             {};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
+        
+        dop.tmp.epoch_saved = 0;
+        % only want to save the epoch by epoch LIs once and if the 'epochs'
+        % setting has option more than 'all', don't want to repeat the save
         
         %% data check
         if okay && ~isfield(dop,'sum')
@@ -309,10 +316,36 @@ try
                                             dop.tmp.var,dop.tmp.ch,dop.tmp.eps,...
                                             dop.tmp.prd);
                                     case 'epoch'
-                                        for j = 1 : dop.event.n % for the moment
-                                            dop.save.labels{end+1} = sprintf('%s_%s%u%s_%s_%s',...
-                                                dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,dop.tmp.eps,...
-                                                dop.tmp.prd);
+                                        if iiii == 1 && ~strcmp(dop.tmp.var,'n')
+                                            % n is redundant when it's just the one epoch, so exclude it
+                                            
+                                            % only need to do this once and
+                                            % epoch screen
+                                            % ('screen','odd','even') isn't
+                                            % relevant to label
+                                            if isempty(dop.tmp.num_events)
+                                                dop.tmp.num_events = dop.event.n;
+                                                msg{end+1} = sprintf(['''num_events'' variable is empty. ',...
+                                                    'Using current number of events (%i) instead. ',...
+                                                    'May result in variable labelling issues if this isn''t the maximum for all files.'],...
+                                                    dop.event.n);
+                                                % set okay to zero here so
+                                                % there's a warning message
+                                                % as this is important
+                                                okay = 0;
+                                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                                okay = 1;
+                                                % not necessary to have the
+                                                % variable defined here but
+                                                % I think it helps to see
+                                                % what goes into the
+                                                % dopMessage function
+                                            end
+                                            for j = 1 : dop.tmp.num_events % dop.event.n % for the moment
+                                                dop.save.labels{end+1} = sprintf('%s_%s%u%s_%s',... % '%s_%s%u%s_%s_%s'
+                                                    dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,...dop.tmp.eps,...
+                                                    dop.tmp.prd);
+                                            end
                                         end
                                         
                                 end
@@ -383,17 +416,27 @@ try
                                             dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
                                         
                                     case 'epoch'
-                                        for j = 1 : dop.event.n % for the moment
-                                            k = k + 1;
-                                            if k == numel(dop.save.labels)
-                                                dop.tmp.delims{3} = 2; % new line
+                                        if ~dop.tmp.epoch_saved && ~strcmp(dop.tmp.var,'peak_n')
+                                            % n is redundant when it's just the one epoch, so exclude it
+                                            
+                                            if ~strcmp(dop.tmp.eps,'all')
+                                                dop.tmp.epoch_eps = 'all';
                                             end
-                                            dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).(dop.tmp.var)(j);
-                                            fprintf(dop.save.fid,...
-                                                [dopVarType(dop.tmp.value),...
-                                                dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                            for j = 1 : dop.tmp.num_events % dop.event.n % for the moment
+                                                k = k + 1;
+                                                if k == numel(dop.save.labels)
+                                                    dop.tmp.delims{3} = 2; % new line
+                                                    dop.tmp.epoch_saved = 1;
+                                                end
+                                                dop.tmp.value = 999;
+                                                if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.epoch_eps).(dop.tmp.var)) >= dop.tmp.num_events
+                                                    dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.epoch_eps).(dop.tmp.var)(j);
+                                                end
+                                                fprintf(dop.save.fid,...
+                                                    [dopVarType(dop.tmp.value),...
+                                                    dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                            end
                                         end
-                                        
                                 end
                             end
                         end
