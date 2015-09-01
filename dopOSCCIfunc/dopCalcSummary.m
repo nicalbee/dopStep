@@ -247,29 +247,8 @@ try
 %             else
                 dop.tmp.window_data = dop.tmp.data(dop.tmp.window(:,1):dop.tmp.window(:,2),:);
 %             end
-            if ismember(dop.tmp.summary,{'overall','odd','even'})
-                % across all epochs (i.e., the average of all epochs)
-                dop.tmp.window_data = mean(dop.tmp.window_data,2);
-            else
-                % might as well have multiples of these too
-                dop_output.t_value = ones(1,dop_output.peak_epochs)*dop_output.t_value;
-                dop_output.t_df = ones(1,dop_output.peak_epochs)*dop_output.t_df;
-                dop_output.t_sd = ones(1,dop_output.peak_epochs)*dop_output.t_sd;
-            end
+
             
-            if exist('ttest','file') && dop.tmp.ttest
-                [dop_output.tsig,dop_output.tp,...
-                    dop_output.ci,dop_output.stats] = ttest(dop.tmp.window_data);
-                dop_output.t_value = dop_output.stats.tstat;
-                dop_output.t_df = dop_output.stats.df;
-                dop_output.t_sd = dop_output.stats.sd;
-            elseif ~dop.tmp.ttest
-                msg{end+1} = '''ttest'' variable set to 0, not running';
-                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-            else
-                msg{end+1} = '''ttest'' function is not available - missing statistics toolbox';
-                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-            end
             
             
             dop_output.peak_mean = mean(dop.tmp.window_data);% mean(mean(dop.tmp.window_data,2));
@@ -282,7 +261,40 @@ try
             dop_output.peak_mean_sd = dop_output.peak_sd;% mean(std(dop.tmp.window_data,1,2));
             dop_output.peak_sd_of_sd = dop_output.peak_sd; %std(std(dop.tmp.window_data,1,2));
             
-            if ismember(dop.tmp.summary,{'overall','odd','even'})
+            if ~strcmp(dop.tmp.summary,'overall')
+                % might as well have multiples of these too
+                dop_output.t_value = ones(1,dop_output.peak_epochs)*dop_output.t_value;
+                dop_output.t_df = ones(1,dop_output.peak_epochs)*dop_output.t_df;
+                dop_output.t_sd = ones(1,dop_output.peak_epochs)*dop_output.t_sd;
+            end
+            
+            if exist('ttest','file') && dop.tmp.ttest
+                
+                [dop_output.tsig,dop_output.tp,...
+                    dop_output.ci,dop_output.stats] = ttest(dop.tmp.window_data);
+                
+                if strcmp(dop.tmp.summary,'overall')
+                    [dop_output.tsig,dop_output.tp,...
+                        dop_output.ci,dop_output.stats] = ttest(dop_output.peak_mean); %ttest(dop.tmp.window_data);
+                end
+                
+                dop_output.t_value = dop_output.stats.tstat;
+                dop_output.t_df = dop_output.stats.df;
+                dop_output.t_sd = dop_output.stats.sd;
+            elseif ~dop.tmp.ttest
+                msg{end+1} = '''ttest'' variable set to 0, not running';
+                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            else
+                msg{end+1} = '''ttest'' function is not available - missing statistics toolbox';
+                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
+            
+            if strcmp(dop.tmp.summary,'overall')
+                
+%                 if ~strcmp(dop.tmp.summary,'overall')
+%                     % across all epochs (i.e., the average of all epochs)
+%                     dop.tmp.window_data = mean(dop.tmp.window_data,2);
+%                 end
                 
                 dop_output.peak_n = dop_output.peak_epochs;
                 dop_output.peak_mean = mean(dop_output.peak_mean);

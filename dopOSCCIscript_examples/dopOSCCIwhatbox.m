@@ -24,7 +24,7 @@ dop.def.event_height = 1000; % 400; % greater than
 dop.def.event_sep = 35; % no longer used to find events, just to check whether you're allowing enough time
 % dop.def.num_events = 40; % maximum number of events, important for saving epoch data
 
-dop.def.downsample_rate = 25; % Hertz
+dop.def.downsample_rate = 100; % Hertz
 
 
 
