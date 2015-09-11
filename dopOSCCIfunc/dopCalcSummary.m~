@@ -35,7 +35,6 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 % 27-Jan-2015 NAB zeroed latency samples: ie -1 + ...
 % 01-Sep-2015 NAB sorted the epoch by epoch calculations, wasn't tested
 %   previously...
-% 11-Sep-2015 NAB playing with mean/sd labelling
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -301,11 +300,11 @@ try
                 dop_output.peak_mean = mean(dop_output.peak_mean);
                 % standard deviation is always related to the mean, doesn't
                 % make any sense if there's a single epoch
-                dop_output.peak_mean_sd = mean(dop_output.peak_sd);
+                dop_output.peak_sd = mean(dop_output.peak_sd);
                 
                 % it's possible people will want this information...
                 % really defined in order to clarify the earlier mean & sd
-                dop_output.peak_sd_of_mean = std(dop_output.peak_mean);
+                dop_output.peak_mean_sd = mean(dop_output.peak_sd);
                 dop_output.peak_sd_of_sd = std(dop_output.peak_sd);
             end
 %             msg{end+1} = sprintf('Peak: # samples %u, # epochs %u:',...
