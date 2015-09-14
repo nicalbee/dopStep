@@ -141,7 +141,9 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 % 27-Jan-2015 NAB separating task name from settings in directory structure
 %   + added activation separation to the labelling by default (act_sep)
 % 27-Jan-2015 NAB added prefix and suffix options
-%
+% 15-Sep-2015 NAB allowed for multiple rows of period - denoted with
+%   'Multiple' string in folder name, rather than #to#
+
 if ~exist('dop_input','var')
     dop_input = [];
 end
@@ -208,12 +210,16 @@ try
                         dop.tmp.save_name = sprintf('%s_%s%ito%i',dop.tmp.save_name,...
                             dopSaveAbbreviations(dop.tmp.vn),dop.tmp.(dop.tmp.vn));
                     otherwise
+                        if size(dop.tmp.(dop.tmp.vn),1) > 1
+                            dop.tmp.save_name = sprintf('%s_%sMultiple',dop.tmp.save_name,...
+                            dopSaveAbbreviations(dop.tmp.vn));
+                        else
                         dop.tmp.programmed = 0;
                         msg{end+1} = sprintf(['''%s'' variable not',...
                             ' included in directory name: not setup for %u item variables'],...
                             dop.tmp.vn, numel(dop.tmp.(dop.tmp.vn)));
                         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                        
+                        end
                 end
                 if dop.tmp.programmed
                     msg{end+1} = sprintf('''%s'' variable included in directory name: %s',...

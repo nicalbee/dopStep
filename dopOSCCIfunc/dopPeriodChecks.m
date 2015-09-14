@@ -117,6 +117,7 @@ function [dop,okay,msg] = dopPeriodChecks(dop_input,varargin)
 % 05-Sep-2014 NAB added 'file' input for error reporting
 % 08-Sep-2014 help info
 % 19-May-2015 NAB baseline within poi checks... perhaps never worked!
+% 15-Sep-2015 NAB adjusted for multiple rows for periods
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -151,7 +152,7 @@ try
         dop.length.fields = fields(dop.length);
         for i = 1 : numel(dop.length.fields)
             if isfield(dop.tmp,dop.length.fields{i})
-                if numel(dop.tmp.(dop.length.fields{i})) ~= dop.length.(dop.length.fields{i}) ...
+                if size(dop.tmp.(dop.length.fields{i}),2) ~= dop.length.(dop.length.fields{i}) ...
                         || ~isnumeric(dop.tmp.(dop.length.fields{i}))
                     okay = 0;
                     msg{end+1} = sprintf(['''%s'' variable = [',...
@@ -173,16 +174,18 @@ try
             i = i + 1;
             dop.tmp.prd = inputs.required{i};
             dop.tmp.nums = dop.tmp.(dop.tmp.prd);
-            if dop.tmp.nums(1) >= dop.tmp.nums(2)
+            for j = 1 : size(dop.tmp.nums,1)
+            if dop.tmp.nums(j,1) >= dop.tmp.nums(j,2)
                 okay = 0;
                 msg{end+1} = sprintf(['Lower %s value (%i) is greater'...
                     ' than upper (%i): needs to be opposite\n(%s: %s)'],...
-                    dop.tmp.prd,dop.tmp.nums,mfilename,dop.tmp.file);
+                    dop.tmp.prd,dop.tmp.nums(j,:),mfilename,dop.tmp.file);
                 if ~diff(dop.tmp.nums)
                     msg{end} = strrep(msg{end},'greater than','equal to');
                     msg{end} = strrep(msg{end},'opposite','different');
                 end
                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            end
             end
         end
         %% check baseline & poi are within epoch
@@ -191,36 +194,39 @@ try
         while okay && i <  numel(dop.tmp.check)
             i = i + 1;
             dop.tmp.prd = dop.tmp.check{i};
-            if sum(dop.tmp.(dop.tmp.prd) < dop.tmp.epoch(1))  || sum(dop.tmp.(dop.tmp.prd) > dop.tmp.epoch(2))
-                okay = 0;
-                msg{end+1} = sprintf(['One or more ''%s'' settings [%i %i] are'...
-                    ' less than lower epoch settings [%i %i]. These need'...
-                    ' to be within the epoch range\n(%s: %s)'],...
-                    dop.tmp.prd,dop.tmp.(dop.tmp.prd),dop.tmp.epoch,...
-                    mfilename,dop.tmp.file);
-                if sum(dop.tmp.(dop.tmp.prd) > dop.tmp.epoch(2))
-                    msg{end} = strrep(msg{end},'less than lower','greater than upper');
+            for j = 1 : size(dop.tmp.(dop.tmp.prd),1)
+                if sum(dop.tmp.(dop.tmp.prd)(j,:) < dop.tmp.epoch(1))  || sum(dop.tmp.(dop.tmp.prd)(j,:) > dop.tmp.epoch(2))
+                    okay = 0;
+                    msg{end+1} = sprintf(['One or more ''%s'' settings [%i %i] are'...
+                        ' less than lower epoch settings [%i %i]. These need'...
+                        ' to be within the epoch range\n(%s: %s)'],...
+                        dop.tmp.prd,dop.tmp.(dop.tmp.prd)(j,:),dop.tmp.epoch,...
+                        mfilename,dop.tmp.file);
+                    if sum(dop.tmp.(dop.tmp.prd)(j,:) > dop.tmp.epoch(2))
+                        msg{end} = strrep(msg{end},'less than lower','greater than upper');
+                    end
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 end
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         end
         
         %% check baseline and poi don't overlap
         if okay
             % lower baseline within poi
-            if and(dop.tmp.baseline(1) > dop.tmp.poi(1), dop.tmp.baseline(1) < dop.tmp.poi(2)) ...
+            for j = 1 : size(dop.tmp.poi,1)
+            if and(dop.tmp.baseline(1) > dop.tmp.poi(j,1), dop.tmp.baseline(1) < dop.tmp.poi(j,2)) ...
                     || ... % upper baseline within poi
-                    and(dop.tmp.baseline(2) > dop.tmp.poi(1), dop.tmp.baseline(2) < dop.tmp.poi(2)) ...
+                    and(dop.tmp.baseline(2) > dop.tmp.poi(j,1), dop.tmp.baseline(2) < dop.tmp.poi(j,2)) ...
                     || ... % lower poi within baseline
-                    and(dop.tmp.poi(1) > dop.tmp.baseline(1), dop.tmp.poi(1) < dop.tmp.baseline(2)) ...
+                    and(dop.tmp.poi(j,1) > dop.tmp.baseline(1), dop.tmp.poi(j,1) < dop.tmp.baseline(2)) ...
                     || ... % upper poi within baseline
-                    and(dop.tmp.poi(2) > dop.tmp.baseline(1), dop.tmp.poi(2) < dop.tmp.baseline(2))
+                    and(dop.tmp.poi(j,2) > dop.tmp.baseline(1), dop.tmp.poi(j,2) < dop.tmp.baseline(2))
                okay = 0;
                dop.tmp.var = dop.tmp.baseline;
                dop.tmp.within = dop.tmp.poi;
-               if and(dop.tmp.poi(1) > dop.tmp.baseline(1), dop.tmp.poi(1) < dop.tmp.baseline(2)) ...
+               if and(dop.tmp.poi(j,1) > dop.tmp.baseline(1), dop.tmp.poi(j,1) < dop.tmp.baseline(2)) ...
                        || ... % upper poi within baseline
-                       and(dop.tmp.poi(2) > dop.tmp.baseline(1), dop.tmp.poi(2) < dop.tmp.baseline(2))
+                       and(dop.tmp.poi(j,2) > dop.tmp.baseline(1), dop.tmp.poi(j,2) < dop.tmp.baseline(2))
                    dop.tmp.var = dop.tmp.poi;
                    dop.tmp.within = dop.tmp.baseline;
                end
@@ -233,7 +239,8 @@ try
                 if ~okay
                     return
                 end
-            end        
+            end  
+            end
         end
         
         %% check event marker separation

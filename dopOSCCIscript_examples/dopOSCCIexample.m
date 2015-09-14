@@ -22,7 +22,7 @@ dop.def.downsample_rate = 100; % Hertz
 % lower and upper values
 dop.def.epoch = [-17 15]; %[-5 20];
 dop.def.baseline = [-15 -5];
-dop.def.poi = [3 13];
+dop.def.poi = [3 13;-5 1];
 dop.def.act_window = 2; % activation window
 
 dop = dopPeriodChecks(dop,'wait_warn',1);
