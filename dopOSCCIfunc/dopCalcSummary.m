@@ -38,6 +38,8 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 % 11-Sep-2015 NAB playing with mean/sd labelling
 % 14-Sep-2015 NAB fixed sd issue, still waiting for Heather on the
 %   labelling...
+% 30-Sep-2015 NAB issue with epoch calculation, not filtering properly with
+%   different windows
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -220,9 +222,17 @@ try
             [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
                 eval([dop.tmp.peak,'(dop.tmp.peak_data)']); % could be min or max
             if ismember(dop.tmp.summary,{'overall'})
+                dop.tmp.peak_data = dop_output.data;
+                % there was an issue here with the numbers going into the
+                % overall calculation 30-Sep-2015 NAB
+                if strcmp(dop.tmp.value,'abs');
+                    dop.tmp.peak_data = abs(mean(dop.tmp.peak_data,2));
+                end
                 % across all epochs (i.e., the average of all epochs)
                 [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
-                    eval([dop.tmp.peak,'(mean(dop.tmp.peak_data,2))']); % could be min or max
+                    eval([dop.tmp.peak,'(dop.tmp.peak_data)']); % could be min or max
+                %                 [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
+                %                     eval([dop.tmp.peak,'(mean(dop.tmp.peak_data,2))']); % could be min or max
             end
             dop_output.peak_latency_sample = -1 + dop.tmp.period_filt(1) + dop.tmp.peak_sample; % in samples
             % -1 here to 'zero' the latency 27-Jan-15 NAB
@@ -249,7 +259,19 @@ try
             %             if size(dop.tmp.window,1) == 1
             %                 dop.tmp.window_data = dop.tmp.data(dop.tmp.window(1):dop.tmp.window(2),:);
             %             else
-            dop.tmp.window_data = dop.tmp.data(dop.tmp.window(:,1):dop.tmp.window(:,2),:);
+            
+            if size(dop.tmp.window,1) == 1
+                dop.tmp.window_data = dop.tmp.data(dop.tmp.window(:,1):dop.tmp.window(:,2),:);
+                % this isn't working for more than a single window - need to
+                % create logical filters: 30-Sep-15 NAB
+            else
+                dop.tmp.window_data = zeros(length(dop.tmp.window(1,1):dop.tmp.window(1,2)),size(dop.tmp.data,2));
+                for j = 1 : size(dop.tmp.window_data,2)
+                    dop.tmp.window_data(:,j) = dop.tmp.data(dop.tmp.window(j,1):dop.tmp.window(j,2),j);
+                end
+            end
+            
+            
             %             end
             
             
@@ -262,7 +284,7 @@ try
             
             % it's possible people will want this information...
             % really defined in order to clarify the earlier mean & sd
-            dop_output.peak_sd_of_mean = dop_output.peak_mean;% mean(std(dop.tmp.window_data,1,2));
+            dop_output.peak_sd_of_mean = dop_output.peak_sd;% mean(std(dop.tmp.window_data,1,2));
             dop_output.peak_sd_of_sd = dop_output.peak_sd; %std(std(dop.tmp.window_data,1,2));
             
             if ~strcmp(dop.tmp.summary,'overall')

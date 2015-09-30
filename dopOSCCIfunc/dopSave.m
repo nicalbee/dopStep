@@ -219,6 +219,7 @@ try
             'epoch',[],...
             'num_events',[],... % required for epoch by epoch labelling etc.
             'delim','\t', ...
+            'msg',[],... % 30-Sep-2015 not sure about adding this
             'file',[],...
             'showmsg',1,...
             'wait_warn',0 ...
@@ -229,7 +230,7 @@ try
         inputs.defaults.periods = {'poi'};
         inputs.defaults.epochs = {'screen'}; % 'screen','odd','even','all','act','sep'
         %         inputs.defaults.variables = {'n','mean','sd','latency'};
-        inputs.defaults.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
+        inputs.defaults.variables = {'peak_n','peak_mean','peak_sd_of_mean','peak_latency'};
         %         inputs.required = ...
         %             {};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
@@ -438,7 +439,7 @@ try
                                                         dop.tmp.epoch_saved = 1;
                                                     end
                                                     dop.tmp.value = 999;
-                                                    if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= dop.tmp.num_events
+                                                    if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= j %dop.tmp.num_events
                                                         dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)(j);
                                                     end
                                                     fprintf(dop.save.fid,...

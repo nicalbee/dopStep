@@ -15,7 +15,7 @@ dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
 dop.def.event_channels = 5; % TX/TW files
 dop.def.event_height = 1000; % 400; % greater than
 dop.def.event_sep = 50; %
-% dop.def.num_events = 40;
+dop.def.num_events = 24;
 
 dop.def.downsample_rate = 100; % Hertz
 
@@ -42,11 +42,11 @@ dop.def.screen = {'length','act','sep'};
 dop.def.keep_data_steps = 1;
 
 dop.save.extras = {'file','code'};%{'file','norm','base'}; % you can add your own variables to this, just need to be defined somewhere as dop.save.x = where x = variable name
-dop.save.summary = {'overall'}; % vs 'epoch'
+dop.save.summary = {'overall','epoch'}; % vs 'epoch'
 dop.save.channels = {'Difference'};
 dop.save.periods = {'poi'};
 dop.save.epochs = {'screen','odd','even'};
-dop.save.variables = {'peak_n','peak_mean','peak_sd','peak_latency'};
+dop.save.variables = {'peak_n','peak_mean','peak_sd_of_mean','peak_latency'};
 
 dop.save.save_file = []; % this will be auto completed based upon the dop.def.task_name variable
 % dop.save.save_dir = 'C:\Users\mq20111600\Documents\nData\dopStep';
@@ -65,7 +65,7 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 [dop,okay] = dopGetFileList(dop);%;dir(in.dir);
 % in.file_list = {'test.exp'};
 if okay
-    for i = 1 : numel(dop.file_list)
+    for i = 1 : 1 %numel(dop.file_list)
         in.file = dop.file_list{i};
         
         fprintf('%u: %s\n',i,in.file);
@@ -137,7 +137,7 @@ if okay
     % save the 'collected' data for all okay files
     [dop,okay,msg] = dopSaveCollect(dop);
     % plot the 'collected' data for all okay files
-    [dop,okay,msg] = dopPlot(dop,'collect');
+    [dop,okay,msg] = dopPlot(dop,'collect','type','base');
     %     [dop,okay,msg] = dopPlot(dop,'collect','wait');
     % close all popup warning dialogs with one command :)
     dopCloseMsg;
