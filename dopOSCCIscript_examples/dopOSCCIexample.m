@@ -104,10 +104,6 @@ if okay
         
         [dop,okay,msg] = dopEpochScreen(dop,okay,msg);
         
-        %         [dop,okay,msg] = dopEpochScreenAct(dop,okay,msg);
-        %
-        %         [dop,okay,msg] = dopEpochScreenSep(dop,okay,msg);
-        
         [dop,okay,msg] = dopBaseCorrect(dop,okay,msg);
         
         [dop,okay,msg] = dopCalcAuto(dop,okay,msg);%'periods',{'baseline','poi'}); % ,'poi',[5 15],'act_window',2);
@@ -123,7 +119,6 @@ if okay
         %             pause;
         %         end
         %% collect grp data?
-        %     dop.grp.Difference.poi.data(:,j) = dop.overall.Difference.poi.data;
         [dop] = dopDataCollect(dop,okay,msg);
         %         end
         %         if ~okay
@@ -135,7 +130,7 @@ if okay
     % save the 'collected' data for all okay files
     [dop,okay,msg] = dopSaveCollect(dop);
     % plot the 'collected' data for all okay files
-    [dop,okay,msg] = dopPlot(dop,'collect');
+    [dop,okay,msg] = dopPlot(dop,'collect','type','base'); % ,'wait'
     %     [dop,okay,msg] = dopPlot(dop,'collect','wait');
     % close all popup warning dialogs with one command :)
     dopCloseMsg;
