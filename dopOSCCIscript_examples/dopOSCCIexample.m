@@ -42,7 +42,7 @@ dop.def.screen = {'length','act','sep'};
 dop.def.keep_data_steps = 1;
 
 dop.save.extras = {'file'};%{'file','norm','base'}; % you can add your own variables to this, just need to be defined somewhere as dop.save.x = where x = variable name
-dop.save.summary = {'overall','epoch'}; % vs 'epoch'
+dop.save.summary = {'overall','epochs'}; % vs 'epoch'
 dop.save.channels = {'Difference'};
 dop.save.periods = {'poi'};
 dop.save.epochs = {'screen','odd','even'};

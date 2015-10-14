@@ -162,6 +162,17 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   when 'okay' changes to 0 (i.e. an error), progress through the scripts
 %   waits for the warning dialog popup to be closed.
 %
+% - 'label_specs':
+%   e.g., ...,'label_specs',...
+%   Including this variable as an input will add period specificications to
+%   the column labels for the data. For example, poi (period of interest)
+%   would be labelled as 'poi5to15' for [5 15] settings.
+%   Negative numbers are denoted by 'n'; for example, 'baselinen15ton5' for
+%   a setting of [-15 -5]
+%   This is automatically applied if multiple period of interests are
+%   specified e.g., [0 5; 5 15; 15 25];
+%   The script does this by checking for multiple rows
+%
 %--- Outputs ---
 %   note: outputs are optional, included at the left hand side of the call
 %   to a function. The order is fixed
@@ -199,6 +210,8 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 01-Sep-2015 NAB sorted the epoch by epoch saving, wasn't tested
 %   previously...
 % 15-Sep-2015 NAB added period specific labels/data
+% 14-Oct-2015 NAB added 'label_specs' input and default to add label
+%   specifications for periods when multiple rows for that variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -207,14 +220,14 @@ try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
-        %         inputs.turnOff = {'comment'};
+        inputs.turnOn = {'label_specs'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'save_file','dopSave',... 'task_name','dopSave',...
             'save_dir',[],...
             'save_mat',0,...
             'save_dat',1, ...
-            'base',[],...
+            'baseline',[],...
             'poi',[],...
             'epoch',[],...
             'num_events',[],... % required for epoch by epoch labelling etc.
@@ -310,7 +323,9 @@ try
                         dop.tmp.prd = dop.save.abb.(dop.tmp.periods{iii});
                         dop.tmp.prd_spec = dop.tmp.prd;
                         for jjj = 1 : size(dop.tmp.(dop.tmp.prd),1)
-                            dop.tmp.prd_spec = dopSaveSpecificLabel(dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
+                            if size(dop.tmp.(dop.tmp.prd),1) > 1 || dop.tmp.label_specs
+                                dop.tmp.prd_spec = dopSaveSpecificLabel(dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
+                            end
                             for iiii = 1 : numel(dop.tmp.epochs)
                                 dop.tmp.eps = dop.save.abb.(dop.tmp.epochs{iiii});
                                 
