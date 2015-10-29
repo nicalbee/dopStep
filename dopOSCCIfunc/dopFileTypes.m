@@ -1,4 +1,4 @@
-function file_types = dopFileTypes(report,varargin)
+function [file_types,file_types_search] = dopFileTypes(report,search_dir,varargin)
 % dopOSCCI3: dopFileType
 %
 % notes:
@@ -26,10 +26,18 @@ function file_types = dopFileTypes(report,varargin)
 % 15-Nov-2014 NAB added '.txt' but mostly because I want to ignore them...
 %   also changed so there's no repeition, just lowercase...
 %   % and removed .'txt' again... troubles with dopGetFileList
+%
+% 29-Oct-2015 NAB added file_types_search output for uigetfile browse check
+%   see dopStepBrowseFile function
+%
+% 29-Oct-2015 NAB added search_dir but it's not working properly - I'll
+%   leave it in for the moment in case it makes sense at some point
 if ~exist('report','var') || isempty(report)
     report = 0;
 end
-
+if ~exist('search_dir','var') || isempty(search_dir)
+    search_dir = '';
+end
 try
     %     tmp  =  dbstack;
     %     left_tab = [];
@@ -42,6 +50,19 @@ try
     dopOSCCIindent('run',report);
     % hopefully not case sensitive in most instances...
     file_types = {'.TX','.EXP','.MAT','.tx','.exp','.mat','.dat'};%,'.tx','.tw','.exp','.mat'};
+    file_types_search = [];
+    search_sep = ';';
+    for i = 1 : numel(file_types)
+        if i == numel(file_types)
+            search_sep = '';
+        end
+        switch file_types{i}
+            case {'.TX','.tx'}
+                file_types_search = sprintf('%s%s*%s*%s',file_types_search,search_dir,file_types{i},search_sep);
+            otherwise
+                file_types_search = sprintf('%s%s*%s%s',file_types_search,search_dir,file_types{i},search_sep);
+        end
+    end
 %     file_types = {'.tx','.exp','.mat','.dat'};%,'.tx','.tw','.exp','.mat'};
     if report
         fprintf('\tdopOSCCI recognises the following file types:\n');

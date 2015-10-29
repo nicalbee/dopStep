@@ -51,19 +51,40 @@ try
             dop.step.current = rmfield(dop.step.current,'h');
         end
         n = dop.step.current;
+        dop.step.text.h = []; % clear text handles
         for i = 1 : numel(n.style)
             switch n.style{i}
-                case 'text'
+                case {'text','edit','pushbutton'}
+                    % generic
                     dop.step.current.h(i) = uicontrol(dop.step.h,...
                         'style',n.style{i},'String',n.string{i},...
                         'tag',n.tag{i},...
                         'Units','Normalized',...
-                        'Position',n.position(i,:));
+                        'Position',n.position(i,:),...
+                        'HorizontalAlignment',n.HorizontalAlignment{i});
+                    % specific
+                    switch n.style{i}
+                        case 'text'
+                            set(dop.step.current.h(i),'BackgroundColor',...
+                                get(dop.step.h,'Color'));
+                        case {'edit','pushbutton'}
+                            set(dop.step.current.h(i),'CallBack',dop.step.next.Callback{i},...
+                                'Enable',n.Enable{i});
+                    end
+                    if isfield(dop.step.next,'Visible')
+                        set(dop.step.current.h(i),'Visible',dop.step.next.Visible{i});
+                    end
+                    dop.step.text.h(i) = dop.step.current.h(i);
                 otherwise
                     warndlg(sprintf('Style (%s), not recognised - can''t create',n.style{i}));
             end
         end
-        % could remove next here
+        for i = 1 : numel(dop.step.action.h)
+            switch get(dop.step.action.h(i),'tag')
+                case 'import'
+                case 'plot'
+            end
+        end
         
     end
     

@@ -17,26 +17,46 @@ function dopStepFontAdjust(button_handle,~)
 %   specifc for stepInfo text object but could save a set of handles, e.g.,
 %   dop.step.font.h(1:n), and adjust all in one hit
 %   > do this by saving the 'dop' field into the figure 'UserData'
+% 30-Oct-2015 NAB updated to use dop.step.text.h
 try
     % probably don't want to report function name eventually
     fprintf('\nRunning %s:\n',mfilename);
-    tmp.fig_ch = get(get(button_handle,'Parent'),'Children');
-    tmp.ch_tags = get(tmp.fig_ch,'tag');
-    tmp.info_index = find(ismember(tmp.ch_tags,'stepInfo'));
-    if ~isempty(tmp.info_index)
-        tmp.info_h = tmp.fig_ch(tmp.info_index);
-        tmp.font_size = get(tmp.info_h,'FontSize');
-        switch get(button_handle,'tag')
-            case 'font_adj_larger'
-                tmp.font_size_adj = tmp.font_size + 1;
-            case 'font_adj_smaller'
-                if tmp.font_size > 2
-                    tmp.font_size_adj = tmp.font_size - 1;
-                end
+    
+    dop = get(gcf,'UserData');
+    if isfield(dop,'step') && isfield(dop.step,'text') && isfield(dop.step.text,'h')
+        for i = 1 : numel(dop.step.text.h)
+            dop.tmp.font_size = get(dop.step.text.h(i),'FontSize');
+            switch get(button_handle,'tag')
+                case 'font_adj_larger'
+                    dop.tmp.font_size_adj = dop.tmp.font_size + 1;
+                case 'font_adj_smaller'
+                    if dop.tmp.font_size > 2
+                        dop.tmp.font_size_adj = dop.tmp.font_size - 1;
+                    end
+            end
+            set(dop.step.text.h(i),'FontSize',dop.tmp.font_size_adj);
         end
-        set(tmp.info_h,'FontSize',tmp.font_size_adj);
+        
+        %     dop.tmp.fig_ch = get(get(button_handle,'Parent'),'Children');
+        %     dop.tmp.ch_tags = get(dop.tmp.fig_ch,'tag');
+        %     dop.tmp.info_index = find(ismember(dop.tmp.ch_tags,'stepInfo'));
+        %     if ~isempty(dop.tmp.info_index)
+        %         dop.tmp.info_h = dop.tmp.fig_ch(dop.tmp.info_index);
+        %         dop.tmp.font_size = get(dop.tmp.info_h,'FontSize');
+        %         switch get(button_handle,'tag')
+        %             case 'font_adj_larger'
+        %                 dop.tmp.font_size_adj = dop.tmp.font_size + 1;
+        %             case 'font_adj_smaller'
+        %                 if dop.tmp.font_size > 2
+        %                     dop.tmp.font_size_adj = dop.tmp.font_size - 1;
+        %                 end
+        %         end
+        %         set(dop.tmp.info_h,'FontSize',dop.tmp.font_size_adj);
+        %     else
+        %         fprintf('Can''t find ''stepInfo text handle: No adjustment made\n')
+        %     end
     else
-        fprintf('Can''t find ''stepInfo text handle: No adjustment made\n')
+        fprintf('Can''t find ''dop.step.text.h'' variable: No adjustment made\n')
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);
