@@ -81,7 +81,7 @@ try
         end
         
         % set gui data
-        if sum(ismember(dop.step.current.tag,'data_file')) && isfield(dop,'fullfile') && exist(dop.fullfile,'file')
+        if sum(ismember(dop.step.current.tag,'data_file')) && isfield(dop,'fullfile') && exist(dop.file,'fullfile')
             dop.tmp.h = dop.step.current.h(ismember(dop.step.current.tag,'data_file'));
             set(dop.tmp.h,'string',dop.fullfile);
         end
@@ -93,20 +93,14 @@ try
                 case 'import'
                     % should the import button be on?
                     % if there's a data_file to import
-                    if isfield(dop,'fullfile') && exist(dop.fullfile,'file')
+                    if isfield(dop,'fullfile') && exist(dop.file,'fullfile')
                         set(dop.tmp.h,'enable','on');
-                        if sum(ismember(dop.step.current.tag,'import_text'))
-                            set(dop.step.current.h(ismember(dop.step.current.tag,'import_text')),'Visible','On')
-                        end
                     end
                 case 'plot'
                     % should the plot button be on?
                     % if there's 'use' data to plot
                     if isfield(dop,'data') && isfield(dop.data,'use') && ~isempty(dop.data.use)
                         set(dop.tmp.h,'enable','on');
-                        if sum(ismember(dop.step.current.tag,'plot_text'))
-                            set(dop.step.current.h(ismember(dop.step.current.tag,'plot_text')),'Visible','On')
-                        end
                     end
             end
         end

@@ -53,8 +53,9 @@ cd(dop.data_dir);
                 set(dop.tmp.h,'Visible','on');
                 
                 % set definition like data in structure
-                dop.data_dir = dop.tmp.data_dir;
-                dop.file = dop.tmp.file;
+                dop.data_dir = data_dir;
+                dop.fullfile = full_file;
+                dop.file = file_name; % file name only
                 break
             elseif isnumeric(dop.tmp.filename) && ~dop.tmp.filename
                 break

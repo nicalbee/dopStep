@@ -17,7 +17,7 @@ try
     dop = get(gcf,'UserData');
     switch get(obj,'tag')
         case 'import'
-            [dop,okay] = dopImport(dop,'file',dop.file);
+            [dop,okay] = dopImport(dop,'file',dop.fullfile);
             if okay
                 dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,'plot'));
                 set(dop.tmp.h,'enable','on');

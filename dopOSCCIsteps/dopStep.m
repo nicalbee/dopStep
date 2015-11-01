@@ -1,4 +1,4 @@
-function dop = dopStep
+function dopStep
 % dopOSCCI3: dopStep
 %
 % notes:
