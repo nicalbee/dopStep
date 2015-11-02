@@ -224,7 +224,12 @@ try
                         plot(dop.fig.ax,dop.fig.xdata,dop.tmp.data);
                         dop.tmp.ch = get(dop.fig.ax,'children');
                         for k = 1 : numel(dop.tmp.ch) % size(dop.tmp.data,2)
-                            set(dop.tmp.ch(numel(dop.tmp.ch)+1-k),'DisplayName',sprintf('column_%u',k));
+                            dop.tmp.diplay_name = sprintf('column_%u',k);
+                            if isfield(dop.data,'file_info') && isfield(dop.data.file_info,'dataLabels') ...
+                                    && numel(dop.data.file_info.dataLabels) >= k
+                                dop.tmp.display_name = dop.data.file_info.dataLabels{k};
+                            end
+                            set(dop.tmp.ch(numel(dop.tmp.ch)+1-k),'DisplayName',dop.tmp.display_name);
                         end
                         dopPlotLegend(dop.fig.h);
                     end

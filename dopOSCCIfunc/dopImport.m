@@ -92,8 +92,9 @@ function [dop,okay,msg] = dopImport(dop_input,varargin)
 %
 % Created 22-Apr-2013
 % Edits:
-% 19-Aug-2014 NAB
-% 09-Sep-2014 NAB updated documentation
+%   19-Aug-2014 NAB
+%   09-Sep-2014 NAB updated documentation
+%   03-Nov-2015 NAB updated to keep file_info within dop.data structure
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -175,7 +176,8 @@ try
             elseif isTX(dop.fullfile)
                 [dop.data.raw,dop.file_info] = readTWfromTX(dop.fullfile);
             elseif isEXP(dop.fullfile)
-                [dop.data.raw,dop.file_info] = dopEXPread(dop.fullfile);
+                [dop.data.raw,dop.data.file_info] = dopEXPread(dop.fullfile);
+                dop.file_info = dop.data.file_info;
             else
                 msg{end+1} = sprintf(['> File type not recognised:'...
                     '\n\tExtension = %s\n\t'...

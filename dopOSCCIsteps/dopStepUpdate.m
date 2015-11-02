@@ -54,7 +54,7 @@ try
         dop.step.text.h = []; % clear text handles
         for i = 1 : numel(n.style)
             switch n.style{i}
-                case {'text','edit','pushbutton'}
+                case {'text','edit','pushbutton','popup'}
                     % generic
                     dop.step.current.h(i) = uicontrol(dop.step.h,...
                         'style',n.style{i},'String',n.string{i},...
