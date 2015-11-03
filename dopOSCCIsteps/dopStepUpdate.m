@@ -12,7 +12,7 @@ function dop = dopStepUpdate(dop)
 %
 % Created: 15-Oct-2015 NAB
 % Edits:
-% 
+% 04-Nov-2015 NAB added 'channels' option
 
 try
     fprintf('\nRunning %s:\n',mfilename);
@@ -70,6 +70,33 @@ try
                         case {'edit','pushbutton'}
                             set(dop.step.current.h(i),'CallBack',dop.step.next.Callback{i},...
                                 'Enable',n.Enable{i});
+                        case {'popup'}
+                             set(dop.step.current.h(i),'CallBack',eval(['[@',dop.step.next.Callback{i},'];']),...
+                                'Enable',n.Enable{i});
+                            switch dop.step.next.Callback{i}
+                                case 'dopStepGetChannel'
+                                    dop.tmp.ch = strtok(get(dop.step.current.h(i),'tag'),'_');
+                                    if ~isfield(dop.step,'channels_okay') || strcmp(dop.tmp.ch,'left')
+                                        dop.step.channels_okay = zeros(1,3);
+                                    end
+                            % check if data exists
+                            dop.tmp.signal_options = {'left','right'};
+                            
+                            switch dop.tmp.ch
+                                case dop.tmp.signal_options
+                                    if isfield(dop,'def') && isfield(dop.def,'signal_channels')
+                                        
+                                        
+                                        dop.tmp.signal_number = find(ismember(dop.tmp.signal_options,dop.tmp.ch));
+                                        set(dop.step.current.h(i),'Value',dop.def.signal_channels(dop.tmp.signal_number));
+                                        dop.step.channels_okay(dop.tmp.signal_number) = 1;
+                                    end
+                                case 'event'
+                                    set(dop.step.current.h(i),'Value',dop.def.event_channels);
+                                    dop.step.channels_okay(3) = 1;
+                                    
+                            end
+                            end
                     end
                     if isfield(dop.step.next,'Visible')
                         set(dop.step.current.h(i),'Visible',dop.step.next.Visible{i});
@@ -98,6 +125,11 @@ try
                         if sum(ismember(dop.step.current.tag,'import_text'))
                             set(dop.step.current.h(ismember(dop.step.current.tag,'import_text')),'Visible','On')
                         end
+                    end
+                case 'channel'
+                    if sum(dop.step.channels_okay) == numel(dop.step.channels_okay)
+                        % turn channel button on
+                        set(dop.tmp.h,'enable','on');
                     end
                 case 'plot'
                     % should the plot button be on?

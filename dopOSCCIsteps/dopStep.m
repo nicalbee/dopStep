@@ -21,6 +21,7 @@ function dopStep
 % 14-Oct-2015 NAB created dopStepFontAdjust
 % 14-Oct-2015 NAB created dopStepMove
 % 14-Oct-2015 NAB created dopStepSettings
+% 04-Nov-2015 NAB added 'channels' option
 
 try
     fprintf('\nRunning %s:\n',mfilename);
@@ -70,13 +71,13 @@ try
             'Visible',dop.step.move.visible{i});
     end
     %% - action buttons
-    dop.step.action.string = {'Import','Plot'};
-    dop.step.action.tooltip = {'import','plot'};
+    dop.step.action.string = {'Import','Channels','Plot'};
+    dop.step.action.tooltip = {'import','channels','plot'};
     dop.step.action.tag = dop.step.action.tooltip;
     dop.step.action.size = [.1 .1]; % x & y dimensions
-    dop.step.action.position = [.1 .15; .25 .15]; % x & y start positions, bottom left corner
-    dop.step.action.visible = {'on','on'};
-    dop.step.action.enable = {'off','off'};
+    dop.step.action.position = [.05 .15; .15 .15; .85 .15]; % x & y start positions, bottom left corner
+    dop.step.action.visible = {'on','on','on'};
+    dop.step.action.enable = {'off','off','off'};
     for i = 1 : numel(dop.step.action.string)
         dop.step.action.pos = dop.step.action.position(i,:);
         dop.step.action.h(i) = uicontrol(dop.step.h,...

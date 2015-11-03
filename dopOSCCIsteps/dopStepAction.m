@@ -12,7 +12,7 @@ function dopStepAction(obj,event)
 %
 % Created: 29-Oct-2015 NAB
 % Edits:
-%
+% 04-Nov-2015 NAB added channels option - no action yet
 try
     dop = get(gcf,'UserData');
     switch get(obj,'tag')
@@ -24,6 +24,8 @@ try
                 dop.tmp.h = dop.step.current.h(ismember(dop.step.current.tag,'plot_text'));
                 set(dop.tmp.h,'Visible','on');
             end
+        case 'channels'
+            fprintf('...Nothing yet...\n');
         case 'plot'
             dop = dopPlot(dop);
         otherwise

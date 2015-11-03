@@ -118,6 +118,7 @@ try
             case 'channels'
                 dop.step.next.style = {'text','edit','popup',...
                     'edit','popup','edit','popup'};
+                % create channel lists for dropdown/popup menu
                 dop.step.next.ch_list = [];
                 for k = 1 :  size(dop.data.use,2)
                     dop.step.next.ch_list{k} = sprintf('column_%u',k);
@@ -147,6 +148,8 @@ try
                 dop.step.next.Enable = {[],'off','on','off','on','off','on'};
                 dop.step.next.Callback = {[],[],[],'dopStepBrowseFile',[],[],[]};
                 dop.step.next.Visible = {'on','on','on','on','on','on','on'};
+                dop.step.next.Callback = {[],[],'dopStepGetChannel',...
+                    [],'dopStepGetChannel',[],'dopStepGetChannel'};
             case 'task_name'
                 dop.step.next.style = {'text','edit','edit'};
                 dop.step.next.string = {...
