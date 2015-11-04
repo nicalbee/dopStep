@@ -212,6 +212,7 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 15-Sep-2015 NAB added period specific labels/data
 % 14-Oct-2015 NAB added 'label_specs' input and default to add label
 %   specifications for periods when multiple rows for that variable
+% 04-Nov-2015 NAB dummy variable if can't find extra
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -405,10 +406,24 @@ try
                     if isfield(dop,tmp.check{j}) ...
                             && isfield(dop.(tmp.check{j}),dop.tmp.data_name)
                         dop.tmp.value = dop.(tmp.check{j}).(dop.tmp.data_name);
+                        
                         fprintf(dop.save.fid,...
                             [dopVarType(dop.tmp.value),...
                             dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
                         break
+                    end
+                    if j == numel(tmp.check)
+                        % dummy value
+                        dop.tmp.value = 999;
+                        
+                         fprintf(dop.save.fid,...
+                            [dopVarType(dop.tmp.value),...
+                            dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                        
+                        msg{end+1} = sprintf(['''%s'' variable not ',...
+                            'found: dummy value saved = %i'],...
+                            dop.tmp.data_name,dop.tmp.value);
+                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     end
                 end
             end
