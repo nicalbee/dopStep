@@ -1,4 +1,4 @@
-function [full_file,file_name,data_dir] = dopStepBrowseFile
+function [full_file,file_name,data_dir] = dopStepBrowseFile(varargin)
 % dopOSCCI3: dopStepBrowseFile
 %
 % notes:

@@ -67,61 +67,47 @@ try
                         case 'text'
                             set(dop.step.current.h(i),'BackgroundColor',...
                                 get(dop.step.h,'Color'));
-                        case {'edit','pushbutton','popup'}
-                            dop.tmp.callback = dop.step.next.Callback{i};
-                            if ~isempty(dop.tmp.callback) && isempty(strfind(dop.tmp.callback,'@'))
-                                dop.tmp.callback = eval(['[@',dop.step.next.Callback{i},'];']);
-                            end
-                            set(dop.step.current.h(i),'CallBack',dop.tmp.callback,...
+                        case {'edit','pushbutton'}
+                            set(dop.step.current.h(i),'CallBack',dop.step.next.Callback{i},...
                                 'Enable',n.Enable{i});
-                            %                             set(dop.step.current.h(i),'CallBack',dop.step.next.Callback{i},...
-                            %                                 'Enable',n.Enable{i});
-                            switch n.style{i}
-                                case {'popup'}
-                                    %                             set(dop.step.current.h(i),'CallBack',eval(['[@',dop.step.next.Callback{i},'];']),...
-                                    %                                 'Enable',n.Enable{i});
-                                    switch dop.step.next.Callback{i}
-                                        case 'dopStepGetChannel'
-                                            dop.tmp.ch = strtok(get(dop.step.current.h(i),'tag'),'_');
-                                            if ~isfield(dop.step,'channels_okay') || strcmp(dop.tmp.ch,'left')
-                                                dop.step.channels_okay = zeros(1,3);
-                                            end
-                                            % check if data exists
-                                            dop.tmp.signal_options = {'left','right'};
-                                            if isfield(dop,'def')
-                                                switch dop.tmp.ch
-                                                    case dop.tmp.signal_options
-                                                        if  isfield(dop.def,'signal_channels')
-                                                            dop.tmp.signal_number = find(ismember(dop.tmp.signal_options,dop.tmp.ch));
-                                                            dop.tmp.value = dop.def.signal_channels(dop.tmp.signal_number);
-                                                            if dop.step.dopChannelExtract
-                                                                dop.tmp.value = dop.tmp.signal_number;
-                                                            end
-                                                            set(dop.step.current.h(i),'Value',dop.tmp.value);
-                                                            dop.step.channels_okay(dop.tmp.signal_number) = 1;
-                                                        end
-                                                    case 'event'
-                                                        if  isfield(dop.def,'event_channels')
-                                                            dop.tmp.value = dop.def.event_channels;
-                                                            if isfield(dop,'use') && isfield(dop.use,'event_channels')
-                                                                dop.tmp.value = dop.use.event_channels;
-                                                            end
-                                                            if dop.step.dopChannelExtract
-                                                                dop.tmp.value = 3;
-                                                            end
-                                                            set(dop.step.current.h(i),'Value',dop.tmp.value);
-                                                            dop.step.channels_okay(3) = 1;
-                                                        end
-                                                        
+                        case {'popup'}
+                            set(dop.step.current.h(i),'CallBack',eval(['[@',dop.step.next.Callback{i},'];']),...
+                                'Enable',n.Enable{i});
+                            switch dop.step.next.Callback{i}
+                                case 'dopStepGetChannel'
+                                    dop.tmp.ch = strtok(get(dop.step.current.h(i),'tag'),'_');
+                                    if ~isfield(dop.step,'channels_okay') || strcmp(dop.tmp.ch,'left')
+                                        dop.step.channels_okay = zeros(1,3);
+                                    end
+                                    % check if data exists
+                                    dop.tmp.signal_options = {'left','right'};
+                                    if isfield(dop,'def')
+                                        switch dop.tmp.ch
+                                            case dop.tmp.signal_options
+                                                if  isfield(dop.def,'signal_channels')
+                                                    dop.tmp.signal_number = find(ismember(dop.tmp.signal_options,dop.tmp.ch));
+                                                    if dop.
+                                                    set(dop.step.current.h(i),'Value',dop.def.signal_channels(dop.tmp.signal_number));
+                                                    dop.step.channels_okay(dop.tmp.signal_number) = 1;
                                                 end
-                                            end
+                                            case 'event'
+                                                if  isfield(dop.def,'event_channels')
+                                                    dop.tmp.value = dop.def.event_channels;
+                                                    if isfield(dop,'use') && isfield(dop.use,'event_channels')
+                                                        dop.tmp.value = dop.use.event_channels;
+                                                    end
+                                                    set(dop.step.current.h(i),'Value',dop.tmp.value);
+                                                    dop.step.channels_okay(3) = 1;
+                                                end
+                                                
+                                        end
                                     end
                             end
-                            if isfield(dop.step.next,'Visible')
-                                set(dop.step.current.h(i),'Visible',dop.step.next.Visible{i});
-                            end
-                            dop.step.text.h(i) = dop.step.current.h(i);
                     end
+                    if isfield(dop.step.next,'Visible')
+                        set(dop.step.current.h(i),'Visible',dop.step.next.Visible{i});
+                    end
+                    dop.step.text.h(i) = dop.step.current.h(i);
                 otherwise
                     warndlg(sprintf('Style (%s), not recognised - can''t create',n.style{i}));
             end
@@ -156,11 +142,6 @@ try
                         if sum(ismember(dop.step.current.tag,'ch_plot_text'))
                             set(dop.tmp.h,'Visible','on');
                         end
-                    end
-                case 'downsample'
-                    if isfield(dop,'def') && isfield(dop.def,'downsample_rate') && dop.step.down
-                        % turn channel button on
-                        set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
                     end
                 case 'plot'
                     % should the plot button be on?

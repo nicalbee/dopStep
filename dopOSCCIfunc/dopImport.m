@@ -200,6 +200,9 @@ try
 %                     [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
 %                 end
             end
+            %% ready for channel extraction
+            % reset this variable when data is imported
+            dop.step.dopChannelExtract = 0;
         end
         
         dop.msg = msg;

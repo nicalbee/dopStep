@@ -13,6 +13,7 @@ function dopStepAction(obj,event)
 % Created: 29-Oct-2015 NAB
 % Edits:
 % 04-Nov-2015 NAB added channels option - no action yet
+% 05-Nov-2015 NAB sorted channels action
 try
     dop = get(gcf,'UserData');
     switch get(obj,'tag')
@@ -25,7 +26,28 @@ try
                 set(dop.tmp.h,'Visible','on');
             end
         case 'channels'
-            fprintf('...Nothing yet...\n');
+            [dop,okay] = dopChannelExtract(dop,'signal_channels',dop.def.signal_channels,...
+                'event_channels',dop.def.event_channels,'gui');
+            if okay
+                dop.tmp.h = dop.step.current.h(ismember(dop.step.current.tag,'ch_plot_text'));
+                set(dop.tmp.h,'Visible','on');
+                % also need to adjust the strings
+                dop.step.next.ch_list = dop.data.channel_labels;
+                for i = 1 : numel(dop.step.current.h)
+                    switch get(dop.step.current.h(i),'Style')
+                        case 'popup'
+                           set(dop.step.current.h(i),'String',dop.data.channel_labels) 
+                    end
+                end
+            end
+        case 'downsample'
+            fprintf('''%s'' action not yet tested...\n',get(obj,'tag'));
+            dop.tmp.sample_rate = 100; % assume default
+            if isfield(dop.data,'file_info') && isfield(dop.data.file_info,'sample_rate')
+                dop.tmp.sample_rate = dop.data.file_info.sample_rate;
+            end
+            dop = dopDownsample(dop,'downsample_rate',dop.def.downsample_rate,...
+                'sample_rate',dop.tmp.sample_rate);
         case 'plot'
             dop = dopPlot(dop);
         otherwise
