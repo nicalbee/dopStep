@@ -18,7 +18,7 @@ try
     dop = get(gcf,'UserData');
     switch get(obj,'tag')
         case 'import'
-            [dop,okay] = dopImport(dop,'file',dop.fullfile);
+            [dop,okay,msg] = dopImport(dop,'file',dop.fullfile);
             if okay
                 dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,'plot'));
                 set(dop.tmp.h,'enable','on');
@@ -26,7 +26,7 @@ try
                 set(dop.tmp.h,'Visible','on');
             end
         case 'channels'
-            [dop,okay] = dopChannelExtract(dop,'signal_channels',dop.def.signal_channels,...
+            [dop,okay,msg] = dopChannelExtract(dop,'signal_channels',dop.def.signal_channels,...
                 'event_channels',dop.def.event_channels,'gui');
             if okay
                 dop.tmp.h = dop.step.current.h(ismember(dop.step.current.tag,'ch_plot_text'));
@@ -41,17 +41,23 @@ try
                 end
             end
         case 'downsample'
-            fprintf('''%s'' action not yet tested...\n',get(obj,'tag'));
+            
             dop.tmp.sample_rate = 100; % assume default
             if isfield(dop.data,'file_info') && isfield(dop.data.file_info,'sample_rate')
                 dop.tmp.sample_rate = dop.data.file_info.sample_rate;
             end
-            dop = dopDownsample(dop,'downsample_rate',dop.def.downsample_rate,...
+            [dop,~,msg] = dopDownsample(dop,'downsample_rate',dop.def.downsample_rate,...
                 'sample_rate',dop.tmp.sample_rate);
+        case 'event'
+            [dop,~,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height); % done automatically in (and redone at end of) dopDataTrim
+        
         case 'plot'
             dop = dopPlot(dop);
         otherwise
             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
+    end
+    if exist('msg','var') && ~isempty(msg)
+        warndlg(msg{end-1},sprintf('%s action:',get(obj,'tag')));
     end
     %% update UserData
     set(dop.step.h,'UserData',dop);

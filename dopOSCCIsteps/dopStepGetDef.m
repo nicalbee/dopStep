@@ -21,6 +21,8 @@ try
             if ~isnan(dop.tmp.value)
                 dop.def.(get(obj,'tag')) = dop.tmp.value;
                 fprintf('''%s'' value set to: %i\n',get(obj,'tag'),dop.def.(get(obj,'tag')));
+                %% enable a button
+                set(dop.step.action.h(ismember(dop.step.action.tag,strtok(get(obj,'tag'),'_'))),'enable','on');
             else
                 dop.tmp.warn = sprintf('''%s'' needs to be numeric (not ''%s''). Please try again',...
                     get(obj,'tag'),event.Source.String);
@@ -28,6 +30,7 @@ try
                 warndlg(dop.tmp.warn,sprintf('%s entry error:',get(obj,'tag')));
                 set(obj,'String','re-type');
             end
+            
         otherwise
             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
     end

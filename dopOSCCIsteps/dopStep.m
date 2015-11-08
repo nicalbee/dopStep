@@ -71,13 +71,13 @@ try
             'Visible',dop.step.move.visible{i});
     end
     %% - action buttons
-    dop.step.action.string = {'Import','Channels','Downsample','Plot'};
-    dop.step.action.tooltip = {'import','channels','downsample','plot'};
+    dop.step.action.string = {'Import','Channels','Downsample','Events','Plot'};
+    dop.step.action.tooltip = {'import','channels','downsample','event','plot'};
     dop.step.action.tag = dop.step.action.tooltip;
     dop.step.action.size = [.1 .1]; % x & y dimensions
-    dop.step.action.position = [.05 .15; .15 .15; .25 .15; .85 .15]; % x & y start positions, bottom left corner
-    dop.step.action.visible = {'on','on','on','on'};
-    dop.step.action.enable = {'off','off','off','off'};
+    dop.step.action.position = [.05 .15; .15 .15; .25 .15; .35 .15; .85 .15]; % x & y start positions, bottom left corner
+    dop.step.action.visible = {'on','on','on','on','on'};
+    dop.step.action.enable = {'off','off','off','off','off'};
     for i = 1 : numel(dop.step.action.string)
         dop.step.action.pos = dop.step.action.position(i,:);
         dop.step.action.h(i) = uicontrol(dop.step.h,...

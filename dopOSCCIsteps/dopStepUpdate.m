@@ -117,11 +117,12 @@ try
                                             end
                                     end
                             end
-                            if isfield(dop.step.next,'Visible')
-                                set(dop.step.current.h(i),'Visible',dop.step.next.Visible{i});
-                            end
-                            dop.step.text.h(i) = dop.step.current.h(i);
+                            
                     end
+                    if isfield(dop.step.next,'Visible') && numel(dop.step.next.Visible) <= i
+                        set(dop.step.current.h(i),'Visible',dop.step.next.Visible{i});
+                    end
+                    dop.step.text.h(i) = dop.step.current.h(i);
                 otherwise
                     warndlg(sprintf('Style (%s), not recognised - can''t create',n.style{i}));
             end
@@ -158,7 +159,14 @@ try
                         end
                     end
                 case 'downsample'
-                    if isfield(dop,'def') && isfield(dop.def,'downsample_rate') && dop.step.down
+                    if isfield(dop,'def') && isfield(dop.def,'downsample_rate') ...
+                            && isfield(dop.step,'dopDownsample') && ~dop.step.dopDownsample
+                        % turn channel button on
+                        set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
+                    end
+                case 'event'
+                     if isfield(dop,'def') && isfield(dop.def,'event_height') && ...
+                             ~isempty(dop.def.event_height)
                         % turn channel button on
                         set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
                     end
