@@ -16,13 +16,30 @@ function dopStepGetDef(obj,event)
 try
     dop = get(gcf,'UserData');
     switch get(obj,'tag')
-        case {'downsample_rate','event_height'}
+        case {'downsample_rate','event_height',...
+                'epoch_lower','epoch_upper',...
+                'base_lower','base_upper',...
+                'poi_lower','poi_upper'}
             dop.tmp.value = str2double(event.Source.String);
             if ~isnan(dop.tmp.value)
-                dop.def.(get(obj,'tag')) = dop.tmp.value;
-                fprintf('''%s'' value set to: %i\n',get(obj,'tag'),dop.def.(get(obj,'tag')));
-                %% enable a button
-                set(dop.step.action.h(ismember(dop.step.action.tag,strtok(get(obj,'tag'),'_'))),'enable','on');
+                switch get(obj,'tag')
+                    case {'epoch_lower','epoch_upper',...
+                            'base_lower','base_upper',...
+                            'poi_lower','poi_upper'}
+                        dop.tmp.options = {'lower','upper'};
+                        [dop.tmp.var,dop.tmp.rem] = strtok(get(obj,'tag'),'_');
+                        dop.tmp.element = strrep(dop.tmp.rem,'_','');
+                        dop.def.(dop.tmp.var)(ismember(dop.tmp.options,dop.tmp.element)) = dop.tmp.value;
+                        fprintf('''%s'' %s value set to: %i\n',...
+                            dop.tmp.var,dop.tmp.element,dop.tmp.value);
+                        dop = dopStepTimingPlot(dop);
+                    otherwise
+                        dop.def.(get(obj,'tag')) = dop.tmp.value;
+                        fprintf('''%s'' value set to: %i\n',get(obj,'tag'),dop.def.(get(obj,'tag')));
+                        %% enable a button
+                        set(dop.step.action.h(ismember(dop.step.action.tag,strtok(get(obj,'tag'),'_'))),'enable','on');
+                end
+                
             else
                 dop.tmp.warn = sprintf('''%s'' needs to be numeric (not ''%s''). Please try again',...
                     get(obj,'tag'),event.Source.String);

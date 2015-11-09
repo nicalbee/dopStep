@@ -67,6 +67,10 @@ try
                         case 'text'
                             set(dop.step.current.h(i),'BackgroundColor',...
                                 get(dop.step.h,'Color'));
+                            if isfield(dop.step.current,'col') && ~isempty(dop.step.current.col{i})
+                                set(dop.step.current.h(i),'BackgroundColor',...
+                                dop.step.current.col{i});
+                            end
                         case {'edit','pushbutton','popup'}
                             dop.tmp.callback = dop.step.next.Callback{i};
                             if ~isempty(dop.tmp.callback) && isempty(strfind(dop.tmp.callback,'@'))
@@ -123,6 +127,8 @@ try
                         set(dop.step.current.h(i),'Visible',dop.step.next.Visible{i});
                     end
                     dop.step.text.h(i) = dop.step.current.h(i);
+                case 'axes'
+                    dop = dopStepTimingPlot(dop);
                 otherwise
                     warndlg(sprintf('Style (%s), not recognised - can''t create',n.style{i}));
             end
