@@ -96,7 +96,7 @@ try
                 msg{end+1} = 'file variable found';
                 dopMessage(msg,report,1,okay)
                 dop.tmp.file = dop_input;
-                [tmp_dopokay,tmp_msg] = dopFileParts(dop.tmp.file);
+                [tmp_dop,okay,tmp_msg] = dopFileParts(dop.tmp.file);
                 msg{end+1} = tmp_msg;
                 if okay && exist(dop.tmp.file,'file')
                     msg{end+1} = 'file exists or is on MATLAB path';

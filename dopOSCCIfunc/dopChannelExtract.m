@@ -61,6 +61,8 @@ try
                 dop.use.event_channels = dop.tmp.event_channels;
                 if ~dop.tmp.gui
                     [dop,okay,msg] = dopChannelAdjust(dop,okay,msg);
+                    % refresh the data if necessary
+                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                 end
             end
             if okay

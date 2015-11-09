@@ -143,6 +143,7 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 % 27-Jan-2015 NAB added prefix and suffix options
 % 15-Sep-2015 NAB allowed for multiple rows of period - denoted with
 %   'Multiple' string in folder name, rather than #to#
+% 09-Nov-2015 NAB adjusted for act_separation_index
 
 if ~exist('dop_input','var')
     dop_input = [];
@@ -163,6 +164,7 @@ try
             'baseline',[],...
             'poi',[],...
             'act_separation',[],...
+            'act_separation_index','pct',...
             'prefix',[],... % string to add before the variables/folder name
             'suffix',[],... % string to add after the variables/folder name
             'dir_out',0,...
@@ -206,6 +208,10 @@ try
                     case 1
                         dop.tmp.save_name = sprintf('%s_%s%i',dop.tmp.save_name,...
                             dopSaveAbbreviations(dop.tmp.vn),dop.tmp.(dop.tmp.vn));
+                        if strcmp(dop.tmp.vn,'act_separation')
+                            dop.tmp.save_name = sprintf('%s%s',dop.tmp.save_name,...
+                                dop.tmp.act_separation_index);
+                        end
                     case 2
                         dop.tmp.save_name = sprintf('%s_%s%ito%i',dop.tmp.save_name,...
                             dopSaveAbbreviations(dop.tmp.vn),dop.tmp.(dop.tmp.vn));
