@@ -1,4 +1,4 @@
-function dop = dopStepSettings(h,move_direction)
+function dop = dopStepSettings(h,steps)
 % dopOSCCI3: dopStepSettings
 %
 % notes:
@@ -28,50 +28,23 @@ try
     % switch for different steps to a structure variable with a generic set
     % of options to drive the different components required for each step
     
+   if exist('steps','var') && ~isempty(steps) && ~isnumeric(steps) && strcmp(steps,'start')
+     dop.step.next.n = 1;
+   end
     %% get dop structure
     dop = get(h,'UserData');
     
     %% define list of steps
-    
-    dop.step.steps = ...
+     dop.step.steps = ...
         {'welcome','data_file','channels','downsample','event',...
         'timing','task_name','definition'};
-    %% movement
-    if isfield(dop.step,'current')
-        dop.step.previous = dop.step.current;
+    if exist('steps','var') && ~isempty(steps) && isnumeric(steps) && steps
+        % just make sure we have the steps variable to work with
+        set(h,'UserData',dop);
+        return
     end
-    if ~isfield(dop.step,'current') || ~isfield(dop.step.current,'name') || isempty(dop.step.current.name)
-        dop.step.current.name = dop.step.steps{1};
-    end
-    dop.step.current.n = find(ismember(dop.step.steps,dop.step.current.name));
-    if isfield(dop.step,'next')
-        dop.step = rmfield(dop.step,'next');
-    end
-    if isempty(dop.step.current.n)
-        save(dopOSCCIdebug);
-        error('Can''t find current step in options: %s',dop.step.current.name);
-    else
-        switch move_direction
-            case 'move_back'
-                if dop.step.current.n == 1
-                    dop.step.next.n = dop.step.current.n;
-                    if ~isfield(dop.step,'previous') || dop.step.previous.n == dop.step.current.n
-                        fprintf('First step - can''t move back\n');
-                    end
-                else
-                    dop.step.next.n = dop.step.current.n - 1;
-                end
-            case 'move_next'
-                if dop.step.current.n == numel(dop.step.steps)
-                    fprintf('Last step - can''t move forward\n');
-                    dop.step.next.n = dop.step.current.n;
-                else
-                    dop.step.next.n = dop.step.current.n + 1;
-                end
-            case 'start'
-                dop.step.next.n = 1;
-        end
-    end
+   
+    
     %% settings details
     if dop.step.next.n ~= dop.step.current.n || dop.step.next.n == 1
         % default settings

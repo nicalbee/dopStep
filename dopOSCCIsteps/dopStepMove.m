@@ -1,4 +1,4 @@
-function dopStepMove(button_handle,~)
+function dopStepMove(button_handle,move_direction)
 % dopOSCCI3: dopStepMove
 %
 % notes:
@@ -10,7 +10,7 @@ function dopStepMove(button_handle,~)
 %
 % Created: 14-Oct-2015 NAB
 % Edits:
-%
+%   2015-Nov-30 NAB pulled movement code back in here
 
 % options:
 % 14-Oct-2015 NAB consider doing for all font information - currently very
@@ -20,15 +20,60 @@ function dopStepMove(button_handle,~)
 try
     % probably don't want to report function name eventually
     fprintf('\nRunning %s: %s button\n',mfilename, get(button_handle,'tag'));
-%     switch get(button_handle,'tag')
-%         case 'move_back'
-% 
+    if exist('move_direction','var') && isempty(move_direction)
+        move_direction =  get(button_handle,'tag');
+    end
+%     case 'move_back'
+%         
 %         case 'move_next'
 %             
-%     end
-    dopStepSettings(get(button_handle,'parent'),get(button_handle,'tag'));
+% end
+    if ~exist('option','var') || isempty(option)
+        option = '';
+    end
+    steps = 1; % return dop.step.steps list from dopStepSettings
+    dop = dopStepSettings(get(button_handle,'parent'),steps);
+    
+    %% movement
+    if isfield(dop.step,'current')
+        dop.step.previous = dop.step.current;
+    end
+    if ~isfield(dop.step,'current') || ~isfield(dop.step.current,'name') || isempty(dop.step.current.name)
+        dop.step.current.name = dop.step.steps{1};
+    end
+    dop.step.current.n = find(ismember(dop.step.steps,dop.step.current.name));
+    if isfield(dop.step,'next')
+        dop.step = rmfield(dop.step,'next');
+    end
+    if isempty(dop.step.current.n)
+        save(dopOSCCIdebug);
+        error('Can''t find current step in options: %s',dop.step.current.name);
+    else
+        switch move_direction
+            case 'move_back'
+                if dop.step.current.n == 1
+                    dop.step.next.n = dop.step.current.n;
+                    if ~isfield(dop.step,'previous') || dop.step.previous.n == dop.step.current.n
+                        fprintf('First step - can''t move back\n');
+                    end
+                else
+                    dop.step.next.n = dop.step.current.n - 1;
+                end
+            case 'move_next'
+                if dop.step.current.n == numel(dop.step.steps)
+                    fprintf('Last step - can''t move forward\n');
+                    dop.step.next.n = dop.step.current.n;
+                else
+                    dop.step.next.n = dop.step.current.n + 1;
+                end
+            case 'start'
+                dop.step.next.n = 1;
+        end
+    end
+
     %% pass data back to figure
-%     set(get(button_handle,'Parent'),'UserData',dop);
+    set(get(button_handle,'Parent'),'UserData',dop);
+    dopStepSettings(get(button_handle,'parent'));
 catch err
     save(dopOSCCIdebug);rethrow(err);
 end
