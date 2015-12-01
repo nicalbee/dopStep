@@ -459,9 +459,13 @@ try
                                             if ~dop.tmp.epoch_saved && ~strcmp(dop.tmp.var,'peak_n')
                                                 % n is redundant when it's just the one epoch, so exclude it
                                                 
-                                                if ~strcmp(dop.tmp.eps,'all')
+                                                if ~strcmp(dop.tmp.eps,'all') && iiii == 1
+                                                    % only loop through the
+                                                    % epochs (e.g.,
+                                                    % 'overall','odd','even')
+                                                    % once: 01-Dec-2015 NAB
                                                     dop.tmp.epoch_eps = 'all';
-                                                end
+                                                
                                                 for j = 1 : dop.tmp.num_events % dop.event.n % for the moment
                                                     k = k + 1;
                                                     if k == numel(dop.save.labels)
@@ -475,6 +479,7 @@ try
                                                     fprintf(dop.save.fid,...
                                                         [dopVarType(dop.tmp.value),...
                                                         dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                                end
                                                 end
                                             end
                                     end

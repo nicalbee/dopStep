@@ -41,6 +41,8 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 % 30-Sep-2015 NAB issue with epoch calculation, not filtering properly with
 %   different windows
 % 14-Oct-2015 NAB removed period_mean_sd - don't think it's used anymore
+% 30-Nov-2015 NAB fixed mismatch on dimensions with baseline epoch peak
+%   calcualtions - rarely needed, playing with the Pinaya et al. method
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -251,7 +253,7 @@ try
             % loop for the epoch calculations
             for j = 1 : size(dop.tmp.window,1)
                 if dop.tmp.window(j,1) < 1
-                    dop.tmp.window(j,:) = [1 (dop.tmp.act_window/(1/dop.tmp.sample_rate))];
+                    dop.tmp.window(j,:) = [1 (dop.tmp.act_window/(1/dop.tmp.sample_rate))+1];
                 end
                 if dop.tmp.window(j,2) > dop.tmp.n_pts
                     dop.tmp.window(j,:) = [dop.tmp.n_pts - (dop.tmp.act_window/(1/dop.tmp.sample_rate)) dop.tmp.n_pts];
