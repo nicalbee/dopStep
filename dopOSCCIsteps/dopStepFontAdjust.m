@@ -35,6 +35,8 @@ try
                     end
             end
             set(dop.step.text.h(i),'FontSize',dop.tmp.font_size_adj);
+            dop.step.FontSize = dop.tmp.font_size_adj;
+            dop = set(gcf,'UserData',dop);
         end
         
         %     dop.tmp.fig_ch = get(get(button_handle,'Parent'),'Children');

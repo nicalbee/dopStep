@@ -28,12 +28,15 @@ try
     % switch for different steps to a structure variable with a generic set
     % of options to drive the different components required for each step
     
-   if exist('steps','var') && ~isempty(steps) && ~isnumeric(steps) && strcmp(steps,'start')
-     dop.step.next.n = 1;
-   end
+   
     %% get dop structure
     dop = get(h,'UserData');
     
+    if exist('steps','var') && ~isempty(steps) && ~isnumeric(steps) && strcmp(steps,'start')
+     dop.step.next.n = 1;
+     dop.step.current.n = 0;
+    end
+   
     %% define list of steps
      dop.step.steps = ...
         {'welcome','data_file','channels','downsample','event',...

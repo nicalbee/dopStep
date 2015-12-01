@@ -1,4 +1,4 @@
-function dopStepMove(button_handle,move_direction)
+function dopStepMove(button_handle,~,option)
 % dopOSCCI3: dopStepMove
 %
 % notes:
@@ -20,9 +20,9 @@ function dopStepMove(button_handle,move_direction)
 try
     % probably don't want to report function name eventually
     fprintf('\nRunning %s: %s button\n',mfilename, get(button_handle,'tag'));
-    if exist('move_direction','var') && isempty(move_direction)
+%     if exist('move_direction','var') && isempty(move_direction)
         move_direction =  get(button_handle,'tag');
-    end
+%     end
 %     case 'move_back'
 %         
 %         case 'move_next'

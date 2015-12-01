@@ -144,8 +144,9 @@ try
                     dop.event.separation_secs_stdev = std(dop.event.separation_secs);
                     dop.event.separation_secs_min = min(dop.event.separation_secs);
                     dop.event.separation_secs_max = max(dop.event.separation_secs);
+                    if exist('Statistics_Toolbox','toolbox')
                     dop.event.separation_secs_iqr = iqr(dop.event.separation_secs);
-                    
+                    end
                     %         dop.event.use_samples = dop.event.samples;
                     %         dop.event.downsamples = ones(dop.event.n,1)*-1; % make it negative when it's not available
                     %         if exist('downsample_rate','var') && ~isempty(downsample_rate) && ~isfield(dop.event,'downsamples')
