@@ -20,6 +20,7 @@ function dop = dopStepSettings(h,steps)
 % Edits:
 % 15-Oct-2015 NAB plugging away
 % 28-Oct-2015 NAB fixed progression button function
+% 02-Dec-2015 NAB adjusting for optional buttons
 
 try
     fprintf('\nRunning %s:\n',mfilename);
@@ -32,24 +33,36 @@ try
     %% get dop structure
     dop = get(h,'UserData');
     
-    if exist('steps','var') && ~isempty(steps) && ~isnumeric(steps) && strcmp(steps,'start')
-     dop.step.next.n = 1;
-     dop.step.current.n = 0;
-    end
-   
-    %% define list of steps
+        %% define list of steps
      dop.step.steps = ...
-        {'welcome','data_file','channels','downsample','event',...
-        'timing','task_name','definition'};
+        {'welcome','data_file','channels','event',...
+        'timing'}; %,'downsample','definition','task_name'
+    dop.step.steps_optional = ...
+        {'downsample','trim'};
+    dop.step.optional = 0;
     if exist('steps','var') && ~isempty(steps) && isnumeric(steps) && steps
         % just make sure we have the steps variable to work with
         set(h,'UserData',dop);
         return
+    elseif exist('steps','var') && ~isempty(steps) && ~isnumeric(steps)
+        switch steps
+            case 'start'
+                dop.step.next.n = 1;
+                dop.step.current.n = 0;
+            case dop.step.steps_optional
+                fprintf('Optional step: ''%s''\n',steps);
+                dop.step.optional = 1;
+                dop.step.next.name = steps;
+            otherwise
+                dop.tmp.warn = sprintf('''%s'' step not recognised. Aborting',steps);
+                fprintf('%s\n',dop.tmp.warn);
+                warndlg(dop.tmp.warn,'Unknown step')
+                return
+        end
     end
-   
-    
+
     %% settings details
-    if dop.step.next.n ~= dop.step.current.n || dop.step.next.n == 1
+    if dop.step.optional || dop.step.next.n ~= dop.step.current.n || dop.step.next.n == 1
         % default settings
         dop.step.next.name = dop.step.steps{dop.step.next.n};
         dop.step.next.info_position = [.2 .75 .6 .2];
