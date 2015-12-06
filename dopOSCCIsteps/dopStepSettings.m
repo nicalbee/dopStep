@@ -34,11 +34,15 @@ try
     dop = get(h,'UserData');
     
         %% define list of steps
-     dop.step.steps = ...
-        {'welcome','data_file','channels','event',...
-        'timing'}; %,'downsample','definition','task_name'
-    dop.step.steps_optional = ...
-        {'downsample','trim'};
+     dop.step.steps = {'welcome'};
+     dop.step.steps(end+1:end+numel(dop.step.action.string)) = lower(dop.step.action.string);%...;%...
+%         {'welcome','data_file','channels','event',...
+%         'timing'}; %,'downsample','definition','task_name'
+%     dop.step.action.string = {'Import','Channels','Events','Norm',...
+%         'Heart','Epoch','Screen','Baseline','LI'}; % ,'Plot'
+    
+    dop.step.steps_optional = lower(dop.step.option.string);%...
+%         {'downsample','trim'};
     dop.step.optional = 0;
     if exist('steps','var') && ~isempty(steps) && isnumeric(steps) && steps
         % just make sure we have the steps variable to work with
@@ -79,7 +83,7 @@ try
                     'click on the ''next'' button to get started.']};
                 dop.step.next.tag = {'info'};
                 dop.step.next.position = dop.step.next.info_position;
-            case 'data_file'
+            case 'import'
                 dop.step.next.style = {'text','edit','edit','pushbutton',...
                     'text','text'};
                 dop.step.next.string = {...
@@ -266,6 +270,12 @@ try
                 dop.step.next.string = {...
                     ['Let''s start by definining a few parameters for ',...
                     'your data']};
+                dop.step.next.tag = {'info'};
+                dop.step.next.position = dop.step.next.info_position;
+            otherwise
+                dop.step.next.style = {'text'};
+                dop.step.next.string = {...
+                    sprintf('I''m afraid ''%s'' hasn''t been programmed yet',dop.step.next.name)};
                 dop.step.next.tag = {'info'};
                 dop.step.next.position = dop.step.next.info_position;
         end

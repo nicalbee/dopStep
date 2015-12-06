@@ -55,6 +55,7 @@ try
                     dop.step.next.n = dop.step.current.n;
                     if ~isfield(dop.step,'previous') || dop.step.previous.n == dop.step.current.n
                         fprintf('First step - can''t move back\n');
+                        return % 07-Dec-2015 NAB no need to do anything
                     end
                 else
                     dop.step.next.n = dop.step.current.n - 1;
@@ -62,7 +63,8 @@ try
             case 'move_next'
                 if dop.step.current.n == numel(dop.step.steps)
                     fprintf('Last step - can''t move forward\n');
-                    dop.step.next.n = dop.step.current.n;
+                    return % 07-Dec-2015 NAB no need to do anything
+%                     dop.step.next.n = dop.step.current.n;
                 else
                     dop.step.next.n = dop.step.current.n + 1;
                 end

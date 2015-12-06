@@ -40,7 +40,7 @@ try
     dop.step.font_adj.string = {'-','+'};
     dop.step.font_adj.tooltip = {'smaller','larger'};
     dop.step.font_adj.size = [.05 .05]; % x & y dimensions
-    dop.step.font_adj.position = [.05 .05]; % x & y start positions, bottom left corner
+    dop.step.font_adj.position = [.05 .8]; % x & y start positions, bottom left corner
     for i = 1 : numel(dop.step.font_adj.string)
         dop.step.font_adj.pos = dop.step.font_adj.position.*[i 1];
         dop.step.font_adj.h(i) = uicontrol(dop.step.h,...
@@ -71,14 +71,21 @@ try
             'Visible',dop.step.move.visible{i});
     end
     %% - action buttons
-    dop.step.action.string = {'Import','Channels','Events','Plot'};
-    dop.step.action.tooltip = {'import','channels','event','plot'};
+    dop.step.action.string = {'Import','Channels','Events','Norm',...
+        'Heart','Epoch','Screen','Baseline','LI'}; % ,'Plot'
+    dop.step.action.n = numel(dop.step.action.string);
+    dop.step.action.tooltip = lower(dop.step.action.string); %{'import','channels','event','norm','heart','plot'};
     dop.step.action.tag = dop.step.action.tooltip;
     dop.step.action.size = [.1 .1]; % x & y dimensions
-    dop.step.action.position = [.05 .15; .15 .15; .25 .15; .85 .15]; % x & y start positions, bottom left corner
-    dop.step.action.visible = {'on','on','on','on','on'};
-    dop.step.action.enable = {'off','off','off','off','off'};
-    for i = 1 : numel(dop.step.action.string)
+    dop.step.action.pos_start = [.05 .01];
+    dop.step.action.position = repmat(dop.step.action.pos_start,dop.step.action.n,1); % x & y start positions, bottom left corner
+    dop.step.action.position(:,1) = ...
+        dop.step.action.pos_start(1):...
+        dop.step.action.size(1):...
+        dop.step.action.size(1)*dop.step.action.n;
+    dop.step.action.visible = repmat({'on'},1,dop.step.action.n);%,'on','on','on','on''on',};
+    dop.step.action.enable = repmat({'off'},1,dop.step.action.n);
+    for i = 1 : dop.step.action.n
         dop.step.action.pos = dop.step.action.position(i,:);
         dop.step.action.h(i) = uicontrol(dop.step.h,...
             'style','pushbutton','String',dop.step.action.string{i},...
@@ -92,27 +99,27 @@ try
         'enable',dop.step.action.enable{i});
     end
     %% - optional action buttons
-    dop.step.action.string = {'Downsample','Trim'};
-    dop.step.action.tooltip = {'downsample','trim'};
-    dop.step.action.tag = dop.step.action.tooltip;
-    dop.step.action.size = [.1 .1]; % x & y dimensions
-    dop.step.action.position = [.85 .75; .85 .65; .85 .55; .85 .45; .85 .35; .85 .25]; % x & y start positions, bottom left corner
-    dop.step.action.visible = {'on','on','on','on','on','on'};
-    dop.step.action.enable = {'off','off','off','off','off','off'};
-    for i = 1 : numel(dop.step.action.string)
-        dop.step.action.pos = dop.step.action.position(i,:);
-        dop.step.action.h(i) = uicontrol(dop.step.h,...
-            'style','pushbutton','String',dop.step.action.string{i},...
-            'tag',dop.step.action.tag{i},...
+    dop.step.option.string = {'Downsample','Trim'};
+    dop.step.option.tooltip = {'downsample','trim'};
+    dop.step.option.tag = dop.step.option.tooltip;
+    dop.step.option.size = [.1 .1]; % x & y dimensions
+    dop.step.option.position = [.85 .75; .85 .65; .85 .55; .85 .45; .85 .35; .85 .25]; % x & y start positions, bottom left corner
+    dop.step.option.visible = repmat({'on'},1,numel(dop.step.option.string)); %{'on','on','on','on','on','on'};
+    dop.step.option.enable = repmat({'off'},1,numel(dop.step.option.string)); %{'off','off','off','off','off','off'};
+    for i = 1 : numel(dop.step.option.string)
+        dop.step.option.pos = dop.step.option.position(i,:);
+        dop.step.option.h(i) = uicontrol(dop.step.h,...
+            'style','pushbutton','String',dop.step.option.string{i},...
+            'tag',dop.step.option.tag{i},...
             'Units','Normalized',...
             'CallBack',@dopStepOption,...@dopStepAction,...
-            'Position',[dop.step.action.pos dop.step.action.size],...
+            'Position',[dop.step.option.pos dop.step.option.size],...
             'ToolTipString',...
-            sprintf('Click to %s current data (optional step)',dop.step.action.tooltip{i}),...
-            'Visible',dop.step.action.visible{i},...
-        'enable',dop.step.action.enable{i});
+            sprintf('Click to %s current data (optional step)',dop.step.option.tooltip{i}),...
+            'Visible',dop.step.option.visible{i},...
+        'enable',dop.step.option.enable{i});
     end
-    dop.step.FontSize = get(dop.step.action.h(i),'FontSize');
+    dop.step.FontSize = get(dop.step.option.h(i),'FontSize');
     %% update UserData
     set(dop.step.h,'UserData',dop);
     % welcome/instruction
