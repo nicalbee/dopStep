@@ -18,7 +18,7 @@ try
     dop = get(gcf,'UserData');
     switch get(obj,'tag')
         case 'import'
-            [dop,okay,msg] = dopImport(dop,'file',dop.fullfile);
+            [dop,okay,msg] = dopImport(dop,'file',dop.fullfile,'gui');
             if okay
                 dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,'plot'));
                 set(dop.tmp.h,'enable','on');
@@ -49,7 +49,7 @@ try
             [dop,~,msg] = dopDownsample(dop,'downsample_rate',dop.def.downsample_rate,...
                 'sample_rate',dop.tmp.sample_rate);
         case 'event'
-            [dop,~,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height); % done automatically in (and redone at end of) dopDataTrim
+            [dop,~,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,'gui'); % done automatically in (and redone at end of) dopDataTrim
         
         case 'plot'
             dop = dopPlot(dop);
@@ -57,7 +57,12 @@ try
             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
     end
     if exist('msg','var') && ~isempty(msg)
-        warndlg(msg{end-1},sprintf('%s action:',get(obj,'tag')));
+        if iscell(msg)
+            gui_msg = msg{end};
+        else
+            gui_msg = msg;
+        end
+        warndlg(gui_msg,sprintf('%s action:',get(obj,'tag')));
     end
     %% update UserData
     set(dop.step.h,'UserData',dop);

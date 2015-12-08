@@ -44,6 +44,7 @@ function [dop,okay,msg]  =  dopSetGetInputs(dop_input,inputs,msg,report)
 % Last edit:
 % 22-Aug-2014 NAB added 'created' and 'last edit' details...
 % 05-Sep-2014 NAB changed 'comment' to 'report'
+% 09-Dec-2015 NAB updated collection of invoking function variables
 
 % set default outputs
 dop = [];
@@ -67,6 +68,10 @@ try
                 dop = dop_input;
                 tmp.stack = dbstack;
                 if isfield(dop,'tmp')
+                    % 09-Dec-2015 NAB previously checked to see if function
+                    % field existed - don't want this, needs to be new
+                    % every time - actually, needs to be overwritten
+                    % if size(tmp.stack,1) > 2 && ~isfield(dop,tmp.stack(3).name)
                     if size(tmp.stack,1) > 2 && ~isfield(dop,tmp.stack(3).name)
                         dop.(tmp.stack(3).name) = dop.tmp;
                     end

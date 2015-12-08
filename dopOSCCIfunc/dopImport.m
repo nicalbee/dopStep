@@ -103,7 +103,7 @@ try
     if okay
         dopOSCCIindent;%fprintf('Running %s:\n',mfilename);
         %% Inputs
-        inputs.turnOn = {'nomat'};
+        inputs.turnOn = {'nomat','gui'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'file',[], ...
@@ -171,7 +171,14 @@ try
                 [dop,okay,msg] = dopMATread(dop,'mat_file',dop.mat.fullfile);
                 %             load(dop.tmp.mat_fullfile);
                 if ~okay
-                    [dop,okay,msg] = dopImport(dop,'nomat');
+                    % 09-Dec-2015 NAB - seeing if the varargin works here -
+                    % might but not tested.
+                    [dop,okay,msg] = dopImport(dop,'nomat',varargin);
+%                     if dop.tmp.gui
+%                         [dop,okay,msg] = dopImport(dop,'nomat','gui');
+%                     else
+%                         [dop,okay,msg] = dopImport(dop,'nomat');
+%                     end
                 end
             elseif isTX(dop.fullfile)
                 [dop.data.raw,dop.file_info] = readTWfromTX(dop.fullfile);
@@ -196,6 +203,7 @@ try
                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 end
                 [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'raw');
+                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
 %                 if dop.tmp.extract
 %                     [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
 %                 end
@@ -208,6 +216,13 @@ try
         dop.msg = msg;
         dop.okay = okay;
         dopOSCCIindent('done');
+        %% specific output for gui (dopStep)
+        if dop.tmp.gui
+            msg = sprintf('Imported: %s\n',dop.tmp.file);
+            if ~okay
+                msg = sprintf('Trouble importing %s\n',dop.tmp.file);
+            end
+        end
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);

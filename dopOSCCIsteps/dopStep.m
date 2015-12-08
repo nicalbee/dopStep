@@ -76,6 +76,7 @@ try
     dop.step.action.n = numel(dop.step.action.string);
     dop.step.action.tooltip = lower(dop.step.action.string); %{'import','channels','event','norm','heart','plot'};
     dop.step.action.tag = dop.step.action.tooltip;
+    dop.step.action.tag{ismember(dop.step.action.tag,'events')} = 'event';
     dop.step.action.size = [.1 .1]; % x & y dimensions
     dop.step.action.pos_start = [.05 .01];
     dop.step.action.position = repmat(dop.step.action.pos_start,dop.step.action.n,1); % x & y start positions, bottom left corner

@@ -74,6 +74,7 @@ try
         dop.step.next.info_position = [dop.step.next.left_position .7 .7 .2];
         dop.step.next.HorizontalAlignment = {'left','left'};
         switch dop.step.next.name
+%% > welcome:
             case 'welcome'
                 %% - information text field
                 dop.step.next.style = {'text','text'};
@@ -86,6 +87,7 @@ try
                 dop.step.next.tag = {'title','info'};
                 dop.step.next.position = [dop.step.next.title_position;...
                     dop.step.next.info_position];
+                %% >> import:
             case 'import'
                 dop.step.next.style = {'text','text','edit','edit','pushbutton',...
                     'text','text'};
@@ -190,7 +192,7 @@ try
                 dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,{'left','center','center'}];
                 dop.step.next.Enable = {[],[],[],'off','on'};
                 dop.step.next.Callback = {[],[],[],[],'dopStepGetDef'};
-            case 'event'
+            case 'events'
                 dop.step.next.style = {'text','text','edit','edit'};
                 dop.step.next.string = {'Event marker height:',...
                     ['To determine the timing of the event markers, ',...

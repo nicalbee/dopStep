@@ -34,6 +34,7 @@ try
     if okay
         dopOSCCIindent; % dopOSCCIindent('run',dop.tmp.comment);%fprintf('\nRunning %s:\n',mfilename);
         %         inputs.turnOff = {'comment'};
+        inputs.turnOn = {'gui'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'file',[],...
@@ -144,8 +145,9 @@ try
                     dop.event.separation_secs_stdev = std(dop.event.separation_secs);
                     dop.event.separation_secs_min = min(dop.event.separation_secs);
                     dop.event.separation_secs_max = max(dop.event.separation_secs);
-                    if exist('Statistics_Toolbox','toolbox')
-                    dop.event.separation_secs_iqr = iqr(dop.event.separation_secs);
+                    dop.event.separation_secs_iqr = [];
+                    if license('test', 'statistics_toolbox')
+                        dop.event.separation_secs_iqr = iqr(dop.event.separation_secs);
                     end
                     %         dop.event.use_samples = dop.event.samples;
                     %         dop.event.downsamples = ones(dop.event.n,1)*-1; % make it negative when it's not available
@@ -247,7 +249,8 @@ try
                     end
                     % should draw in the separation variable and warn if
                     % there is potentially overlap
-                    [dop,okay,msg] = dopPeriodChecks(dop,okay,msg);
+                    [dop,~,msg] = dopPeriodChecks(dop,okay,msg);
+                    [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                 else
                     msg{end+1} = ['''dop.tmp.sample_rate'' variable not',...
                         'specified. Sample times in seconds haven''t been calculated'];
@@ -259,6 +262,16 @@ try
         dop.okay = okay;
         dop.msg = msg;
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
+                        %% specific output for gui (dopStep)
+        if dop.tmp.gui
+            msg = sprintf(['%i events found:\nmedian separation = ',...
+                '%3.2f seconds (min = %3.2f, max = %3.2f)\n'],...
+                dop.event.n,median(dop.event.separation_secs),...
+                min(dop.event.separation_secs),max(dop.event.separation_secs));
+            if ~okay
+                msg = [];% has it's own warning sprintf('Problem with channels: %s\n',dop.tmp.file);
+            end
+        end
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);

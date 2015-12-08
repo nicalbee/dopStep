@@ -40,6 +40,7 @@ try
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'msg',1,... % show messages
+            'file',[],... % useful for error reporting
             'wait_warn',0,... % wait to close warning dialogs
             'signal_channels',[],...
             'event_channels',[] ...
@@ -91,6 +92,7 @@ try
                     % set the current 'working' (dop.data.use) data set that will be used by
                     % default for things
                     [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'channels');
+                    [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                 else
                     okay = 0;
                     msg{end+1} = sprintf(['Too few data columns (n = %u) to'...
@@ -107,6 +109,13 @@ try
         dop.msg = msg;
         
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
+                %% specific output for gui (dopStep)
+        if dop.tmp.gui
+            msg = sprintf('Channels set: %s\n',dop.tmp.file);
+            if ~okay
+                msg = sprintf('Problem with channels: %s\n',dop.tmp.file);
+            end
+        end
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);
