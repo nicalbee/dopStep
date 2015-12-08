@@ -40,9 +40,9 @@ try
     dop.step.font_adj.string = {'-','+'};
     dop.step.font_adj.tooltip = {'smaller','larger'};
     dop.step.font_adj.size = [.05 .05]; % x & y dimensions
-    dop.step.font_adj.position = [.05 .8]; % x & y start positions, bottom left corner
+    dop.step.font_adj.position = [.02 .85]; % x & y start positions, bottom left corner
     for i = 1 : numel(dop.step.font_adj.string)
-        dop.step.font_adj.pos = dop.step.font_adj.position.*[i 1];
+        dop.step.font_adj.pos = dop.step.font_adj.position+[dop.step.font_adj.size(1)*(i-1) 0];
         dop.step.font_adj.h(i) = uicontrol(dop.step.h,...
             'style','pushbutton','String',dop.step.font_adj.string{i},...
             'tag',['font_adj_',dop.step.font_adj.tooltip{i}],...
@@ -56,7 +56,7 @@ try
     dop.step.move.string = {'back','next'};
     dop.step.move.tooltip = {'previous','next'};
     dop.step.move.size = [.1 .05]; % x & y dimensions
-    dop.step.move.position = [.02 .9; .88 .9]; % x & y start positions, bottom left corner
+    dop.step.move.position = [.02 .92; .88 .92]; % x & y start positions, bottom left corner
     dop.step.move.visible = {'on','on'};
     for i = 1 : numel(dop.step.move.string)
         dop.step.move.pos = dop.step.move.position(i,:);
@@ -101,10 +101,15 @@ try
     end
     %% - optional action buttons
     dop.step.option.string = {'Downsample','Trim'};
-    dop.step.option.tooltip = {'downsample','trim'};
+    dop.step.option.n = numel(dop.step.option.string);
+    dop.step.option.tooltip = lower(dop.step.option.string);
     dop.step.option.tag = dop.step.option.tooltip;
     dop.step.option.size = [.1 .1]; % x & y dimensions
-    dop.step.option.position = [.85 .75; .85 .65; .85 .55; .85 .45; .85 .35; .85 .25]; % x & y start positions, bottom left corner
+    dop.step.option.pos_start = [.88 .75]; % x & y start positions, bottom left corner
+    dop.step.option.position = repmat(dop.step.option.pos_start,dop.step.option.n,1); % x & y start positions, bottom left corner
+    dop.step.option.position(:,2) = ...
+        dop.step.option.pos_start(1) - ...
+        (1:dop.step.option.n)*dop.step.option.size(2);
     dop.step.option.visible = repmat({'on'},1,numel(dop.step.option.string)); %{'on','on','on','on','on','on'};
     dop.step.option.enable = repmat({'off'},1,numel(dop.step.option.string)); %{'off','off','off','off','off','off'};
     for i = 1 : numel(dop.step.option.string)
