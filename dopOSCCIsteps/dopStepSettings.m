@@ -69,14 +69,15 @@ try
     if dop.step.optional || dop.step.next.n ~= dop.step.current.n || dop.step.next.n == 1
         % default settings
         dop.step.next.name = dop.step.steps{dop.step.next.n};
-        dop.step.next.title_position = [.2 .9 .6 .1];
-        dop.step.next.info_position = [.2 .7 .6 .2];
-        dop.step.next.HorizontalAlignment = {'center','left'};
+        dop.step.next.left_position = .15;
+        dop.step.next.title_position = [dop.step.next.left_position .87 .7 .1];
+        dop.step.next.info_position = [dop.step.next.left_position .7 .7 .2];
+        dop.step.next.HorizontalAlignment = {'left','left'};
         switch dop.step.next.name
             case 'welcome'
                 %% - information text field
                 dop.step.next.style = {'text','text'};
-                dop.step.next.string = {'Welcome to dopOSCCI. ',...
+                dop.step.next.string = {'Welcome to dopOSCCI!',...
                     ['This is a step through guide for summarising ',...
                     'functional Transcranial Doppler Ultrasound (fTCD) data. ',...
                     'Make sure you can read this text (increase ',...
@@ -109,9 +110,12 @@ try
                     'import_text','plot_text'};
                 dop.step.next.position = [dop.step.next.title_position;...
                     dop.step.next.info_position;
-                    .05 .65 .1 .1; .15 .65 .7 .1; .85 .65 .1 .1;
-                    .2 .5 .6 .1;.1 .25 .8 .2];
-                dop.step.next.HorizontalAlignment = {'center','left','center','center','center','left','left'};
+                    dop.step.next.left_position .65 .1 .1; ...
+                    dop.step.next.left_position+.1 .65 .5 .1;...
+                    dop.step.next.left_position+.1+.5 .65 .1 .1;
+                    dop.step.next.left_position .5 .6 .1;...
+                    dop.step.next.left_position .25 .8 .2];
+                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,{'center','center','center','left','left'}];
                 dop.step.next.Enable = {[],[],'off','on','on',[],[]};
                 dop.step.next.Callback = {[],[],[],[],'dopStepBrowseFile',[],[]};
                 dop.step.next.Visible = {'on','on','on','on','on','off','off'};
@@ -157,7 +161,7 @@ try
                     .2 .55 .1 .05; .3 .5 .3 .1; ...
                     .2 .4 .1 .05; .3 .35 .3 .1;
                     .1 .25 .8 .1];
-                dop.step.next.HorizontalAlignment = {'center','left','center','center','center','center','center','center','left'};
+                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,{'center','center','center','center','center','center','left'}];
                 dop.step.next.Enable = {[],[],'off','on','off','on','off','on','off'};
                 dop.step.next.Visible = {'on','on','on','on','on','on','on','on','off'};
                 dop.step.next.Callback = {[],[],[],'dopStepGetChannel',...
@@ -183,7 +187,7 @@ try
                     dop.step.next.info_position;
                     .1 .55 .8 .3;...
                     .3 .4 .2 .1; .5 .4 .2 .1];
-                dop.step.next.HorizontalAlignment = {'center','left','left','center','center'};
+                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,{'left','center','center'}];
                 dop.step.next.Enable = {[],[],[],'off','on'};
                 dop.step.next.Callback = {[],[],[],[],'dopStepGetDef'};
             case 'event'
@@ -201,7 +205,7 @@ try
                 dop.step.next.position = [dop.step.next.title_position;...
                     dop.step.next.info_position;
                     .3 .5 .2 .1; .5 .5 .2 .1];
-                dop.step.next.HorizontalAlignment = {'center','left','center','center'};
+                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,{'center','center'}];
                 dop.step.next.Enable = {[],[],'off','on'};
                 dop.step.next.Callback = {[],[],[],'dopStepGetDef'};
             case 'timing'
@@ -249,10 +253,10 @@ try
                     .1 .525 dop.step.next.size; .35 .525 dop.step.next.size; .6 .525 dop.step.next.size; .85 .525 .05 .05;...
                     .1 .45 dop.step.next.size; .35 .45 dop.step.next.size; .6 .45 dop.step.next.size; .85 .45 .05 .05;...
                     .1 .3 .8 .125];
-                dop.step.next.HorizontalAlignment = {'center','left','center','center',...
+                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,{'center','center',...
                     'center','center','center','left',...
                     'center','center','center','left',...
-                    'center','center','center','left',[]};
+                    'center','center','center','left',[]}];
                 dop.step.next.Enable = {[],[],[],[],'off','on','on','on'...
                     'off','on','on','on','off','on','on','on',[]};
                 dop.step.next.Callback = {[],[],[],[],...
@@ -269,7 +273,7 @@ try
                 dop.step.next.tag = {'info','task_name_text','task_name'};
                 dop.step.next.position = [dop.step.next.info_position;
                     .3 .5 .2 .1; .5 .5 .2 .1];
-                dop.step.next.HorizontalAlignment = {'left','center','center'};
+                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,{'center'}];
                 dop.step.next.Enable = {[],'off','on'};
                 dop.step.next.Callback = {[],[],'dopStepGetDef'};
             case 'definition'
