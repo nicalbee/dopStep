@@ -49,8 +49,12 @@ try
             [dop,~,msg] = dopDownsample(dop,'downsample_rate',dop.def.downsample_rate,...
                 'sample_rate',dop.tmp.sample_rate);
         case 'event'
-            [dop,~,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,'gui'); % done automatically in (and redone at end of) dopDataTrim
-        
+            if isfield(dop.def,'event_sep') && ~isempty(dop.def.event_sep)
+                [dop,~,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,...
+                    'event_sep',dop.def.event_sep,'gui');
+            else
+                [dop,~,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,'gui'); % done automatically in (and redone at end of) dopDataTrim
+            end
         case 'plot'
             dop = dopPlot(dop);
         otherwise
