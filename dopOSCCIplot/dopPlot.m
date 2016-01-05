@@ -86,7 +86,10 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 % 29-Jun-2015 NAB fixed up 'collect' + 'type' input
 % 15-Sep-2015 NAB copes with multiple periods of interest (poi) but only by
 %   using the last one = final row. Not perfectly sure how to do with this
-
+% 04-Jan-2016 NAB added 'poi_select',0/1 ... input for manual selection of
+%   period of interest
+% 05-Jan-2016 NAB implementing the poi_select with save and load mat files
+% 05-Jan-2016 NAB updated display names when column labels aren't known
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -102,7 +105,8 @@ try
             'wait_warn',0,... % wait to close warning dialogs
             'type','use',...
             'epoch',[], ... %
-            'poi',[],... %
+            'poi',[],... %'
+            'poi_select',0, ... % manual selection of period of interest
             'baseline',[],...
             'act_window',2,...
             'sample_rate',[], ... %
@@ -131,10 +135,13 @@ try
             dop.tmp.data = dop.data.use;
             msg{end+1} = sprintf('Default type variable ''%s'' set',dop.tmp.type);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        elseif ~strcmp(dop.tmp.type,dop.tmp.defaults.type) && isfield(dop.data,dop.tmp.type)
+        elseif ~strcmp(dop.tmp.type,dop.tmp.defaults.type) && isfield(dop,'data') && isfield(dop.data,dop.tmp.type)
             dop.tmp.data = dop.data.(dop.tmp.type);
             %             dop.tmp.type = dop.data.use_type; % default data
             msg{end+1} = sprintf('Type variable inputted ''%s'' and data found',dop.tmp.type);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+        elseif isfield(dop.tmp,'data') && ~isempty(dop.tmp.data)
+            msg{end+1} = sprintf('Raw data inputted\n');
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         elseif ~isempty(dop.tmp.type)
             okay = 0;
@@ -224,7 +231,7 @@ try
                         plot(dop.fig.ax,dop.fig.xdata,dop.tmp.data);
                         dop.tmp.ch = get(dop.fig.ax,'children');
                         for k = 1 : numel(dop.tmp.ch) % size(dop.tmp.data,2)
-                            dop.tmp.diplay_name = sprintf('column_%u',k);
+                            dop.tmp.display_name = sprintf('column_%u',k);
                             if isfield(dop.data,'file_info') && isfield(dop.data.file_info,'dataLabels') ...
                                     && numel(dop.data.file_info.dataLabels) >= k
                                 dop.tmp.display_name = dop.data.file_info.dataLabels{k};
@@ -239,12 +246,12 @@ try
                     if dop.tmp.wait; uiwait(dop.fig.h); end
                     %% Epoched Plot
                 case {'epoch','base','epoch_norm'};
-                    dopPlotComponents(dop.fig.h,'epoch'); % needs more work
+                    dopPlotComponents(dop.fig.h,'epoch','poi_select',dop.tmp.poi_select); % needs more work
                     dop.fig.ax = get(dop.fig.h,'CurrentAxes');
                     
                     %% > check scaling of data is around zero
                     if dop.tmp.collect || ~isfield(dop,'epoch') || ~isfield(dop.epoch,'screen')
-                       dop.plot.screen = true(1,size(dop.tmp.data,2));
+                        dop.plot.screen = true(1,size(dop.tmp.data,2));
                         msg{end+1} = 'No ''dop.epoch.screen'' variable - using all epochs';
                         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                     else
@@ -296,7 +303,17 @@ try
                     % left, right, difference, average
                     % collect the handles for easy stacking:
                     if okay
-                        for i = 1 : numel(dop.data.epoch_labels) % size(dop.tmp.plot_data,3)
+                        if ~isfield(dop,'data') || ~isfield(dop.data,'epoch_labels')
+                            % assume this is the case...
+                            dop.data.epoch_labels = {'Left','Right','Difference','Average'};
+                            if size(dop.tmp.plot_data,3)
+                                dop.data.epoch_labels = {'Difference'};
+                            end
+                        end
+                        if ~isfield(dop,'epoch') || ~isfield(dop.epoch,'times')
+                            dop.epoch.times = dop.tmp.epoch(1)+((0:size(dop.tmp.data,1)-1)*(1/dop.tmp.sample_rate));
+                        end
+                        for i = 1 : size(dop.tmp.plot_data,3) % numel(dop.data.epoch_labels) %
                             if i == 1 && ishold(dop.fig.h); hold; end
                             dop.tmp.name = dop.data.epoch_labels{i};
                             dop.tmp.(dop.tmp.name).h = plot(dop.epoch.times,...
@@ -326,7 +343,11 @@ try
                                 'Tag',dop.tmp.patches{i});
                         end
                         %% add the peak
-                        [dop.tmp.sum,peak_okay] = dopCalcSummary(dop.tmp.plot_data(:,3),...
+                        dop.tmp.peak_data = dop.tmp.plot_data;
+                        if size(dop.tmp.plot_data,3) > 1
+                            dop.tmp.peak_data = dop.tmp.plot_data(:,:,3);
+                        end
+                        [dop.tmp.sum,peak_okay] = dopCalcSummary(dop.tmp.peak_data,...
                             'period','poi',...
                             'epoch',dop.tmp.epoch,...
                             'act_window',dop.tmp.act_window,...
@@ -399,6 +420,7 @@ try
                         %                         strcmp(get(dop.fig.ch,'Tag'),'yupper'))),'string',dop.tmp.ylim(2));
                     end
                     if dop.tmp.wait; uiwait(dop.fig.h); end
+                    
                 otherwise
                     msg{end+1} = sprintf('''%s'' plot type not yet programmed',...
                         dop.tmp.type);
@@ -409,7 +431,23 @@ try
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;
-        
+        if dop.tmp.poi_select
+            if exist('poi_select.mat','file')
+                load('poi_select.mat');
+                delete('poi_select.mat');
+                dop = tmp_poi;
+                %             if exist('poi_select','var')
+                %                 dop = poi_select;
+                %             end
+            else
+                msg{end+1} = ['''poi_select.mat'' file not found. ',...
+                    'Possibly closed figure without adjusting or ',...
+                    'didn''t include the ''wait'' argument in the ',...
+                    '''dopPlot'' function.'];
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dop = dop.tmp.poi;
+            end
+        end
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
     end
 catch err

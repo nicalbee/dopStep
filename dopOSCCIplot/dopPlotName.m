@@ -7,6 +7,8 @@ function [plot_name,okay,msg] = dopPlotName(dop_input,varargin)
 % Last edit:
 % 25-Aug-2014 NAB
 % 3-July-2015 NAB added event numbers to title if they exist
+% 04-Jan-2015 NAB played around with file name, see if we can retrieve it
+%   when working with directly inputted data - ie not dop structure
 
 [dop,okay,msg] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -16,6 +18,12 @@ switch dopInputCheck(dop)
         ep = '?';
         if isfield(dop,'epoch') && isfield(dop.epoch,'screen') && ~isempty(dop.epoch.screen)
             ep = sum(dop.epoch.screen);
+        end
+        if ~isfield(dop,'file_name')
+                        dop.file_name = 'Missing file name';
+            if isfield(dop,'tmp') && isfield(dop.tmp,'file_name')
+                dop.file_name = dop.tmp.file_name;
+            end
         end
         plot_name = sprintf(['%s: %s data, ',dopVarType(ep),' epochs'],...
             dop.file_name,dop.tmp.type,ep);

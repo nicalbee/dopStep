@@ -8,6 +8,8 @@ function fig = dopPlotComponents(fig_h,varargin)
 % 25-Aug-2014 NAB
 % 08-Sep-2014 NAB move y-axis components further to the left to avoid
 %   interfering with y title
+% 04-Dec-2016 NAB added 'poi_select',0/1 ... input for manual selection of
+%   period of interest
 
 fig.h = fig_h; %figure;
 dop = get(fig.h,'UserData');
@@ -107,6 +109,14 @@ if ~xoff %&& ~isempty(varargin) && ~sum(strcmp(varargin,'epoch'))
         end
     end
 end
+%% close button
+fig.close.h(i) = uicontrol('parent',fig.h,'units','normalized',...
+            'style','pushbutton',...
+            'string','Close',...
+            'tag','close',...
+            'CallBack',@dopPlotClose,...@dopPlotYadjust,...
+            'ToolTipString','Click to close plot',...
+            'position',[.945 .015 .05 .1]);
 %% Y axis adjustment
 yoff = 0;
 if ~isempty(varargin) && sum(strcmp(varargin,'yoff'))
@@ -162,5 +172,55 @@ if ~yoff
         if ~isempty(varargin) && sum(strcmp(varargin,'epoch'))
             set(fig.yedit.h(i),'CallBack', @dopPlotEpochAxesAdjust);
         end
+    end
+end
+%% poi_select
+if ~isempty(varargin) && sum(strcmp(varargin,'poi_select'))
+    poi_select_n = find(strcmp(varargin,'poi_select'));
+    poi_select_on = varargin{poi_select_n+1};
+    if poi_select_on
+        fig.ch.h = get(fig.h,'children');
+        fig.axes.h = fig.ch.h(strcmp(get(fig.ch.h,'Type'),'axes'));
+        fig.axes.position = get(fig.axes.h,'position');
+        
+        fig.poi_sel.pos.x = sum(fig.axes.position([1 3]))+.015;
+        fig.poi_sel.pos.y = fig.axes.position(2)-.1;
+        % this will be under the legend panel with dimensions:
+        %   [.125 fig.axes.position(4)];
+        fig.poi_sel.size = [.025 .05];% 
+
+        
+        % add two boxes for lower and upper poi
+        fig.poi_sel.tags = {'poi_lower','poi_upper'};
+        fig.poi_sel.tips = {...
+            'Enter the lower period of interest value',...
+            'Enter the upper period of interest value'};
+        fig.user_data = get(fig.h,'UserData');
+        
+        fig.poi_sel.default_data = fig.user_data.tmp.poi;
+        
+        fig.poi_sel.text_h = uicontrol('parent',fig.h,'units','normalized',...
+                'style','text',...
+                'HorizontalAlignment','left',...
+                'string','POI adjust:',...
+                'position',[fig.poi_sel.pos.x fig.poi_sel.pos.y .1 .05]);
+        
+        for i = 1 : numel(fig.poi_sel.tags)
+            fig.poi_sel.position(i,:) = [fig.poi_sel.pos.x + i*fig.poi_sel.size(1)*2 ...
+                fig.poi_sel.pos.y fig.poi_sel.size];
+%             fig.poi_sel.pos.y-fig.poi_sel.size(2)*.5 fig.poi_sel.size];
+            fig.poi_sel.h(i) = uicontrol('parent',fig.h,'units','normalized',...
+                'style','edit',...
+                'string',fig.poi_sel.default_data(i),...
+                'tag',fig.poi_sel.tags{i},...
+                'CallBack',@dopPlotEpochPOIAdjust,...@dopPlotAxesAdjust,...@dopPlotYadjust,...
+                'ToolTipString',fig.poi_sel.tips{i},...
+                'UserData',fig.poi_sel.default_data(i),...
+                'position',fig.poi_sel.position(i,:));
+%             if ~isempty(varargin) && sum(strcmp(varargin,'epoch'))
+%                 set(fig.poi_sel.h(i),'CallBack', @dopPlotEpochAxesAdjust);
+%             end
+        end
+        
     end
 end

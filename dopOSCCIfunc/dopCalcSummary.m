@@ -8,7 +8,7 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 %
 % Use:
 %
-% [dop,okay,msg] = dopNew(dop,[]);
+% [dop,okay,msg] = dopCalcSummary(dop,[]);
 %
 % where:
 % > Inputs:
@@ -43,6 +43,8 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 % 14-Oct-2015 NAB removed period_mean_sd - don't think it's used anymore
 % 30-Nov-2015 NAB fixed mismatch on dimensions with baseline epoch peak
 %   calcualtions - rarely needed, playing with the Pinaya et al. method
+% 04-Jan-2016 NAB added 'poi_select',0/1 ... input for manual selection of
+%   period of interest
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -95,7 +97,8 @@ try
             'value','abs', ... 'raw'
             'baseline',[],...
             'ttest',0,... % turn on the ttest, not by default
-            'poi',[] ...
+            'poi',[], ...
+            'poi_select',0 ... % manual selection of period of interest
             );
         % cells don't work in struct function...
         inputs.required = ...
@@ -135,6 +138,23 @@ try
         
         %% main code
         if okay
+            % manual selection of epoch available
+            if dop.tmp.poi_select && strcmp(dop.tmp.period,'poi')
+                poi_select = dopPlot(dop.tmp.data,'poi_select',1,...
+                    'type','epoch',...
+                    'epoch',dop.tmp.epoch, ... %
+                    'poi',dop.tmp.poi,... %'
+                    'baseline',dop.tmp.baseline,...
+                    'act_window',dop.tmp.act_window,...
+                    'sample_rate',dop.tmp.sample_rate,...
+                    'file_name',dop.tmp.file,'wait');
+                % 'poi_select' should be available in workspace
+                % assignin function called in @dopPlotEpochPOIAdjust
+                if exist('poi_select','var')
+                    dop.tmp.(dop.tmp.period) = poi_select;
+                end
+            end
+            
             
             %% > period filter
             dop.tmp.period_filt = (-dop.tmp.epoch(1) + dop.tmp.(dop.tmp.period))/(1/dop.tmp.sample_rate);

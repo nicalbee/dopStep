@@ -28,6 +28,8 @@ function [dop,okay,msg] = dopCalcAuto(dop_input,varargin)
 % 05-Sep-2014 NAB added 'file' to inputs for error reporting
 % 01-Sep-2015 NAB sorted the epoch by epoch calculations, wasn't tested
 %   previously...
+% 04-Jan-2016 NAB added 'poi_select',0/1 ... input for manual selection of
+%   period of interest
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -47,6 +49,7 @@ try
             'epoch',[],...
             'baseline',[],...
             'poi',[], ... % % 'poi',[5 15];
+            'poi_select',0, ... % manual selection of period of interest
             'act_window',[], ... %
             'sample_rate',[], ...
             'clear',1 ... % remove previous ''dop.sum'' field/data
@@ -242,7 +245,8 @@ try
                                 'sample_rate',dop.tmp.sample_rate,...
                                 'poi',dop.tmp.poi(jjj,:),...
                                 'baseline',dop.tmp.baseline,...
-                                'file',dop.tmp.file);
+                                'file',dop.tmp.file,...
+                                'poi_select',dop.tmp.poi_select);% manual selection of poi
                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                             if strcmp(dop.tmp.sum,'epoch')
                                 % only need to do this once - overall vs odd

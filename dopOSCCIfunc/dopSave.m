@@ -213,6 +213,12 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 14-Oct-2015 NAB added 'label_specs' input and default to add label
 %   specifications for periods when multiple rows for that variable
 % 04-Nov-2015 NAB dummy variable if can't find extra
+% 05-Jan-2016 NAB multiple periods of interest and manual period selection
+%   may be problematic - at the moment it's just running through the
+%   multiple fields in fields(structure_variable) order - difficult to know
+%   how to search them intelligently as it's possible that one or both
+%   numbers might have changed - better not to do this, that is, use
+%   multiple periods of interest with manual selection.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -438,6 +444,24 @@ try
                         dop.tmp.prd_spec = dop.tmp.prd;
                         for jjj = 1 : size(dop.tmp.(dop.tmp.prd),1)
                             dop.tmp.prd_spec = dopSaveSpecificLabel(dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
+                            % 05-Jan-2016 NAB with the 'poi_select' (manual
+                            % poi selection) this can't always find what
+                            % it's looking for so need to 'search' for it.
+                            % Will be difficult when there are multiple
+                            % POIs...
+                            if ~isfield(dop.sum.(dop.tmp.sum).(dop.tmp.ch),dop.tmp.prd_spec)
+                                dop.tmp.fields = fields(dop.sum.(dop.tmp.sum).(dop.tmp.ch));
+                                if numel(dop.tmp.fields) == 1
+                                    dop.tmp.prd_spec = dop.tmp.fields{1};
+                                else
+                                    dop.tmp.prd_spec = dop.tmp.fields{jjj};
+                                    msg{end+1} = sprintf(['Multiple period of interests may be problematic ',...
+                                        'when saving variables. Suggest just using a single period of interest.\n',...
+                                        '(%s: %s)'],...
+                                        mfilename,dop.tmp.file);
+                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                end
+                            end
                             for iiii = 1 : numel(dop.tmp.epochs)
                                 dop.tmp.eps = dop.tmp.epochs{iiii};
                                 
