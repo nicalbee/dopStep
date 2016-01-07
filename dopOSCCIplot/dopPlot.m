@@ -90,6 +90,8 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 %   period of interest
 % 05-Jan-2016 NAB implementing the poi_select with save and load mat files
 % 05-Jan-2016 NAB updated display names when column labels aren't known
+% 07-Jan-2016 NAB 'collect' type 'norm' is turned into 'epoch_norm'
+%   automatically
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -167,7 +169,9 @@ try
             % doesn't exist in the data
             switch dop.tmp.type
                 case 'norm'
-                    if isfield(dop,'event') && size(dop.tmp.data,2) == dop.event.n
+                    % 07-Jan-2016 NAB adjusted to let 'collect' in here by
+                    % default
+                    if or(dop.tmp.collect,isfield(dop,'event') && size(dop.tmp.data,2) == dop.event.n)
                         dop.tmp.type = 'epoch_norm';
                     end
             end
