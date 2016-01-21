@@ -92,6 +92,8 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 % 05-Jan-2016 NAB updated display names when column labels aren't known
 % 07-Jan-2016 NAB 'collect' type 'norm' is turned into 'epoch_norm'
 %   automatically
+% 21-Jan-2016 NAB added the '== 1' to if size(dop.tmp.plot_data,3) == 1,
+%   can't remember when this was relevant...
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -250,6 +252,7 @@ try
                     if dop.tmp.wait; uiwait(dop.fig.h); end
                     %% Epoched Plot
                 case {'epoch','base','epoch_norm'};
+                    
                     dopPlotComponents(dop.fig.h,'epoch','poi_select',dop.tmp.poi_select); % needs more work
                     dop.fig.ax = get(dop.fig.h,'CurrentAxes');
                     
@@ -310,7 +313,7 @@ try
                         if ~isfield(dop,'data') || ~isfield(dop.data,'epoch_labels')
                             % assume this is the case...
                             dop.data.epoch_labels = {'Left','Right','Difference','Average'};
-                            if size(dop.tmp.plot_data,3)
+                            if size(dop.tmp.plot_data,3) == 1 % 21-Jan-2016 NAB added the == 1, can't remember when this was relevant...
                                 dop.data.epoch_labels = {'Difference'};
                             end
                         end
@@ -423,7 +426,7 @@ try
                         %                     set(dop.fig.ch(and(strcmp(get(dop.fig.ch,'Type'),'uicontrol'),...
                         %                         strcmp(get(dop.fig.ch,'Tag'),'yupper'))),'string',dop.tmp.ylim(2));
                     end
-                    if dop.tmp.wait; uiwait(dop.fig.h); end
+                    if dop.tmp.wait || and(dop.tmp.poi_select,~dop.tmp.collect); uiwait(dop.fig.h); end
                     
                 otherwise
                     msg{end+1} = sprintf('''%s'' plot type not yet programmed',...

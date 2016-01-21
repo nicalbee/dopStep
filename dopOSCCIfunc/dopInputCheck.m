@@ -29,6 +29,7 @@ function [input_type,okay,msg] = dopInputCheck(dop_input,varargin)
 % 05-Sep-2014 NAB folder input given the okay = 1
 % 10-Nov-2014 NAB added '.txt' to acceptable inputs
 % 20-May-2015 NAB changed 'folder' to 'dir' as input - more intuitive
+% 16-Jan-2016 NAB added csv to the mix
 
 input_type = [];
 okay = 0;
@@ -89,6 +90,9 @@ try
                 input_type = 'file';%tmp_ext;
                 okay = 1;
             case '.txt'
+                input_type = 'file';
+                okay = 1; % could be a text file
+                case '.csv'
                 input_type = 'file';
                 okay = 1; % could be a text file
             otherwise

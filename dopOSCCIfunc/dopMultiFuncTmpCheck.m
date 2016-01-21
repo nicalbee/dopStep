@@ -26,7 +26,8 @@ function [dop,okay,msg] = dopMultiFuncTmpCheck(dop_input,varargin)
 % 04-Sep-2014 NAB 
 % 20-May-2015 NAB dop.data.use might not always exist - adjusted to
 %   accommodate this
-% 20-May-2015 NAB dop = dop_input was old and messing up 'showmsg' variable
+% 20-May-2015 NAB dop = dop_input was old and messing up 'msg' variable
+% 20-Jan-2016 NAB showmsg = msg...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -39,14 +40,14 @@ try
     if okay
                 inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'showmsg',1,...
+            'msg',1,...
             'wait_warn',0 ...
             );
 %         inputs.required = ...
 %             {'epoch','baseline','poi'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
-        dopOSCCIindent('run',dop.tmp.showmsg);%fprintf('\nRunning %s:\n',mfilename);
+        dopOSCCIindent('run',dop.tmp.msg);%fprintf('\nRunning %s:\n',mfilename);
         
         if exist('dop_input','var') && ~isempty(dop_input)
             switch dopInputCheck(dop_input)
@@ -62,7 +63,7 @@ try
                         % functions within functions this is required.
                         msg{end+1} = ['Multiple functions running with setGetInputs,'...
                             ' updating ''dop.tmp'' variable'];
-                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                         
                         % might lose a couple of the tmp bits for this
                         % function
@@ -77,19 +78,19 @@ try
                     end
                 otherwise
                     msg{end+1} = '''dop'' input structure not found: required for this function';
-                    dopMessage(msg,dop.dop.tmp_now.showmsg,1,okay,dop.dop.tmp_now.wait_warn);
+                    dopMessage(msg,dop.tmp_now.msg,1,okay,dop.tmp_now.wait_warn);
             end
         else
             okay = 0;
             msg{end+1} = 'Problem with inputs: can''t run function';
-            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;
         
-        dopOSCCIindent('done',dop.tmp_now.showmsg);%fprintf('\nRunning %s:\n',mfilename);
+        dopOSCCIindent('done',dop.tmp_now.msg);%fprintf('\nRunning %s:\n',mfilename);
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);

@@ -9,6 +9,8 @@ function save_fullfile  =  dopOSCCIdebug
 % Edits:
 % 22-Aug-2014 NAB updated save_dir and variable names to be more transparent
 % 16-Sep-2014 NAB fixed up auto save directory
+% 21-Jan-2016 NAB deleting all figures as well as it doesn't like to save
+%   these and can get messy
 
 %
 % -------------------------------------------------------------------------
@@ -64,6 +66,23 @@ try
     dopOSCCIalert('crash');
 end
 % set save path on same level as dopOSCCI but different directory
+
+try 
+    fprintf('\tAttempting to close all open figures:');
+    hs = findall(0,'Type','figure');
+    close(hs);
+    fprintf('\tdone.\n');
+catch
+    fprintf('\tproblem closing figures... will be saved in debug file.\n');
+end
+% figHandles = get(0,'Children');
+% Or you could use the function FINDOBJ:
+% 
+% figHandles = findobj('Type','figure');
+% If any of the figures have hidden handles, you can instead use the function FINDALL:
+% 
+% figHandles = findall(0,'Type','figure');
+
 
 save_dir = fullfile([dop_dir,'Data'],mfilename);
 % check that the directory exists

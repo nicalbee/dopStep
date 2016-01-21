@@ -108,6 +108,7 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 %   array, into cell array.
 % 20-May-2015 NAB changed 'folder' to 'dir' as input - more intuitive
 % 07-Jul-2015 NAB set dop.def.data_dir or dop.data_dir to be options
+% 20-Jan-2016 NAB adding the stich_file list creation to this function...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -123,7 +124,10 @@ try
             'type',[],...
             'dir',[],...
             'file',[],... % for error reporting mostly
-            'showmsg',1,... % show messages
+            'stitch_file',[],...
+            'stitch_dir',[],...
+            'stitch_fullfile',[],...
+            'msg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
         %         inputs.defaults.types = dopFileTypes;
@@ -133,6 +137,25 @@ try
         %% data check
         switch dopInputCheck(dop_input)
             case 'dop'
+                if and(~isempty(dop.tmp.stitch_file),~isempty(dop.tmp.stitch_dir)) || ...
+                         ~isempty(dop.tmp.stitch_fullfile)
+                     if and(~isempty(dop.tmp.stitch_file),~isempty(dop.tmp.stitch_dir))
+                         dop.tmp.stitch_fullfile = fullfile(dop.tmp.stitch_dir,dop.tmp.stitch_file);
+                         dop.def.stitch_fullfile = dop.tmp.stitch_fullfile;
+                     else
+                         [dop.def.stitch_dir,dop.tmp.stitch_file,dop.tmp.stitch_ext] = fileparts(dop.tmp.stitch_fullfile);
+                         dop.tmp.stitch_file = [dop.tmp.stitch_file,dop.tmp.stitch_ext];
+                         dop.def.stitch_file = dop.tmp.stitch_file;
+                     end
+                    if ~exist(dop.tmp.stitch_fullfile,'file')
+                        okay = 0;
+                    else
+                        msg{end+1} = sprintf(['Stitch file found:\n\t%s (in: %s)'...
+                            '\n\t(in function: %s)'],...
+                            dop.def.stitch_file,dop.def.stitch_dir,mfilename);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    end
+                end
                 if isempty(dop.tmp.dir)
                     if isfield(dop,'data_dir') && ~isempty(dop.data_dir)
                         dop.tmp.dir = dop.data_dir;
@@ -143,7 +166,7 @@ try
                         msg{end+1} = sprintf(['No data directory'...
                             ' inputted or available in ''dop.tmp.dir''\n\t(%s)'],...
                             mfilename);
-                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                     end
                 end
             case 'dir'%,'folder'}
@@ -152,7 +175,7 @@ try
                 okay = 0;
                 msg{end+1} = sprintf('Input not recognised\n\t(%s)',...
                     mfilename);
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         %         %% tmp check
         %         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
@@ -161,54 +184,71 @@ try
         if okay
             dop.file_list = [];
             dop.use.file_list = [];
-            if ~isempty(dop.tmp.type)
-                switch dop.tmp.type
-                    case {'.TW','.TX'}%,'.tx','.tw'}
-                        % these tend to have a number after the
-                        % extension - quite annoying really!
-                        dop.file_list = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.type)));
-                    otherwise
-                        dop.file_list = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.type)));
-                end
-            else
-                dop.tmp.types = upper(dopFileTypes);
-                % stupid case sensitivity....
-                dop.tmp.types = unique(upper(dop.tmp.types));
- dop.file_lists = cell(1,numel(dop.tmp.types));
-                for i = 1 : numel(dop.tmp.types)
-                    switch dop.tmp.types{i}
-%                         case {'.TXT','.txt'}
-% %                             for j = 1 : numel(dop.file_lists{i})
-% %                                 if ~isempty(strfind(dop.file_lists{i}(j).name,'.txt'))
-% %                                     dop.file_lists{i}(j) = [];
-% %                                 end
-% %                             end
-% dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.types{i})));
-                        case '.TX'%,'.tx','.tw'}
+            if isempty(dop.tmp.stitch_fullfile)
+                if ~isempty(dop.tmp.type)
+                    switch dop.tmp.type
+                        case {'.TW','.TX'}%,'.tx','.tw'}
                             % these tend to have a number after the
                             % extension - quite annoying really!
-                            dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.types{i})));
-                            dop.tmp.txt_files = zeros(1,numel(dop.file_lists{i}));
-                            for j = 1 : numel(dop.tmp.txt_files)
-                                if ~isempty(strfind(dop.file_lists{i}(j).name,'.txt'))
-                                    dop.tmp.txt_files(j) = 1;
-                                end
-                            end
-                            if sum(dop.tmp.txt_files) == numel(dop.tmp.txt_files)
-                                dop.file_lists{i} = [];
-                            elseif sum(dop.tmp.txt_files)
-                                dop.file_lists{i}(logical(dop.tmp.txt_files)) = [];
-                            end
-                                
+                            dop.file_list = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.type)));
                         otherwise
-                            dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.types{i})));
+                            dop.file_list = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.type)));
                     end
-                    if ~isempty(dop.file_lists{i})
-                        msg{end+1} = sprintf('Found %u %s files\n',...
-                            numel(dop.file_lists{i}),dop.tmp.types{i});
-                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-                        for j = 1 : numel(dop.file_lists{i})
-                            dop.file_list{end+1} = fullfile(dop.tmp.dir,dop.file_lists{i}(j).name);
+                else
+                    dop.tmp.types = upper(dopFileTypes);
+                    % stupid case sensitivity....
+                    dop.tmp.types = unique(upper(dop.tmp.types));
+                    dop.file_lists = cell(1,numel(dop.tmp.types));
+                    for i = 1 : numel(dop.tmp.types)
+                        switch dop.tmp.types{i}
+                            %                         case {'.TXT','.txt'}
+                            % %                             for j = 1 : numel(dop.file_lists{i})
+                            % %                                 if ~isempty(strfind(dop.file_lists{i}(j).name,'.txt'))
+                            % %                                     dop.file_lists{i}(j) = [];
+                            % %                                 end
+                            % %                             end
+                            % dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.types{i})));
+                            case '.TX'%,'.tx','.tw'}
+                                % these tend to have a number after the
+                                % extension - quite annoying really!
+                                dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.types{i})));
+                                dop.tmp.txt_files = zeros(1,numel(dop.file_lists{i}));
+                                for j = 1 : numel(dop.tmp.txt_files)
+                                    if ~isempty(strfind(dop.file_lists{i}(j).name,'.txt'))
+                                        dop.tmp.txt_files(j) = 1;
+                                    end
+                                end
+                                if sum(dop.tmp.txt_files) == numel(dop.tmp.txt_files)
+                                    dop.file_lists{i} = [];
+                                elseif sum(dop.tmp.txt_files)
+                                    dop.file_lists{i}(logical(dop.tmp.txt_files)) = [];
+                                end
+                                
+                            otherwise
+                                dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.types{i})));
+                        end
+                        if ~isempty(dop.file_lists{i})
+                            msg{end+1} = sprintf('Found %u %s files\n',...
+                                numel(dop.file_lists{i}),dop.tmp.types{i});
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            for j = 1 : numel(dop.file_lists{i})
+                                dop.file_list{end+1} = fullfile(dop.tmp.dir,dop.file_lists{i}(j).name);
+                            end
+                        end
+                    end
+                end
+            else % stitch file list
+                [dop,okay,msg] = dopStitchRead(dop,okay,msg);
+                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                if okay && isfield(dop.stitch,'file_sets')
+                    k = 0;
+                    for i = 1 : size(dop.stitch.file_sets,1)
+                        for j = 1 : size(dop.stitch.file_sets,2)
+                            k = k + 1;
+                            dop.file_list{k} = dop.stitch.file_sets{i,j};
+                            if ~exist(dop.file_list{k},'file') && exist(fullfile(dop.tmp.dir,dop.file_list{k}),'file')
+                                dop.file_list{k} = fullfile(dop.tmp.dir,dop.file_list{k});
+                            end
                         end
                     end
                 end
@@ -221,9 +261,10 @@ try
                     dop.file_list{i} = fullfile(dop.tmp.dir,dop.tmp.file_list(i).name);
                 end
             end
+            
             msg{end+1} = sprintf('Found %u files in total\n',...
                 numel(dop.file_list));
-            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         
         %% save okay & msg to 'dop' structure

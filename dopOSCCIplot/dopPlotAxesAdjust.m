@@ -14,6 +14,8 @@ function dopPlotAxesAdjust(handle,~)
 % 29-Aug-2014 NAB
 % 02-Sep-2014 NAB adjusted zoom to be traditional
 % 08-Sep-2014 NAB fixed empty patch checkbox issue
+% 14-Jan-2016 NAB fixed 'lower value must be lower than upper'
+%   warning/non-action - now just adjusts it
 
 value = str2double(get(handle,'string'));
 
@@ -41,13 +43,13 @@ ylim = get(axes_h,'ylim');
 dop = get(fig_h,'UserData');
 switch get(handle,'tag')
     case 'lower'
-        if value < xlim(2)
+%         if value < xlim(2)
             xlim(1) = value;
             xlim(2) = xlim(1) + str2double(get(diff_h,'string'));
-        else
-            warndlg('Lower value needs to be less than the upper value');
-            return;
-        end
+%         else
+%             warndlg('Lower value needs to be less than the upper value');
+%             return;
+%         end
     case 'diff'
         % if the difference is changed, keep the lower limit the same and
         % adjust the upper

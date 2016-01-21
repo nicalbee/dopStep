@@ -45,6 +45,8 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 %   calcualtions - rarely needed, playing with the Pinaya et al. method
 % 04-Jan-2016 NAB added 'poi_select',0/1 ... input for manual selection of
 %   period of interest
+% 21-Jan-2016 NAB added poi_dir/file/fullfile inputs in case this ever
+%   wanted to be run as inputs, rather than looking for dop.def variables
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -98,7 +100,10 @@ try
             'baseline',[],...
             'ttest',0,... % turn on the ttest, not by default
             'poi',[], ...
-            'poi_select',0 ... % manual selection of period of interest
+            'poi_select',0, ... % manual selection of period of interest
+            'poi_fullfile',[], ... % could be entered as inputs
+            'poi_dir',[],...
+            'poi_file',[]...
             );
         % cells don't work in struct function...
         inputs.required = ...
