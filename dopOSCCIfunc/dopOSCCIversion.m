@@ -16,6 +16,9 @@ function varargout = dopOSCCIversion%(output)
 %   updating version date
 % 3.0.1 21-Jan-2016 many updates but currently working on stitching for
 %   Margriet. Maybe I'll start adding extra numbers to this
+% 3.0.2 22-Jan-2016 manual POI selection and stitching working with toggles
+%   so no longer auto file recognition, use dop.def.poi_select = 1 and
+%   dop.def.stitch = 1;
 
 %
 % -------------------------------------------------------------------------
@@ -51,11 +54,11 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.0.1';
-    dop_date = 'Thursday 21th of Jan 2016';
+    dop_version = '3.0.2';
+    dop_date = 'Friday 22nd of Jan 2016';
     dop_out = [dop_version,': ',dop_date];
     fprintf('Matlab version: %s\n',version);
-    fprintf('dopOSCCI version number is %s\n > last modified on %s\n',...
+    fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...
         dop_version,dop_date);
     
 %     switch output

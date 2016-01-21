@@ -1,18 +1,19 @@
-function dopCloseMsg(report)
-% dopOSCCI3: dopCloseMsg
+ function dopCloseProgress(report)
+% dopOSCCI3: dopCloseProgress
 %
-% dopCloseMsg([report])
+% dopCloseProgress([report])
 %
-% Closes the popup warning messages that occur while running the dopOSCCI
-% function. If a 'file_list' is run, there can be quite a few messages and
-% 'close all' doesn't close them.
+% Closes the dopOSCCI progress bar if it happens to be open - something
+% left over when you've finished processing a directory of stuff. This may
+% occur with file stitching, if your stitch file has missing files in it at
+% the end.
 %
-% dopCloseMsg gathers all available handles using MATLAB's 'allchild'
-% function and then closes those associated with msg boxes
+% dopCloseProgess gathers all available handles using MATLAB's 'allchild'
+% function and then closes those associated with (dop.stitch.match_column)
 %
 % Use:
 %
-% dopCloseMsg([report]);
+% dopCloseProgress([report]);
 %
 % Where
 % > Optional Input:
@@ -20,18 +21,16 @@ function dopCloseMsg(report)
 %   warning string from the popup message is reported to the MATLAB command
 %   window. The default value is 1 = messages are reported.
 %   Example:
-%   dopCloseMsg;
+%   dopCloseProgress;
 %       or
-%   dopCloseMsg(1);
+%   dopCloseProgress(1);
 %   > popups will be closed/deleted and messages will be reported
 %
-%   dopCloseMsg(0);
+%   dopCloseProcess(0);
 %   > popups will be closed/deleted and messages will NOT be reported
 %
-% Created: 05-Sep-2014 NAB
+% Created: 22-Jan-2016 NAB
 % Edits:
-% 08-Sep-2014 NAB problems with multiple popups - still not reporting all
-% of the messages
 
 if ~exist('report','var') || isempty(report)
     report = 1;
@@ -39,19 +38,19 @@ end
 
 handles = allchild(0);
 
-msgboxes = strfind(get(handles,'Tag'),'Msgbox');
+waitbars = strfind(get(handles,'Tag'),'TMWWaitbar');
 
-for i = 1 : numel(msgboxes)
+for i = 1 : numel(waitbars)
     delete_h = 0;
-    if ~iscell(msgboxes) && msgboxes(i)
+    if ~iscell(waitbars) && waitbars(i)
         delete_h = 1;
-    elseif iscell(msgboxes) && ~isempty(msgboxes{i}) %&& msgboxes{i} 
+    elseif iscell(waitbars) && ~isempty(waitbars{i}) %&& waitbars{i} 
         delete_h = 1;
     end
     if delete_h
         if report
             try
-                ch = get(msgboxes(i),'children');
+                ch = get(waitbars(i),'children');
                 ch_ch = get(ch(2),'children');
                 msg = get(ch_ch,'String');
                 fprintf('Msgbox %u:\n',i);
@@ -61,7 +60,7 @@ for i = 1 : numel(msgboxes)
             end
         end
         
-        delete(msgboxes(i));
+        delete(waitbars(i));
     end
 end
 end

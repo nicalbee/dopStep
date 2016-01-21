@@ -61,7 +61,7 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 %   > e.g., dopGetFileList(dop,okay,msg,...'dir','C:\my_data_directory\',...)
 %   Sets the data directory that will be searched. If it exists the
 %   'dop.data_dir' variable will be ignored.
-%   
+%
 % - 'file':
 %   > e.g., dopFunction(dop_input,okay,msg,...,'file','subjectX.exp',...)
 %   file name of the data file currently being summarised. This is used for
@@ -109,7 +109,8 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 % 20-May-2015 NAB changed 'folder' to 'dir' as input - more intuitive
 % 07-Jul-2015 NAB set dop.def.data_dir or dop.data_dir to be options
 % 20-Jan-2016 NAB adding the stich_file list creation to this function...
-
+% 22-Jan-2016 NAB added a 'stitch' switch = logical 0 or 1 
+%   (e.g., dop.def.stitch) but files (stitch_file etc.) also required
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -124,6 +125,7 @@ try
             'type',[],...
             'dir',[],...
             'file',[],... % for error reporting mostly
+            'stitch',0,...
             'stitch_file',[],...
             'stitch_dir',[],...
             'stitch_fullfile',[],...
@@ -137,23 +139,25 @@ try
         %% data check
         switch dopInputCheck(dop_input)
             case 'dop'
-                if and(~isempty(dop.tmp.stitch_file),~isempty(dop.tmp.stitch_dir)) || ...
-                         ~isempty(dop.tmp.stitch_fullfile)
-                     if and(~isempty(dop.tmp.stitch_file),~isempty(dop.tmp.stitch_dir))
-                         dop.tmp.stitch_fullfile = fullfile(dop.tmp.stitch_dir,dop.tmp.stitch_file);
-                         dop.def.stitch_fullfile = dop.tmp.stitch_fullfile;
-                     else
-                         [dop.def.stitch_dir,dop.tmp.stitch_file,dop.tmp.stitch_ext] = fileparts(dop.tmp.stitch_fullfile);
-                         dop.tmp.stitch_file = [dop.tmp.stitch_file,dop.tmp.stitch_ext];
-                         dop.def.stitch_file = dop.tmp.stitch_file;
-                     end
-                    if ~exist(dop.tmp.stitch_fullfile,'file')
-                        okay = 0;
-                    else
-                        msg{end+1} = sprintf(['Stitch file found:\n\t%s (in: %s)'...
-                            '\n\t(in function: %s)'],...
-                            dop.def.stitch_file,dop.def.stitch_dir,mfilename);
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                if dop.tmp.stitch
+                    if and(~isempty(dop.tmp.stitch_file),~isempty(dop.tmp.stitch_dir)) || ...
+                            ~isempty(dop.tmp.stitch_fullfile)
+                        if and(~isempty(dop.tmp.stitch_file),~isempty(dop.tmp.stitch_dir))
+                            dop.tmp.stitch_fullfile = fullfile(dop.tmp.stitch_dir,dop.tmp.stitch_file);
+                            dop.def.stitch_fullfile = dop.tmp.stitch_fullfile;
+                        else
+                            [dop.def.stitch_dir,dop.tmp.stitch_file,dop.tmp.stitch_ext] = fileparts(dop.tmp.stitch_fullfile);
+                            dop.tmp.stitch_file = [dop.tmp.stitch_file,dop.tmp.stitch_ext];
+                            dop.def.stitch_file = dop.tmp.stitch_file;
+                        end
+                        if ~exist(dop.tmp.stitch_fullfile,'file')
+                            okay = 0;
+                        else
+                            msg{end+1} = sprintf(['Stitch file found:\n\t%s (in: %s)'...
+                                '\n\t(in function: %s)'],...
+                                dop.def.stitch_file,dop.def.stitch_dir,mfilename);
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        end
                     end
                 end
                 if isempty(dop.tmp.dir)

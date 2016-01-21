@@ -106,6 +106,8 @@ function [dop,okay,msg] = dopManualPOI(dop_input,varargin)
 % Edits:
 % 14-Jan-2016 NAB getting this to work for Margriet quickly - will need
 %   editing and all sorts
+% 22-Jan-2016 NAB saving a copy of the choices in the save directory for
+%   future reference (and use in this function for future processing)
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -118,11 +120,18 @@ try
         %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'poi_select',[],...
+            'poi_select',0,... % off by default
             'poi',[5 15],...
             'poi_fullfile',[], ... %
             'poi_dir',[],...
             'poi_file',[],...
+            'poi_save',1,... % save a copy of this information by default
+            'task_name','saved',...
+            'poi_save_file',[],...
+            'poi_save_dir',[],...
+            'poi_save_fullfile',[],...
+            'save_dir',[],... % this should find the default save directory
+            'delim','\t',...
             'file',[],... % for error reporting mostly
             'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
@@ -184,7 +193,7 @@ try
             %             else
             if ~isempty(dop.tmp.poi_fullfile) && exist(dop.tmp.poi_fullfile,'file')
                 %                 warndlg('Not yet programmed!','Manual epoch file');
-                [dop.tmp.poi,okay,msg] = dopManualPOIRead(dop.tmp.poi_fullfile,okay,msg);
+                [dop.tmp.poi,okay,msg] = dopManualPOIRead(dop.tmp.poi_fullfile,okay,msg,'delim',dop.tmp.delim);
             elseif ~isempty(dop.tmp.poi_file) && ~isempty(dop.tmp.poi_dir) ...
                     && exist(dop.tmp.poi_dir,'dir') ...
                     && exist(fullfile(dop.tmp.poi_dir,dop.tmp.poi_file),'file')
@@ -201,74 +210,76 @@ try
                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
             %% find the current file
+            dop.tmp.match = [];
             if isfield(dop.tmp,'poi') ...
                     && isfield(dop.tmp.poi,'poi_list') && isfield(dop.tmp.poi,'poi_values') ...
                     && ~isempty(dop.file)
                 
                 
                 dop.tmp.match = find(strcmp(dop.tmp.poi.poi_list,dop.file),1,'first');
-                if isempty(dop.tmp.match)
-                    % first let's check if the extension is mat
-                    [~,~,dop.tmp.poi_ext] = fileparts(dop.tmp.poi.poi_list{1});
-                    [~,~,dop.tmp.file_ext] = fileparts(dop.file);
-                    if ismember(dop.tmp.file_ext,{'.mat','.MAT'}) && ...
-                            ~strcmp(dop.tmp.poi_ext,dop.tmp.file_ext) && ...
-                            find(strcmp(dop.tmp.poi.poi_list,strrep(dop.file,dop.tmp.file_ext,dop.tmp.poi_ext)),1,'first')
-                        
-                        msg{end+1} = sprintf(['Assuming that %s files '...
-                            'have been converted to %s files. Adjusted '...
-                            'manual list to be %s files. Hope this is okay...'...
-                            'If not, edit the ''%s'' function around line 210'],...
-                            dop.tmp.poi_ext,dop.tmp.file_ext,dop.tmp.file_ext,...
-                            mfilename);%dop.tmp.poi_file);
-                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-                        
-                        for i = 1 : numel(dop.tmp.poi.poi_list)
-                            dop.tmp.poi.poi_list{i} = strrep(dop.tmp.poi.poi_list{i},dop.tmp.poi_ext,dop.tmp.file_ext);
-                        end
-                        % let's try again
-                        dop.tmp.match = find(strcmp(dop.tmp.poi.poi_list,dop.file),1,'first');
-                    end
+            end
+            if isempty(dop.tmp.match) && isfield(dop.tmp.poi,'poi_list')
+                % first let's check if the extension is mat
+                [~,~,dop.tmp.poi_ext] = fileparts(dop.tmp.poi.poi_list{1});
+                [~,~,dop.tmp.file_ext] = fileparts(dop.file);
+                if ismember(dop.tmp.file_ext,{'.mat','.MAT'}) && ...
+                        ~strcmp(dop.tmp.poi_ext,dop.tmp.file_ext) && ...
+                        find(strcmp(dop.tmp.poi.poi_list,strrep(dop.file,dop.tmp.file_ext,dop.tmp.poi_ext)),1,'first')
                     
+                    msg{end+1} = sprintf(['Assuming that %s files '...
+                        'have been converted to %s files. Adjusted '...
+                        'manual list to be %s files. Hope this is okay...'...
+                        'If not, edit the ''%s'' function around line 210'],...
+                        dop.tmp.poi_ext,dop.tmp.file_ext,dop.tmp.file_ext,...
+                        mfilename);%dop.tmp.poi_file);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                    
+                    for i = 1 : numel(dop.tmp.poi.poi_list)
+                        dop.tmp.poi.poi_list{i} = strrep(dop.tmp.poi.poi_list{i},dop.tmp.poi_ext,dop.tmp.file_ext);
+                    end
+                    % let's try again
+                    dop.tmp.match = find(strcmp(dop.tmp.poi.poi_list,dop.file),1,'first');
                 end
                 
-                if isempty(dop.tmp.match) % might be a full file list
-                    i = 0;
-                    while isempty(dop.tmp.match) && i < numel(dop.tmp.poi.poi_list)
-                        i = i + 1;
-                        [~,tmp_file,tmp_ext] = fileparts(dop.tmp.poi.poi_list{i});
-                        if strcmp([tmp_file,tmp_ext],dop.file)
-                            dop.tmp.match = i;
-                        elseif  ismember(dop.tmp.poi.poi_list,dop.file) %~isempty(strfind(dop.tmp.poi.poi_list,dop.file))
-                            % or from Heather Payne 01-Apr-2015
-                            % update NAB 08-May-2015
-                            dop.tmp.match = find(ismember(dop.tmp.poi.manula_list,dop.file));
-                            if isempty(dop.tmp.match)
-                                dop.tmp.match = 0;
-                            end
+            end
+            
+            if isempty(dop.tmp.match) && isfield(dop.tmp.poi,'poi_list') % might be a full file list
+                i = 0;
+                while isempty(dop.tmp.match) && i < numel(dop.tmp.poi.poi_list)
+                    i = i + 1;
+                    [~,tmp_file,tmp_ext] = fileparts(dop.tmp.poi.poi_list{i});
+                    if strcmp([tmp_file,tmp_ext],dop.file)
+                        dop.tmp.match = i;
+                    elseif  ismember(dop.tmp.poi.poi_list,dop.file) %~isempty(strfind(dop.tmp.poi.poi_list,dop.file))
+                        % or from Heather Payne 01-Apr-2015
+                        % update NAB 08-May-2015
+                        dop.tmp.match = find(ismember(dop.tmp.poi.manula_list,dop.file));
+                        if isempty(dop.tmp.match)
+                            dop.tmp.match = 0;
                         end
                     end
                 end
-                if isempty(dop.tmp.match) % not found
-                    msg{end+1} = sprintf(['file (%s) not found in '...
-                        'manual screening file: %s\n\t'...
-                        'therefore, no epochs manually excluded'],dop.file,dop.tmp.poi_file);
-                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-                    dop.poi_use = dopPlot(dop,okay,msg);
-                    [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-                else
-                    dop.poi.use = dop.tmp.poi.poi_values{dop.tmp.match};
-                    msg{end+1} = sprintf(['file (%s) found in '...
-                        'manual period of interest file: %s\n\t'...
-                        '\t manual period of interest = ',dopVarType(dop.poi.use)],...
-                        dop.file,dop.tmp.poi_file,dop.poi.use);
-                    %                     if numel(dop.tmp.exclude)
-                    %                         msg{end} = strrep(msg{end},'exclude',...
-                    %                             sprintf(['exclude: ',dopVarType(dop.tmp.exclude)],dop.tmp.exclude));
-                    %                     end
-                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-                end
             end
+            if isempty(dop.tmp.match) % not found
+                msg{end+1} = sprintf(['file (%s) not found in '...
+                    'manual period of interest file: %s\n\t'...
+                    'opening plot for manual selection'],dop.file,dop.tmp.poi_file);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dop.poi.use = dopPlot(dop,okay,msg,'poi_select',dop.tmp.poi_select);
+                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+            else
+                dop.poi.use = dop.tmp.poi.poi_values{dop.tmp.match};
+                msg{end+1} = sprintf(['file (%s) found in '...
+                    'manual period of interest file: %s\n\t'...
+                    '\t manual period of interest = ',dopVarType(dop.poi.use)],...
+                    dop.file,dop.tmp.poi_file,dop.poi.use);
+                %                     if numel(dop.tmp.exclude)
+                %                         msg{end} = strrep(msg{end},'exclude',...
+                %                             sprintf(['exclude: ',dopVarType(dop.tmp.exclude)],dop.tmp.exclude));
+                %                     end
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            end
+            
             %             %% check the exclusion fits within the current set of epochs
             %             if ~isempty(dop.tmp.exclude) && ...
             %                     sum(dop.tmp.exclude > dop.event.n)
@@ -291,9 +302,48 @@ try
             %             end
             dop.save.poi_lower = dop.poi.use(1);
             dop.save.poi_upper = dop.poi.use(2);
-            
+            dop.poi.string = sprintf('[%i %i]',dop.poi.use);
+            if dop.tmp.poi_save
+                if isempty(dop.tmp.poi_save_file) && isempty(dop.tmp.poi_save_fullfile)
+                    dop.poi.save_file = sprintf('%s_%s.txt',dop.tmp.task_name,mfilename);
+                elseif isempty(dop.tmp.poi_save_file)
+                    [dop.poi.save_dir,dop.poi.save_file,dop.poi.file_ext] = fileparts(dop.tmp.poi_save_fullfile);
+                    dop.poi.save_file = [dop.poi.save_file,dop.poi.file_ext];
+                elseif isempty(dop.tmp.poi_save_fullfile)
+                    dop.poi.save_file = dop.tmp.file;
+                    % should have checks on this to make sure it's a
+                    % sensible extension
+                end
+                if isempty(dop.tmp.poi_save_dir) && isempty(dop.tmp.poi_save_fullfile) && isempty(dop.tmp.save_dir)
+                    dop.poi.dir = pwd; % current directory
+                elseif ~isempty(dop.tmp.poi_save_dir)
+                    dop.poi.save_dir = dop.tmp.poi_save_dir;
+                elseif ~isempty(dop.tmp.save_dir)
+                    dop.poi.save_dir = dop.tmp.save_dir;
+                    %                 elseif ~isempty(dop.tmp.poi_save_fullfile) % should
+                    %                 already have this from file check above
+                    
+                end
+                if ~exist(dop.poi.save_dir,'dir')
+                    mkdir(dop.poi.save_dir);
+                end
+                dop.poi.save_fullfile = fullfile(dop.poi.save_dir,dop.poi.save_file);
+                if ~exist(dop.poi.save_fullfile,'file')
+                    dop.tmp.fid = fopen(dop.poi.save_fullfile,'w');
+                    fprintf(dop.tmp.fid,['%s',dop.tmp.delim,'%s\n'],...
+                        'file','selected_period_of_interest');
+                    fclose(dop.tmp.fid);
+                end
+                dop.tmp.fid = fopen(dop.poi.save_fullfile,'a');
+                fprintf(dop.tmp.fid,['%s',dop.tmp.delim,'%s\n'],...
+                    dop.tmp.file,dop.poi.string);
+                fclose(dop.tmp.fid);
+                msg{end+1} = sprintf(['Selected period of interest (%s) '...
+                    'for file %s,\n\twritten/saved to file %s (%s)'],...
+                    dop.poi.string,dop.file,dop.poi.save_file,dop.poi.save_dir);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            end
         end
-        
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

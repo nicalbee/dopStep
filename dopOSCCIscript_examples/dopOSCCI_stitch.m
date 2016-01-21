@@ -18,10 +18,18 @@
 clc;
 % clear all;
 % Freeze foot folders
-task_name = 'FreezeFoot';
-base_folder = '/Users/mq20111600/Google Drive/nWorkProjects/DopplerDowns/data/freezefoot/';
+% task_name = 'FreezeFoot';
+% base_folder = '/Users/mq20111600/Google Drive/nWorkProjects/DopplerDowns/data/freezefoot/';
+task_name = 'rabbits';
+base_folder = sprintf('/Users/mq20111600/Google Drive/nWorkProjects/DopplerDowns/data/%s/',task_name);
 folders = {'td14','ds14','td4'};
-manual_poi = 1;
+% manual_poi = 1;
+% stitch_on = 1; % stitch will be on as long as you:
+% 1. provide the stitch_file & stitch_dir (or stitch_fullfile) variables 
+%   (dopGetFileList looks for these and overrides it's default function)
+% And
+% 2. run the dopStitch function at the end of the script - after
+%   dopCalcAuto and dopSave (probably dopDataCollect and dopProgress as well)
 
 for k = 1 : 1
     clear dop
@@ -94,12 +102,20 @@ for k = 1 : 1
 %         dop.def.manual_dir = '/Users/mq20111600/Dropbox/HannahProjects/langLatTaskDemands/data/manual_screening_fTCDdata'; % directory
     
 % manual period of interest
-        dop.def.poi_select = 1;
-        dop.def.poi_file = 'poi_manual.csv'; % specify the manual screening file
-        dop.def.poi_dir = '/Users/mq20111600/Google Drive/nWorkProjects/DopplerDowns/data/period_of_interest/'; % directory
-    
-    [dop,okay] = dopGetFileList(dop);
+dop.def.poi_select = 1;
+%         dop.def.poi_file = 'poi_manual.csv'; % specify the manual screening file
+%     
+%         dop.def.poi_dir = '/Users/mq20111600/Google Drive/nWorkProjects/DopplerDowns/data/period_of_interest/'; % directory
+        
+        dop.def.stitch = 1; % turn this on and off
+        dop.def.stitch_file = 'rabbits_stitchfile.csv';
+dop.def.stitch_dir = '/Users/mq20111600/Google Drive/nWorkProjects/DopplerDowns/data/stitch';
+% dop.def.stitch_fullfile = [];
 
+
+% the dopGetFileList function will look in the stich_dir/stich_file if it
+% exists and then loop through these files
+            [dop,okay] = dopGetFileList(dop);
     if okay
         for i = 1 : numel(dop.file_list)
             in.file = dop.file_list{i};
@@ -145,24 +161,8 @@ for k = 1 : 1
             
             [dop,okay,msg] = dopBaseCorrect(dop,okay,msg);
             
-            % manual period of interest selection
-            
-%             poi_tmp = dop.def.poi;
-%             if manual_poi
-%                 % this will look in the file manual POI file and pull out
-%                 % the manual period of interest
-%                 % BUT if it can't find it, you'll need to select it
-%                 % manually...
-%                 [dop,okay,msg] = dopManualPOI(dop,okay,msg);
-%                 if isfield(dop,'poi') && isfield(dop.poi,'use')
-%                     poi_tmp = dop.poi.use;
-%                 else
-%                     poi_tmp = dopPlot(dop,okay,msg,'poi_select',1,'wait');
-%                 end
-%             end
-%             dop.save.poi_lower = poi_tmp(1);
-%             dop.save.poi_upper = poi_tmp(2);
-            [dop,okay,msg] = dopCalcAuto(dop,okay,msg); %,'poi',poi_tmp);
+
+            [dop,okay,msg] = dopCalcAuto(dop,okay,msg);
             
             [dop,okay,msg] = dopSave(dop,okay,msg);%,'save_dir',dop.save.save_dir);
             
@@ -173,6 +173,10 @@ for k = 1 : 1
 
             %% collect grp data?
             %     dop.grp.Difference.poi.data(:,j) = dop.overall.Difference.poi.data;
+            
+            % regarding stitching - could collect average of everything and
+            % might be able to play with it so that it collects and can
+            % plot file1, file 2, and combined... if desirable
             [dop] = dopDataCollect(dop,okay,msg);
             %         end
             %         if ~okay
@@ -180,14 +184,60 @@ for k = 1 : 1
             %             % type 'return' to exit keyboard mode
             %         end
             dop = dopProgress(dop);
+            
+            %% 'stitching' multiple files together
+            [dop,okay,msg] = dopStitch(dop,okay,msg);
+%             if stitch_on && okay
+%                 % which file?
+%                 ii = 0;
+%                 stitch_match = 0;
+%                 while ~stitch_match && ii < size(dop.stitch.file_sets,1); ii = ii + 1;
+%                     jj = 0;
+%                     while ~stitch_match && jj < size(dop.stitch.file_sets,2); jj = jj + 1;
+%                         if strcmp(dop.file,dop.stitch.file_sets{ii,jj})
+%                             stitch_match = 1;
+%                         end
+%                     end
+%                 end
+%                 if stitch_match
+%                     dop.stitch.collect(jj).data = dop.data.use;
+%                     dop.stitch.epoch.n(jj) = size(dop.stitch.collect(jj).data,2);
+%                     dop.stitch.epoch.screen(jj).data = dop.epoch.screen;
+%                     dop.stitch.epoch.okay(jj) = sum(dop.epoch.screen);
+%                     if jj == size(dop.stitch.file_sets,2)
+%                         dop.stitch.data = [];
+%                         dop.stitch.ep_screen = [];
+%                         for ii = 1 : size(dop.stitch.file_sets,2)
+%                             dop.stitch.data = [dop.stitch.data,dop.stitch.collect(jj).data]; %(:,1:min(dop.stitch.epochs.n),:)];
+%                             %                             dop.stitch.epoch.screen.collect = [dop.stitch.epoch.screen.collect,dop.stitch.epoch.screen(jj).data];
+%                             % best to randomly drop 1 or more trials... to balance
+%                             dop.tmp.filt = dop.stitch.epoch.screen(jj).data;
+%                             if dop.stitch.epoch.okay(jj) > min(dop.stitch.epoch.okay)
+%                                 dop.tmp.use = find(dop.tmp.filt);
+%                                 dop.tmp.rand = dop.tmp.use(randperm(numel(dop.tmp.use)));
+%                                 dop.tmp.filt(dop.tmp.rand(min(dop.stitch.epoch.okay)+1:end)) = 0;
+%                             end
+%                             dop.stitch.ep_screen = [dop.stitch.ep_screen,dop.stitch.epoch.screen(jj).data];
+%                         end
+%                         
+%                     dop.data.use = dop.stitch.data;
+%                     dop.save.file = sprintf(['%s',repmat('_%s',size(dop.stitch.file_sets,2)-1)],dop.stitch.file_sets{ii,:});
+%                     dop.epoch.screen = dop.stitch.ep_screen;
+%                     [dop,okay,msg] = dopCalcAuto(dop,okay,msg,'poi',poi_tmp);
+%                     
+%                     [dop,okay,msg] = dopSave(dop,okay,msg);%,'save_dir',dop.save.save_dir);
+%                     end
+%                 end
+%             end
         end
         % save the 'collected' data for all okay files
-        [dop,okay,msg] = dopSaveCollect(dop);
+        [dop,okay,msg] = dopSaveCollect(dop,'type','base');
         % plot the 'collected' data for all okay files
         [dop,okay,msg] = dopPlot(dop,'collect','type','base');
         %     [dop,okay,msg] = dopPlot(dop,'collect','wait');
         % close all popup warning dialogs with one command :)
         dopCloseMsg;
+        dopCloseProgress;
     end
 end
 dopOSCCIalert('finish');
