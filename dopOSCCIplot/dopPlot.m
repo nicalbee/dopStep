@@ -94,6 +94,9 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 %   automatically
 % 21-Jan-2016 NAB added the '== 1' to if size(dop.tmp.plot_data,3) == 1,
 %   can't remember when this was relevant...
+% 08-Feb-2016 NAB changed the treatment of non-baseline corrected data -
+%   substracting the first point rather than an average - specifcally for
+%   visualisation raw data
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -294,12 +297,14 @@ try
                     end
                     
                     if okay && mean(dop.tmp.plot_data(:,1)) > 30
-                        msg{end+1} = sprintf(['Data mean > 30 (%3.2f : %3.2f). Subtrating',...
-                            ' mean and recalculating diff + average to plot the data around zero'],...
+                        msg{end+1} = sprintf(['Data mean > 30 (%3.2f : %3.2f). Subtrating ',...
+                            'the first point/value from each channel and ',...
+                            'recalculating diff + average to plot the data around zero'],...
                             mean(dop.tmp.plot_data(:,1:2)));
                         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                         % scale the left and right channels
-                        dop.tmp.plot_data(:,1:2) = bsxfun(@minus,dop.tmp.plot_data(:,1:2),mean(dop.tmp.plot_data(:,1:2)));
+%                         dop.tmp.plot_data(:,1:2) = bsxfun(@minus,dop.tmp.plot_data(:,1:2),mean(dop.tmp.plot_data(:,1:2)));
+                        dop.tmp.plot_data(:,1:2) = bsxfun(@minus,dop.tmp.plot_data(:,1:2),dop.tmp.plot_data(1,1:2));
                         % difference
                         dop.tmp.plot_data(:,3) = dop.tmp.plot_data(:,1) - dop.tmp.plot_data(:,2);
                         % average
