@@ -111,6 +111,7 @@ try
             'msg',1,... % show messages
             'wait_warn',0,... % wait to close warning dialogs
             'type','use',...
+            'plot',1,...
             'epoch',[], ... %
             'poi',[],... %'
             'poi_select',0, ... % manual selection of period of interest
@@ -125,340 +126,345 @@ try
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
         %% which type
-        if dop.tmp.collect
-            if ~isfield(dop,'collect') || ~isfield(dop.collect,dop.tmp.type)
+        if dop.tmp.plot
+            if dop.tmp.collect
+                if ~isfield(dop,'collect') || ~isfield(dop.collect,dop.tmp.type)
+                    okay = 0;
+                    msg{end+1} = sprintf('Can''t find ''dop.collect'' or ''dop.collect.%s variable',dop.tmp.type);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                else
+                    dop.tmp.data = dop.collect.(dop.tmp.type).data;
+                    msg{end+1} = sprintf('Plotting collected data, type ''%s'' set',dop.tmp.type);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                end
+            elseif strcmp(dop.tmp.type,dop.tmp.defaults.type) && ...
+                    isfield(dop.data,'use_type')
+                % dop.data.use_type is the currently used data variable
+                dop.tmp.type = dop.data.use_type;
+                dop.tmp.data = dop.data.use;
+                msg{end+1} = sprintf('Default type variable ''%s'' set',dop.tmp.type);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            elseif ~strcmp(dop.tmp.type,dop.tmp.defaults.type) && isfield(dop,'data') && isfield(dop.data,dop.tmp.type)
+                dop.tmp.data = dop.data.(dop.tmp.type);
+                %             dop.tmp.type = dop.data.use_type; % default data
+                msg{end+1} = sprintf('Type variable inputted ''%s'' and data found',dop.tmp.type);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            elseif isfield(dop.tmp,'data') && ~isempty(dop.tmp.data)
+                msg{end+1} = sprintf('Raw data inputted\n');
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            elseif ~isempty(dop.tmp.type)
                 okay = 0;
-                msg{end+1} = sprintf('Can''t find ''dop.collect'' or ''dop.collect.%s variable',dop.tmp.type);
+                msg{end+1} = sprintf('Can''t find ''dop.data.%s'' variable',dop.tmp.type);
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             else
-                dop.tmp.data = dop.collect.(dop.tmp.type).data;
-                msg{end+1} = sprintf('Plotting collected data, type ''%s'' set',dop.tmp.type);
+                okay = 0;
+                msg{end+1} = '''dop.data.use_type'' variable unspecified - can''t identify the data';
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
-        elseif strcmp(dop.tmp.type,dop.tmp.defaults.type) && ...
-                isfield(dop.data,'use_type')
-            % dop.data.use_type is the currently used data variable
-            dop.tmp.type = dop.data.use_type;
-            dop.tmp.data = dop.data.use;
-            msg{end+1} = sprintf('Default type variable ''%s'' set',dop.tmp.type);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        elseif ~strcmp(dop.tmp.type,dop.tmp.defaults.type) && isfield(dop,'data') && isfield(dop.data,dop.tmp.type)
-            dop.tmp.data = dop.data.(dop.tmp.type);
-            %             dop.tmp.type = dop.data.use_type; % default data
-            msg{end+1} = sprintf('Type variable inputted ''%s'' and data found',dop.tmp.type);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        elseif isfield(dop.tmp,'data') && ~isempty(dop.tmp.data)
-            msg{end+1} = sprintf('Raw data inputted\n');
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        elseif ~isempty(dop.tmp.type)
-            okay = 0;
-            msg{end+1} = sprintf('Can''t find ''dop.data.%s'' variable',dop.tmp.type);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        else
-            okay = 0;
-            msg{end+1} = '''dop.data.use_type'' variable unspecified - can''t identify the data';
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        end
-        
-        if okay
-            %             dop.tmp.data = dop.data.(dop.tmp.type);
             
-            
-            % open the figure
-            dop.fig.h = figure('Units','Normalized',...
-                'Position',dop.tmp.position,...
-                'NumberTitle','off',...
-                'Name',dopPlotName(dop),...
-                'UserData',dop);
-            % moved this below the dopPlotName function - 'epoch_norm'
-            % doesn't exist in the data
-            switch dop.tmp.type
-                case 'norm'
-                    % 07-Jan-2016 NAB adjusted to let 'collect' in here by
-                    % default
-                    if or(dop.tmp.collect,isfield(dop,'event') && size(dop.tmp.data,2) == dop.event.n)
-                        dop.tmp.type = 'epoch_norm';
-                    end
-            end
-            %             dopPlotAxes(dop.fig.h);
-            %             dopPlotXbuttons(dop.fig.h);
-            
-            switch dop.tmp.type
-                case {'raw','channels','norm','down','trim','hc_data',...
-                        'hc_correct','hc_linspace','act_correct','event',...
-                        'act_correct_plot','clip'}
-                    dopPlotComponents(dop.fig.h);
-                    
-                    dop.fig.ch = get(dop.fig.h,'children');
-                    dop.fig.ax = dop.fig.ch(strcmp(get(dop.fig.ch,'Type'),'axes'));
-                    dop.fig.xdata = (1/dop.tmp.sample_rate):(1/dop.tmp.sample_rate):size(dop.tmp.data,1)*(1/dop.tmp.sample_rate);
-                    if isfield(dop,'data') && isfield(dop.data,'channel_labels') && size(dop.tmp.data,2) <= numel(dop.data.channel_labels);
-                        if ~isfield(dop,'data') && ~isfield(dop.data,'channel_colours')
-                            dop.data.channel_colours = {'b','r','g'};
+            if okay
+                %             dop.tmp.data = dop.data.(dop.tmp.type);
+                
+                
+                % open the figure
+                dop.fig.h = figure('Units','Normalized',...
+                    'Position',dop.tmp.position,...
+                    'NumberTitle','off',...
+                    'Name',dopPlotName(dop),...
+                    'UserData',dop);
+                % moved this below the dopPlotName function - 'epoch_norm'
+                % doesn't exist in the data
+                switch dop.tmp.type
+                    case 'norm'
+                        % 07-Jan-2016 NAB adjusted to let 'collect' in here by
+                        % default
+                        if or(dop.tmp.collect,isfield(dop,'event') && size(dop.tmp.data,2) == dop.event.n)
+                            dop.tmp.type = 'epoch_norm';
                         end
-                        for i = 1 : size(dop.tmp.data,2)
-                            dop.tmp.ev_plot = [dop.data.channel_labels{i},'_plot'];
-                            dop.tmp.ev_patch = [dop.data.channel_labels{i},'_patch'];
-                            if numel(unique(dop.tmp.data(:,i))) == 2 && ...
-                                    or(isfield(dop.data,dop.tmp.ev_plot),...
-                                    isfield(dop.data,dop.tmp.ev_patch))
-                                if isfield(dop.data,dop.tmp.ev_patch)
-                                    ydata = ones(4,size(dop.data.(dop.tmp.ev_patch),2));
-                                    ydata = bsxfun(@times,ydata,[ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))]');
-                                    patch(dop.data.(dop.tmp.ev_patch),...
-                                        ydata,dopPlotColours(dop.data.channel_labels{i}),...
-                                        'FaceAlpha',.3,'EdgeAlpha',0,...
-                                        'Parent',dop.fig.ax,...
-                                        'EdgeColor',dopPlotColours(dop.data.channel_labels{i}),...
-                                        'Tag',dop.data.channel_labels{i},...
-                                        'DisplayName',dop.data.channel_labels{i});
-                                    
+                end
+                %             dopPlotAxes(dop.fig.h);
+                %             dopPlotXbuttons(dop.fig.h);
+                
+                switch dop.tmp.type
+                    case {'raw','channels','norm','down','trim','hc_data',...
+                            'hc_correct','hc_linspace','act_correct','event',...
+                            'act_correct_plot','clip'}
+                        dopPlotComponents(dop.fig.h);
+                        
+                        dop.fig.ch = get(dop.fig.h,'children');
+                        dop.fig.ax = dop.fig.ch(strcmp(get(dop.fig.ch,'Type'),'axes'));
+                        dop.fig.xdata = (1/dop.tmp.sample_rate):(1/dop.tmp.sample_rate):size(dop.tmp.data,1)*(1/dop.tmp.sample_rate);
+                        if isfield(dop,'data') && isfield(dop.data,'channel_labels') && size(dop.tmp.data,2) <= numel(dop.data.channel_labels);
+                            if ~isfield(dop,'data') && ~isfield(dop.data,'channel_colours')
+                                dop.data.channel_colours = {'b','r','g'};
+                            end
+                            for i = 1 : size(dop.tmp.data,2)
+                                dop.tmp.ev_plot = [dop.data.channel_labels{i},'_plot'];
+                                dop.tmp.ev_patch = [dop.data.channel_labels{i},'_patch'];
+                                if numel(unique(dop.tmp.data(:,i))) == 2 && ...
+                                        or(isfield(dop.data,dop.tmp.ev_plot),...
+                                        isfield(dop.data,dop.tmp.ev_patch))
+                                    if isfield(dop.data,dop.tmp.ev_patch)
+                                        ydata = ones(4,size(dop.data.(dop.tmp.ev_patch),2));
+                                        ydata = bsxfun(@times,ydata,[ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))]');
+                                        patch(dop.data.(dop.tmp.ev_patch),...
+                                            ydata,dopPlotColours(dop.data.channel_labels{i}),...
+                                            'FaceAlpha',.3,'EdgeAlpha',0,...
+                                            'Parent',dop.fig.ax,...
+                                            'EdgeColor',dopPlotColours(dop.data.channel_labels{i}),...
+                                            'Tag',dop.data.channel_labels{i},...
+                                            'DisplayName',dop.data.channel_labels{i});
+                                        
+                                    else
+                                        % event data has been set to ones and zeros
+                                        dop.tmp.events = find(dop.tmp.data(:,i));
+                                        dop.tmp.ylim = get(dop.fig.ax,'Ylim');
+                                        %                                 for j = 1 : numel(dop.tmp.events)
+                                        plot(dop.data.(dop.tmp.ev_plot)(:,2)*(1/dop.tmp.sample_rate),...
+                                            dop.data.(dop.tmp.ev_plot)(:,1)*max(dop.tmp.ylim),....
+                                            'color',dopPlotColours(dop.data.channel_labels{i}),...dop.data.channel_colours{i},...
+                                            'Tag',dop.data.channel_labels{i},...
+                                            'DisplayName',dop.data.channel_labels{i});
+                                        %                                 end
+                                    end
                                 else
-                                    % event data has been set to ones and zeros
-                                    dop.tmp.events = find(dop.tmp.data(:,i));
-                                    dop.tmp.ylim = get(dop.fig.ax,'Ylim');
-                                    %                                 for j = 1 : numel(dop.tmp.events)
-                                    plot(dop.data.(dop.tmp.ev_plot)(:,2)*(1/dop.tmp.sample_rate),...
-                                        dop.data.(dop.tmp.ev_plot)(:,1)*max(dop.tmp.ylim),....
+                                    plot(dop.fig.xdata,...
+                                        dop.tmp.data(:,i),...
                                         'color',dopPlotColours(dop.data.channel_labels{i}),...dop.data.channel_colours{i},...
                                         'Tag',dop.data.channel_labels{i},...
                                         'DisplayName',dop.data.channel_labels{i});
-                                    %                                 end
                                 end
-                            else
-                                plot(dop.fig.xdata,...
-                                    dop.tmp.data(:,i),...
-                                    'color',dopPlotColours(dop.data.channel_labels{i}),...dop.data.channel_colours{i},...
-                                    'Tag',dop.data.channel_labels{i},...
-                                    'DisplayName',dop.data.channel_labels{i});
+                                if i == 1; hold; end
                             end
-                            if i == 1; hold; end
-                        end
-                        dopPlotLegend(dop.fig.h);
-                    else
-                        
-                        plot(dop.fig.ax,dop.fig.xdata,dop.tmp.data);
-                        dop.tmp.ch = get(dop.fig.ax,'children');
-                        for k = 1 : numel(dop.tmp.ch) % size(dop.tmp.data,2)
-                            dop.tmp.display_name = sprintf('column_%u',k);
-                            if isfield(dop.data,'file_info') && isfield(dop.data.file_info,'dataLabels') ...
-                                    && numel(dop.data.file_info.dataLabels) >= k
-                                dop.tmp.display_name = dop.data.file_info.dataLabels{k};
-                            end
-                            set(dop.tmp.ch(numel(dop.tmp.ch)+1-k),'DisplayName',dop.tmp.display_name);
-                        end
-                        dopPlotLegend(dop.fig.h);
-                    end
-                    set(get(dop.fig.ax,'YLabel'),'string','Blood Flow Velocity');
-                    set(get(dop.fig.ax,'XLabel'),'string','Recording time in seconds');
-                    dopPlotSetAxes(dop);
-                    if dop.tmp.wait; uiwait(dop.fig.h); end
-                    %% Epoched Plot
-                case {'epoch','base','epoch_norm'};
-                    
-                    dopPlotComponents(dop.fig.h,'epoch','poi_select',dop.tmp.poi_select); % needs more work
-                    dop.fig.ax = get(dop.fig.h,'CurrentAxes');
-                    
-                    %% > check scaling of data is around zero
-                    if dop.tmp.collect || ~isfield(dop,'epoch') || ~isfield(dop.epoch,'screen')
-                        dop.plot.screen = true(1,size(dop.tmp.data,2));
-                        msg{end+1} = 'No ''dop.epoch.screen'' variable - using all epochs';
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                    else
-                        dop.plot.screen = dop.epoch.screen;
-                    end
-                    switch sum(dop.plot.screen)
-                        case 0
-                            okay = 0;
-                            msg{end+1} = sprintf(['No data available'...
-                                ' after screening\n\t(%s: %s:)'],...
-                                mfilename,dop.file);
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                        case 1
-                            dop.tmp.plot_data = mean(dop.tmp.data(:,dop.plot.screen,:),2);
-                        otherwise
-                            dop.tmp.plot_data = mean(squeeze(dop.tmp.data(:,dop.plot.screen,:)),2);
-                    end
-                    if okay && dop.tmp.collect && isfield(dop,'collect') && ...
-                            isfield(dop.collect,dop.tmp.type) && ...
-                            isfield(dop.collect.(dop.tmp.type),'data') && ...
-                            ~isempty(dop.collect.(dop.tmp.type).data)
-                        
-                        dop.plot.screen = ones(1,size(dop.collect.(dop.tmp.type).data,2));
-                        dop.plot.screen = logical(dop.plot.screen);
-                        
-                        % don't need to mean when it's just a single lot of data
-                        dop.tmp.data = dop.collect.(dop.tmp.type).data;
-                        set(dop.fig.h,'UserData',dop); % update the tmp data - amongst other things
-                        dop.tmp.plot_data = squeeze(dop.collect.(dop.tmp.type).data(:,dop.plot.screen,:));
-                        if numel(dop.plot.screen) > 1
-                            dop.tmp.plot_data = mean(squeeze(dop.collect.(dop.tmp.type).data(:,dop.plot.screen,:)),2);
-                        end
-                    end
-                    
-                    if okay && mean(dop.tmp.plot_data(:,1)) > 30
-                        msg{end+1} = sprintf(['Data mean > 30 (%3.2f : %3.2f). Subtrating ',...
-                            'the first point/value from each channel and ',...
-                            'recalculating diff + average to plot the data around zero'],...
-                            mean(dop.tmp.plot_data(:,1:2)));
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                        % scale the left and right channels
-%                         dop.tmp.plot_data(:,1:2) = bsxfun(@minus,dop.tmp.plot_data(:,1:2),mean(dop.tmp.plot_data(:,1:2)));
-                        dop.tmp.plot_data(:,1:2) = bsxfun(@minus,dop.tmp.plot_data(:,1:2),dop.tmp.plot_data(1,1:2));
-                        % difference
-                        dop.tmp.plot_data(:,3) = dop.tmp.plot_data(:,1) - dop.tmp.plot_data(:,2);
-                        % average
-                        dop.tmp.plot_data(:,4) = mean(dop.tmp.plot_data(:,1:2),2);
-                    end
-                    
-                    %% > add the main data
-                    % left, right, difference, average
-                    % collect the handles for easy stacking:
-                    if okay
-                        if ~isfield(dop,'data') || ~isfield(dop.data,'epoch_labels')
-                            % assume this is the case...
-                            dop.data.epoch_labels = {'Left','Right','Difference','Average'};
-                            if size(dop.tmp.plot_data,3) == 1 % 21-Jan-2016 NAB added the == 1, can't remember when this was relevant...
-                                dop.data.epoch_labels = {'Difference'};
-                            end
-                        end
-                        if ~isfield(dop,'epoch') || ~isfield(dop.epoch,'times')
-                            dop.epoch.times = dop.tmp.epoch(1)+((0:size(dop.tmp.data,1)-1)*(1/dop.tmp.sample_rate));
-                        end
-                        for i = 1 : size(dop.tmp.plot_data,3) % numel(dop.data.epoch_labels) %
-                            if i == 1 && ishold(dop.fig.h); hold; end
-                            dop.tmp.name = dop.data.epoch_labels{i};
-                            dop.tmp.(dop.tmp.name).h = plot(dop.epoch.times,...
-                                mean(squeeze(dop.tmp.plot_data(:,i)),2),...
-                                'color',dopPlotColours(lower(dop.tmp.name)),...
-                                'DisplayName',dop.tmp.name,'linewidth',2,...
-                                'Visible','off','Tag',dop.tmp.name);
-                            if sum(strcmpi(dop.tmp.ep_vis,dop.tmp.name));
-                                set(dop.tmp.(dop.tmp.name).h,'Visible','on');
-                            end
-                            dop.tmp.data_handles(i) = dop.tmp.(dop.tmp.name).h;
-                        end
-                        
-                        
-                        % 'baseline' and 'poi' (period of interest) blocks of
-                        % colour - put in the activation window aswell
-                        dop.tmp.patches = {'baseline','poi'};
-                        for i = 1 : numel(dop.tmp.patches)
-                            dop.tmp.([dop.tmp.patches{i},'h']) = ...
-                                patch([dop.tmp.(dop.tmp.patches{i})(end,:) fliplr(dop.tmp.(dop.tmp.patches{i})(end,:))],...
-                                [ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))],...
-                                dopPlotColours(dop.tmp.patches{i}),...
-                                'FaceAlpha',.3,'EdgeAlpha',0,...
-                                'Parent',dop.fig.ax,...
-                                'EdgeColor',dopPlotColours(dop.tmp.patches{i}),...
-                                'DisplayName',dop.tmp.patches{i},...
-                                'Tag',dop.tmp.patches{i});
-                        end
-                        %% add the peak
-                        dop.tmp.peak_data = dop.tmp.plot_data;
-                        if size(dop.tmp.plot_data,3) > 1
-                            dop.tmp.peak_data = dop.tmp.plot_data(:,:,3);
-                        end
-                        [dop.tmp.sum,peak_okay] = dopCalcSummary(dop.tmp.peak_data,...
-                            'period','poi',...
-                            'epoch',dop.tmp.epoch,...
-                            'act_window',dop.tmp.act_window,...
-                            'sample_rate',dop.tmp.sample_rate,...
-                            'poi',dop.tmp.poi(end,:));
-                        if peak_okay
-                            dop.tmp.act_values = [-dop.tmp.act_window*.5 dop.tmp.act_window*.5]+dop.tmp.sum.peak_latency;
-                            % check if the peak is right at the end, adjust
-                            % activation window accordingly
-                            if dop.tmp.act_values(2) > dop.epoch.times(end)
-                                dop.tmp.act_values = [-dop.tmp.act_window 0]+dop.epoch.times(end);
-                            end
-                            dop.tmp.act_windowh = ...
-                                patch([dop.tmp.act_values fliplr(dop.tmp.act_values)],...
-                                [ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))],...
-                                dopPlotColours('act_window'),...
-                                'Parent',dop.fig.ax,...
-                                'FaceAlpha',.3,'EdgeAlpha',0,...
-                                'EdgeColor',dopPlotColours('act_window'),...
-                                'DisplayName','act. window',...
-                                'Tag','act_window');
+                            dopPlotLegend(dop.fig.h);
+                        else
                             
-                            dop.tmp.latency.h = plot(dop.fig.ax,...
-                                ones(1,2)*dop.tmp.sum.peak_latency,get(dop.fig.ax,'YLim'),...
-                                'color',dopPlotColours('peak'),'Tag','peak',...
-                                'LineWidth',2,...
-                                'DisplayName','peak',...
-                                'Tag','peak');
+                            plot(dop.fig.ax,dop.fig.xdata,dop.tmp.data);
+                            dop.tmp.ch = get(dop.fig.ax,'children');
+                            for k = 1 : numel(dop.tmp.ch) % size(dop.tmp.data,2)
+                                dop.tmp.display_name = sprintf('column_%u',k);
+                                if isfield(dop.data,'file_info') && isfield(dop.data.file_info,'dataLabels') ...
+                                        && numel(dop.data.file_info.dataLabels) >= k
+                                    dop.tmp.display_name = dop.data.file_info.dataLabels{k};
+                                end
+                                set(dop.tmp.ch(numel(dop.tmp.ch)+1-k),'DisplayName',dop.tmp.display_name);
+                            end
+                            dopPlotLegend(dop.fig.h);
                         end
-                        %% > legend
-                        % do the legend at this point then it should only
-                        % inclue the 4 data channels we want - actually, be
-                        % good to have baseline, poi, and peak here as well...
-                        dopPlotLegend(dop.fig.h);
-                        % change which elements are 'on top'
-                        uistack(dop.tmp.data_handles,'top');
-                        
-                        % zero lines
-                        dop.tmp.zero.yh = plot(dop.epoch.times,...
-                            zeros(size(dop.epoch.times)),...
-                            'color',dopPlotColours('yzero'),...
-                            'DisplayName','yzero','Tag','yzero');
-                        %                     hold; % hold the plot so that first line isn't cleared when subsequent lines are plotted
-                        dop.tmp.zero.xh = plot([0 0],get(dop.fig.ax,'Ylim'),...
-                            'color',dopPlotColours('xzero'),...
-                            'DisplayName','xzero','Tag','xzero');
-                        uistack([dop.tmp.zero.yh,dop.tmp.zero.xh],'bottom');
-                        % update the vertical zero
-                        set(dop.tmp.zero.xh,'YData',get(dop.fig.ax,'YLim'));
-                        dopPlotSetAxes(dop);
-                        
-                        % clean up the axes
-                        % to find out the properties:
-                        % get(dop.fig.ax)
-                        %                     set(dop.fig.ax,'XLim',dop.tmp.epoch);
-                        %                     set(dop.fig.ax,'XTick',dop.tmp.epoch(1):abs(dop.tmp.epoch(1))*.5:dop.tmp.epoch(2));
-                        
-                        % the XLabel is itself a handle, so need to get it and then set
-                        % one if it's properties
                         set(get(dop.fig.ax,'YLabel'),'string','Blood Flow Velocity');
-                        set(get(dop.fig.ax,'XLabel'),'string','Epoch time in seconds: 0 = Event Marker');
-                        %                     [dop,okay,msg] = dopPlotSave(dop,okay,msg);
-                        %                     dop.fig.legend = legend(dop.fig.ax); % turn on the legend, uses 'DisplayName' of lines
+                        set(get(dop.fig.ax,'XLabel'),'string','Recording time in seconds');
+                        dopPlotSetAxes(dop);
+                        if dop.tmp.wait; uiwait(dop.fig.h); end
+                        %% Epoched Plot
+                    case {'epoch','base','epoch_norm'};
                         
-                        %                     set(dop.fig.ax,'Xlim',[min(dop.fig.xdata) max(dop.fig.xdata)],'TickDir','out');
-                        %                     dop.tmp.ylim = get(dop.fig.ax,'Ylim');
-                        %                     set(dop.fig.ch(and(strcmp(get(dop.fig.ch,'Type'),'uicontrol'),...
-                        %                         strcmp(get(dop.fig.ch,'Tag'),'ylower'))),'string',dop.tmp.ylim(1));
-                        %                     set(dop.fig.ch(and(strcmp(get(dop.fig.ch,'Type'),'uicontrol'),...
-                        %                         strcmp(get(dop.fig.ch,'Tag'),'yupper'))),'string',dop.tmp.ylim(2));
-                    end
-                    if dop.tmp.wait || and(dop.tmp.poi_select,~dop.tmp.collect); uiwait(dop.fig.h); end
-                    
-                otherwise
-                    msg{end+1} = sprintf('''%s'' plot type not yet programmed',...
-                        dop.tmp.type);
+                        dopPlotComponents(dop.fig.h,'epoch','poi_select',dop.tmp.poi_select); % needs more work
+                        dop.fig.ax = get(dop.fig.h,'CurrentAxes');
+                        
+                        %% > check scaling of data is around zero
+                        if dop.tmp.collect || ~isfield(dop,'epoch') || ~isfield(dop.epoch,'screen')
+                            dop.plot.screen = true(1,size(dop.tmp.data,2));
+                            msg{end+1} = 'No ''dop.epoch.screen'' variable - using all epochs';
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        else
+                            dop.plot.screen = dop.epoch.screen;
+                        end
+                        switch sum(dop.plot.screen)
+                            case 0
+                                okay = 0;
+                                msg{end+1} = sprintf(['No data available'...
+                                    ' after screening\n\t(%s: %s:)'],...
+                                    mfilename,dop.file);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            case 1
+                                dop.tmp.plot_data = mean(dop.tmp.data(:,dop.plot.screen,:),2);
+                            otherwise
+                                dop.tmp.plot_data = mean(squeeze(dop.tmp.data(:,dop.plot.screen,:)),2);
+                        end
+                        if okay && dop.tmp.collect && isfield(dop,'collect') && ...
+                                isfield(dop.collect,dop.tmp.type) && ...
+                                isfield(dop.collect.(dop.tmp.type),'data') && ...
+                                ~isempty(dop.collect.(dop.tmp.type).data)
+                            
+                            dop.plot.screen = ones(1,size(dop.collect.(dop.tmp.type).data,2));
+                            dop.plot.screen = logical(dop.plot.screen);
+                            
+                            % don't need to mean when it's just a single lot of data
+                            dop.tmp.data = dop.collect.(dop.tmp.type).data;
+                            set(dop.fig.h,'UserData',dop); % update the tmp data - amongst other things
+                            dop.tmp.plot_data = squeeze(dop.collect.(dop.tmp.type).data(:,dop.plot.screen,:));
+                            if numel(dop.plot.screen) > 1
+                                dop.tmp.plot_data = mean(squeeze(dop.collect.(dop.tmp.type).data(:,dop.plot.screen,:)),2);
+                            end
+                        end
+                        
+                        if okay && mean(dop.tmp.plot_data(:,1)) > 30
+                            msg{end+1} = sprintf(['Data mean > 30 (%3.2f : %3.2f). Subtrating ',...
+                                'the first point/value from each channel and ',...
+                                'recalculating diff + average to plot the data around zero'],...
+                                mean(dop.tmp.plot_data(:,1:2)));
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            % scale the left and right channels
+                            %                         dop.tmp.plot_data(:,1:2) = bsxfun(@minus,dop.tmp.plot_data(:,1:2),mean(dop.tmp.plot_data(:,1:2)));
+                            dop.tmp.plot_data(:,1:2) = bsxfun(@minus,dop.tmp.plot_data(:,1:2),dop.tmp.plot_data(1,1:2));
+                            % difference
+                            dop.tmp.plot_data(:,3) = dop.tmp.plot_data(:,1) - dop.tmp.plot_data(:,2);
+                            % average
+                            dop.tmp.plot_data(:,4) = mean(dop.tmp.plot_data(:,1:2),2);
+                        end
+                        
+                        %% > add the main data
+                        % left, right, difference, average
+                        % collect the handles for easy stacking:
+                        if okay
+                            if ~isfield(dop,'data') || ~isfield(dop.data,'epoch_labels')
+                                % assume this is the case...
+                                dop.data.epoch_labels = {'Left','Right','Difference','Average'};
+                                if size(dop.tmp.plot_data,3) == 1 % 21-Jan-2016 NAB added the == 1, can't remember when this was relevant...
+                                    dop.data.epoch_labels = {'Difference'};
+                                end
+                            end
+                            if ~isfield(dop,'epoch') || ~isfield(dop.epoch,'times')
+                                dop.epoch.times = dop.tmp.epoch(1)+((0:size(dop.tmp.data,1)-1)*(1/dop.tmp.sample_rate));
+                            end
+                            for i = 1 : size(dop.tmp.plot_data,3) % numel(dop.data.epoch_labels) %
+                                if i == 1 && ishold(dop.fig.h); hold; end
+                                dop.tmp.name = dop.data.epoch_labels{i};
+                                dop.tmp.(dop.tmp.name).h = plot(dop.epoch.times,...
+                                    mean(squeeze(dop.tmp.plot_data(:,i)),2),...
+                                    'color',dopPlotColours(lower(dop.tmp.name)),...
+                                    'DisplayName',dop.tmp.name,'linewidth',2,...
+                                    'Visible','off','Tag',dop.tmp.name);
+                                if sum(strcmpi(dop.tmp.ep_vis,dop.tmp.name));
+                                    set(dop.tmp.(dop.tmp.name).h,'Visible','on');
+                                end
+                                dop.tmp.data_handles(i) = dop.tmp.(dop.tmp.name).h;
+                            end
+                            
+                            
+                            % 'baseline' and 'poi' (period of interest) blocks of
+                            % colour - put in the activation window aswell
+                            dop.tmp.patches = {'baseline','poi'};
+                            for i = 1 : numel(dop.tmp.patches)
+                                dop.tmp.([dop.tmp.patches{i},'h']) = ...
+                                    patch([dop.tmp.(dop.tmp.patches{i})(end,:) fliplr(dop.tmp.(dop.tmp.patches{i})(end,:))],...
+                                    [ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))],...
+                                    dopPlotColours(dop.tmp.patches{i}),...
+                                    'FaceAlpha',.3,'EdgeAlpha',0,...
+                                    'Parent',dop.fig.ax,...
+                                    'EdgeColor',dopPlotColours(dop.tmp.patches{i}),...
+                                    'DisplayName',dop.tmp.patches{i},...
+                                    'Tag',dop.tmp.patches{i});
+                            end
+                            %% add the peak
+                            dop.tmp.peak_data = dop.tmp.plot_data;
+                            if size(dop.tmp.plot_data,3) > 1
+                                dop.tmp.peak_data = dop.tmp.plot_data(:,:,3);
+                            end
+                            [dop.tmp.sum,peak_okay] = dopCalcSummary(dop.tmp.peak_data,...
+                                'period','poi',...
+                                'epoch',dop.tmp.epoch,...
+                                'act_window',dop.tmp.act_window,...
+                                'sample_rate',dop.tmp.sample_rate,...
+                                'poi',dop.tmp.poi(end,:));
+                            if peak_okay
+                                dop.tmp.act_values = [-dop.tmp.act_window*.5 dop.tmp.act_window*.5]+dop.tmp.sum.peak_latency;
+                                % check if the peak is right at the end, adjust
+                                % activation window accordingly
+                                if dop.tmp.act_values(2) > dop.epoch.times(end)
+                                    dop.tmp.act_values = [-dop.tmp.act_window 0]+dop.epoch.times(end);
+                                end
+                                dop.tmp.act_windowh = ...
+                                    patch([dop.tmp.act_values fliplr(dop.tmp.act_values)],...
+                                    [ones(1,2)*max(get(dop.fig.ax,'Ylim')) ones(1,2)*min(get(dop.fig.ax,'Ylim'))],...
+                                    dopPlotColours('act_window'),...
+                                    'Parent',dop.fig.ax,...
+                                    'FaceAlpha',.3,'EdgeAlpha',0,...
+                                    'EdgeColor',dopPlotColours('act_window'),...
+                                    'DisplayName','act. window',...
+                                    'Tag','act_window');
+                                
+                                dop.tmp.latency.h = plot(dop.fig.ax,...
+                                    ones(1,2)*dop.tmp.sum.peak_latency,get(dop.fig.ax,'YLim'),...
+                                    'color',dopPlotColours('peak'),'Tag','peak',...
+                                    'LineWidth',2,...
+                                    'DisplayName','peak',...
+                                    'Tag','peak');
+                            end
+                            %% > legend
+                            % do the legend at this point then it should only
+                            % inclue the 4 data channels we want - actually, be
+                            % good to have baseline, poi, and peak here as well...
+                            dopPlotLegend(dop.fig.h);
+                            % change which elements are 'on top'
+                            uistack(dop.tmp.data_handles,'top');
+                            
+                            % zero lines
+                            dop.tmp.zero.yh = plot(dop.epoch.times,...
+                                zeros(size(dop.epoch.times)),...
+                                'color',dopPlotColours('yzero'),...
+                                'DisplayName','yzero','Tag','yzero');
+                            %                     hold; % hold the plot so that first line isn't cleared when subsequent lines are plotted
+                            dop.tmp.zero.xh = plot([0 0],get(dop.fig.ax,'Ylim'),...
+                                'color',dopPlotColours('xzero'),...
+                                'DisplayName','xzero','Tag','xzero');
+                            uistack([dop.tmp.zero.yh,dop.tmp.zero.xh],'bottom');
+                            % update the vertical zero
+                            set(dop.tmp.zero.xh,'YData',get(dop.fig.ax,'YLim'));
+                            dopPlotSetAxes(dop);
+                            
+                            % clean up the axes
+                            % to find out the properties:
+                            % get(dop.fig.ax)
+                            %                     set(dop.fig.ax,'XLim',dop.tmp.epoch);
+                            %                     set(dop.fig.ax,'XTick',dop.tmp.epoch(1):abs(dop.tmp.epoch(1))*.5:dop.tmp.epoch(2));
+                            
+                            % the XLabel is itself a handle, so need to get it and then set
+                            % one if it's properties
+                            set(get(dop.fig.ax,'YLabel'),'string','Blood Flow Velocity');
+                            set(get(dop.fig.ax,'XLabel'),'string','Epoch time in seconds: 0 = Event Marker');
+                            %                     [dop,okay,msg] = dopPlotSave(dop,okay,msg);
+                            %                     dop.fig.legend = legend(dop.fig.ax); % turn on the legend, uses 'DisplayName' of lines
+                            
+                            %                     set(dop.fig.ax,'Xlim',[min(dop.fig.xdata) max(dop.fig.xdata)],'TickDir','out');
+                            %                     dop.tmp.ylim = get(dop.fig.ax,'Ylim');
+                            %                     set(dop.fig.ch(and(strcmp(get(dop.fig.ch,'Type'),'uicontrol'),...
+                            %                         strcmp(get(dop.fig.ch,'Tag'),'ylower'))),'string',dop.tmp.ylim(1));
+                            %                     set(dop.fig.ch(and(strcmp(get(dop.fig.ch,'Type'),'uicontrol'),...
+                            %                         strcmp(get(dop.fig.ch,'Tag'),'yupper'))),'string',dop.tmp.ylim(2));
+                        end
+                        if dop.tmp.wait || and(dop.tmp.poi_select,~dop.tmp.collect); uiwait(dop.fig.h); end
+                        
+                    otherwise
+                        msg{end+1} = sprintf('''%s'' plot type not yet programmed',...
+                            dop.tmp.type);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        close(dop.fig.h);
+                end
+            end
+            %% save okay & msg to 'dop' structure
+            dop.okay = okay;
+            dop.msg = msg;
+            if dop.tmp.poi_select
+                if exist('poi_select.mat','file')
+                    load('poi_select.mat');
+                    delete('poi_select.mat');
+                    dop = tmp_poi;
+                    %             if exist('poi_select','var')
+                    %                 dop = poi_select;
+                    %             end
+                else
+                    msg{end+1} = ['''poi_select.mat'' file not found. ',...
+                        'Possibly closed figure without adjusting or ',...
+                        'didn''t include the ''wait'' argument in the ',...
+                        '''dopPlot'' function.'];
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                    close(dop.fig.h);
+                    dop = dop.tmp.poi;
+                end
             end
-        end
-        %% save okay & msg to 'dop' structure
-        dop.okay = okay;
-        dop.msg = msg;
-        if dop.tmp.poi_select
-            if exist('poi_select.mat','file')
-                load('poi_select.mat');
-                delete('poi_select.mat');
-                dop = tmp_poi;
-                %             if exist('poi_select','var')
-                %                 dop = poi_select;
-                %             end
-            else
-                msg{end+1} = ['''poi_select.mat'' file not found. ',...
-                    'Possibly closed figure without adjusting or ',...
-                    'didn''t include the ''wait'' argument in the ',...
-                    '''dopPlot'' function.'];
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                dop = dop.tmp.poi;
-            end
+        else
+            msg{end+1} = '''plot'' variable turned off, therefore not plotting.';
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
     end

@@ -14,24 +14,25 @@ function dopPlotEpochAxesAdjust(handle,~)
 % 02-Sep-2014 NAB
 % 12-Sep-2014 NAB problem with mean/median using dop.plot.screen variable
 % 15-Nov-2014 NAB adjusted to get number inputs into display box working
+% 14-Feb-2016 NAB added x & y zero data
 
 disp_options = {'all','median','mean'};
 % if ~isnan(str2double(get(handle,'string')))
 %     value = str2double(get(handle,'string'));
 %     if
-%     
+%
 % else
 if isnan(str2double(get(handle,'string'))) && strcmp(get(handle,'tag'),'display') ...
         && ~sum(strcmp(get(handle,'string'),disp_options))
-        h = warndlg('Unacceptable string input: setting to default','Input error:');
-        set(handle,'string',char(get(handle,'UserData')));
-        uiwait(h); % waiting for it to be deleted solves the issue
-%         dopPlotEpochAxesAdjust(handle);
-% something not working after it's been through here and I can't figure out
-% what...
-% warndlg was interferring with this... not sure why but seem to be default
-% to the warndlg handle
-%         return
+    h = warndlg('Unacceptable string input: setting to default','Input error:');
+    set(handle,'string',char(get(handle,'UserData')));
+    uiwait(h); % waiting for it to be deleted solves the issue
+    %         dopPlotEpochAxesAdjust(handle);
+    % something not working after it's been through here and I can't figure out
+    % what...
+    % warndlg was interferring with this... not sure why but seem to be default
+    % to the warndlg handle
+    %         return
 end
 
 fig_h = get(handle,'parent');
@@ -75,10 +76,10 @@ switch get(handle,'tag')
         set(disp_h,'string',value);
         
         % screening
-%         if ~isfield(dop,'plot') || ~isfield(dop.plot,'screen')
-            dop.plot.screen = ones(1,size(dop.tmp.data,2));
-            dop.plot.screen = logical(dop.plot.screen);
-%         end
+        %         if ~isfield(dop,'plot') || ~isfield(dop.plot,'screen')
+        dop.plot.screen = ones(1,size(dop.tmp.data,2));
+        dop.plot.screen = logical(dop.plot.screen);
+        %         end
         
         if isnumeric(value) && ~isnan(value)
             plot_data = squeeze(dop.tmp.data(:,value,:));
@@ -96,12 +97,12 @@ switch get(handle,'tag')
                     
             end
         end
-
-%         ch = get(fig_h,'children');
-
+        
+        %         ch = get(fig_h,'children');
+        
         
         % if size(plot_data,2) == numel(dop.data.epoch_labels)
-        tmp_labels = [dop.data.epoch_labels,{'baseline','poi','act_window','peak'}];
+        tmp_labels = [dop.data.epoch_labels,{'baseline','poi','act_window','peak'}];%,'yzero','xzero'}];
         tmp_vis = cell(1,numel(tmp_labels));%size(dop.tmp.data,2));
         check_h = zeros(1,numel(tmp_labels));%size(dop.tmp.data,2));
         for i = 1 : numel(tmp_labels); % numel(dop.data.epoch_labels)
@@ -111,6 +112,7 @@ switch get(handle,'tag')
                 tmp_vis{i} = tmp_vis{i}{1};
             end
         end
+        
         for i = 1 : numel(tmp_labels) %numel(dop.data.epoch_labels)
             if i == 1 && ishold(axes_h); hold; end
             switch tmp_labels{i}
@@ -168,10 +170,32 @@ switch get(handle,'tag')
                             'DisplayName','act. window',...
                             'Tag','act_window');
                     end
+                    %                 case 'yzero'
+                    %                     % zero lines
+                    %                         dop.tmp.zero.yh = plot(axes_h,dop.epoch.times,...
+                    %                             zeros(size(dop.epoch.times)),...
+                    %                             'color',dopPlotColours('yzero'),...
+                    %                             'DisplayName','yzero','Tag','yzero');
+                    %                 case 'xzero'
+                    %                         %                     hold; % hold the plot so that first line isn't cleared when subsequent lines are plotted
+                    %                         dop.tmp.zero.xh = plot(axes_h,[0 0],get(axes_h,'Ylim'),...
+                    %                             'color',dopPlotColours('xzero'),...
+                    %                             'DisplayName','xzero','Tag','xzero');
             end
             set(check_h(i),'UserData',line_h);
-            if i == 1; hold; end
+            %             if i == 1; hold; end
+            if i == 1; hold;
+                plot(axes_h,dop.epoch.times,...
+                    zeros(size(dop.epoch.times)),...
+                    'color',dopPlotColours('yzero'),...
+                    'DisplayName','yzero','Tag','yzero');
+                %                     hold; % hold the plot so that first line isn't cleared when subsequent lines are plotted
+                plot(axes_h,[0 0],get(axes_h,'Ylim'),...
+                    'color',dopPlotColours('xzero'),...
+                    'DisplayName','xzero','Tag','xzero');
+            end
         end
+        
         ylim = get(axes_h,'Ylim'); % let the axes adjust themselves for the epoch
         
     case 'ylower'
@@ -196,19 +220,19 @@ switch get(handle,'tag')
         ylim = round([ylim(1) - diff(ylim) ylim(2) + diff(ylim)]);
         % zoom out too far and the patches don't really the extremities...
         tmp_labels = {'baseline','poi','act_window','peak'};
-%         tmp_vis = cell(1,numel(tmp_labels));%size(dop.tmp.data,2));
+        %         tmp_vis = cell(1,numel(tmp_labels));%size(dop.tmp.data,2));
         check_h = zeros(1,numel(tmp_labels));%size(dop.tmp.data,2));
         for i = 1 : numel(tmp_labels); % numel(dop.data.epoch_labels)
             check_h(i) = legend_ch(strcmpi(get(legend_ch,'Tag'),[tmp_labels{i},'_check']));%dop.data.epoch_labels{i}));
             switch tmp_labels{i}
                 case {'baseline','poi','act_window'}
-            set(get(check_h(i),'UserData'),'YData', [ones(1,2)*max(ylim) ones(1,2)*min(ylim)]);
+                    set(get(check_h(i),'UserData'),'YData', [ones(1,2)*max(ylim) ones(1,2)*min(ylim)]);
                 case 'peak'
                     set(get(check_h(i),'UserData'),'YData', ylim);
             end
-%             if iscell(tmp_vis{i})
-%                 tmp_vis{i} = tmp_vis{i}{1};
-%             end
+            %             if iscell(tmp_vis{i})
+            %                 tmp_vis{i} = tmp_vis{i}{1};
+            %             end
         end
 end
 

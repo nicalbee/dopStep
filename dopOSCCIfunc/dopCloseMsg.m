@@ -34,7 +34,7 @@ function dopCloseMsg(report)
 %   of the messages
 % 08-Feb-2016 NAB had some troubles with this but adjusted handles and
 %   msgboxes (logical) variable interaction and seems to be fine now.
-
+% 14-Feb-2016 NAB needs to have something in it - checks for elements
 if ~exist('report','var') || isempty(report)
     report = 1;
 end
@@ -45,9 +45,9 @@ msgboxes = strfind(get(handles,'Tag'),'Msgbox');
 
 for i = 1 : numel(handles) %numel(msgboxes)
     delete_h = 0;
-    if ~iscell(msgboxes) && ~isempty(msgboxes(i))
+    if ~iscell(msgboxes) && numel(msgboxes) && ~isempty(msgboxes(i))
         delete_h = 1;
-    elseif iscell(msgboxes) && ~isempty(msgboxes{i}) %&& msgboxes{i}
+    elseif iscell(msgboxes) && numel(msgboxes) && ~isempty(msgboxes{i}) %&& msgboxes{i}
         delete_h = 1;
     end
     if delete_h

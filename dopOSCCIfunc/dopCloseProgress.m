@@ -31,6 +31,8 @@
 %
 % Created: 22-Jan-2016 NAB
 % Edits:
+% 14-Feb-2016 NAB fixed handle - trying to delete waitbars elements,
+%   incorrectly treating it as a handle...
 
 if ~exist('report','var') || isempty(report)
     report = 1;
@@ -40,7 +42,7 @@ handles = allchild(0);
 
 waitbars = strfind(get(handles,'Tag'),'TMWWaitbar');
 
-for i = 1 : numel(waitbars)
+for i = 1 : numel(handles)
     delete_h = 0;
     if ~iscell(waitbars) && waitbars(i)
         delete_h = 1;
@@ -50,7 +52,7 @@ for i = 1 : numel(waitbars)
     if delete_h
         if report
             try
-                ch = get(waitbars(i),'children');
+                ch = get(handles(i),'children');
                 ch_ch = get(ch(2),'children');
                 msg = get(ch_ch,'String');
                 fprintf('Msgbox %u:\n',i);
@@ -60,7 +62,7 @@ for i = 1 : numel(waitbars)
             end
         end
         
-        delete(waitbars(i));
+        delete(handles(i));
     end
 end
 end

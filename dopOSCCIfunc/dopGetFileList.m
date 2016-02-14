@@ -111,6 +111,7 @@ function [dop,okay,msg] = dopGetFileList(dop_input,varargin)
 % 20-Jan-2016 NAB adding the stich_file list creation to this function...
 % 22-Jan-2016 NAB added a 'stitch' switch = logical 0 or 1 
 %   (e.g., dop.def.stitch) but files (stitch_file etc.) also required
+% 14-Feb-2016 NAB problem with case sensitivity
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -201,7 +202,7 @@ try
                 else
                     dop.tmp.types = upper(dopFileTypes);
                     % stupid case sensitivity....
-                    dop.tmp.types = unique(upper(dop.tmp.types));
+                    dop.tmp.types = unique(dop.tmp.types);
                     dop.file_lists = cell(1,numel(dop.tmp.types));
                     for i = 1 : numel(dop.tmp.types)
                         switch dop.tmp.types{i}
@@ -230,6 +231,9 @@ try
                                 
                             otherwise
                                 dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.types{i})));
+                                if isempty(dop.file_lists{i})
+                                    dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',upper(dop.tmp.types{i}))));
+                                end
                         end
                         if ~isempty(dop.file_lists{i})
                             msg{end+1} = sprintf('Found %u %s files\n',...
