@@ -23,6 +23,9 @@ function [dop,okay,msg] = dopDataTrim(dop_input,varargin)
 % 29-Aug-2014 NAB
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 20-May-2015 NAB added 'showmsg'
+% 25-Feb-2016 NAB added a 'manual_trim' which allows you to cut-off the
+%   start and end of the data. In this case, used it to get rid of
+%   erroneous event makers but might be useful for other things...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -38,9 +41,10 @@ try
             'showmsg',1,...
             'wait_warn',0,...
             'epoch',[], ... %
+            'manual_trim',[],...
             'event_height',[],... % needed for dopEventMarkers
             'event_channels',[], ... % needed for dopEventMarkers
-            'sample_rate',[] ... % not critical for dopEventMarkers
+            'sample_rate',[] ... % not critical for dopEventMarkers - important for manual
             );
         inputs.required = ...
             {'epoch'};
@@ -54,6 +58,20 @@ try
             msg{end+1} = dopEventExistMsg;
         end
         if okay
+            if ~isempty(dop.tmp.manual_trim)
+                % I want to cut some of the start of the file 'manually'
+                dop.tmp.sample_time = (1/dop.tmp.sample_rate);
+                dop.tmp.samples = [1 size(dop.tmp.data,1)]; % no change
+                dop.tmp.samples(1) = dop.tmp.manual_trim(1)/dop.tmp.sample_time;
+                if numel(dop.tmp.manual_trim) == 2
+                    dop.tmp.samples(2) = dop.tmp.manual_trim(2)/dop.tmp.sample_time;
+                end
+                msg{end+1} = sprintf(['Removing data before %3.2f & ',...
+                    'after %3.2f seconds (full length = %3.2f seconds).'],...
+                    dop.tmp.samples*(1/dop.tmp.sample_rate),dop.tmp.samples(2)*(1/dop.tmp.sample_rate));
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                
+            else
             dop.tmp.events = dop.event.samples;
             % current in seconds, need to turn into samples/sample
             % points
@@ -100,8 +118,9 @@ try
                     dop.tmp.epoch(2),(size(dop.tmp.data,1) - dop.tmp.events(end))/dop.use.sample_rate);
                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
-            
+            end
             dop.data.trim = dop.tmp.data(dop.tmp.samples(1):dop.tmp.samples(2),:);
+            
             % update the use function for the dopEvent Marker update
             %                 dop.data.use = dop.data.trim;
             % update what's been done to the data
@@ -110,6 +129,7 @@ try
             [dop,okay,msg] = dopEventMarkers(dop,okay,msg);
             
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+            
         end
         
         dop.okay = okay;
