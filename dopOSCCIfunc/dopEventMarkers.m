@@ -263,12 +263,13 @@ try
         dop.msg = msg;
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
                         %% specific output for gui (dopStep)
-        if dop.tmp.gui
-            msg = sprintf(['%i events found:\nmedian separation = ',...
+        if dop.tmp.gui 
+            if ~okay
+                msg = sprintf(['%i events found:\nmedian separation = ',...
                 '%3.2f seconds (min = %3.2f, max = %3.2f)\n'],...
                 dop.event.n,median(dop.event.separation_secs),...
                 min(dop.event.separation_secs),max(dop.event.separation_secs));
-            if ~okay
+            
                 msg = [];% has it's own warning sprintf('Problem with channels: %s\n',dop.tmp.file);
             end
         end

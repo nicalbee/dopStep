@@ -50,10 +50,14 @@ try
                 'sample_rate',dop.tmp.sample_rate);
         case 'event'
             if isfield(dop.def,'event_sep') && ~isempty(dop.def.event_sep)
-                [dop,~,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,...
+                [dop,okay,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,...
                     'event_sep',dop.def.event_sep,'gui');
             else
-                [dop,~,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,'gui'); % done automatically in (and redone at end of) dopDataTrim
+                [dop,okay,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,'gui'); % done automatically in (and redone at end of) dopDataTrim
+            end
+            if okay
+                dop.tmp.h = dop.step.current.h(ismember(dop.step.current.tag,'even_chan_plot_info'));
+                set(dop.tmp.h,'Visible','on');
             end
         case 'plot'
             dop = dopPlot(dop);

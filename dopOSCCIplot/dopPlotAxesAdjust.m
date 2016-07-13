@@ -58,7 +58,7 @@ switch get(handle,'tag')
             if value > diff(max_diff)
                 value = max_diff;
             end
-            xlim(2) = xlim(1) + value;
+            xlim(2) = xlim(1) + value(end);
             if xlim(2) > size(dop.tmp.data,1)*(1/dop.tmp.sample_rate)
                 xlim(2) = size(dop.tmp.data,1)*(1/dop.tmp.sample_rate);
                 xlim(1) = xlim(2) - str2double(get(diff_h,'string'));
