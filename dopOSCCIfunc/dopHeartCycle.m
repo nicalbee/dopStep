@@ -25,6 +25,7 @@ function [dop,okay,msg] = dopHeartCycle(dop_input,varargin)
 %   next and previous values respectively
 % 04-Sep-2014 NAB msg & warn_wait updates
 % 20-May-2015 NAB added 'showmsg'
+% 25-july-2016 NAB changed 'correct' to 'step' for 'type' of correct
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -40,7 +41,7 @@ try
             'sample_rate',[], ...
             'signal_channels',[2 3],...
             'event_channels',[],... % really need to keep event data somewhere
-            'type','linspace',... % 'correct'
+            'type','linspace',... % 'step'
             'window',3, ... % number of samples to look for peak of
             'plot_range',[500 700] ... % 2 numbers and plot will be created
             );
@@ -141,8 +142,8 @@ try
             
             %% correct?
             switch dop.tmp.type % if dop.tmp.correct || dop.tmp.smooth
-                case {'correct','linspace'}
-                    if strcmp(dop.tmp.type,'correct')
+                case {'step','linspace'}
+                    if strcmp(dop.tmp.type,'step')
                         msg{end+1} = 'Correcting for heart cycles using deppe method';
                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     end
@@ -264,7 +265,7 @@ try
             %% update 'dop.data.use'
             if okay
                 switch dop.tmp.type
-                        case 'correct'
+                        case 'step'
                             dop.data.hc_correct = dop.tmp.hc_correct;
                             [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'hc_correct');
                         case 'linspace'

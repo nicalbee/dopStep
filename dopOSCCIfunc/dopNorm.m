@@ -50,7 +50,7 @@ try
             'sample_rate',[] ... % not critical for dopEventMarkers if norm by epoch
             );
         inputs.required = ...
-            {'epoch','baseline'};
+            {'epoch'}; % ,'baseline' - only required for deppe_method
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
         switch dop.tmp.norm_method

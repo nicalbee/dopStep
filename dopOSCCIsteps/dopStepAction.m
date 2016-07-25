@@ -40,6 +40,19 @@ try
                     end
                 end
             end
+        case 'norm'
+            if isfield(dop,'def') && isfield(dop.def,'norm_method')
+                switch dop.def.norm_method
+                    case 'overall'
+                        [dop,okay,msg] = dopNorm(dop,'norm_method',dop.def.norm_method);
+                    case 'epoch'
+                        [dop,okay,msg] = dopNorm(dop,'norm_method',dop.def.norm_method,...
+                            'epoch',dop.def.epoch);
+                    case 'deppe'
+                        [dop,okay,msg] = dopNorm(dop,'norm_method','deppe_epoch',dop.def.norm_method,...
+                            'epoch',dop.def.epoch,'baseline',dop.def.base,'gui');
+                end
+            end
         case 'downsample'
             
             dop.tmp.sample_rate = 100; % assume default
@@ -56,9 +69,11 @@ try
                 [dop,okay,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,'gui'); % done automatically in (and redone at end of) dopDataTrim
             end
             if okay
-                dop.tmp.h = dop.step.current.h(ismember(dop.step.current.tag,'even_chan_plot_info'));
+                dop.tmp.h = dop.step.current.h(ismember(dop.step.current.tag,'event_chan_plot_info')); % 25-july-2016 NAB 'even_'?? should be event - changed
                 set(dop.tmp.h,'Visible','on');
             end
+        case 'heart'
+            [dop,okay,msg] = dopHeartCycle(dop,'type','step');
         case 'plot'
             dop = dopPlot(dop);
         otherwise

@@ -13,6 +13,9 @@ function dop = dopStepUpdate(dop)
 % Created: 15-Oct-2015 NAB
 % Edits:
 % 04-Nov-2015 NAB added 'channels' option
+% 25-July-2016 NAB haven't been updating the edits...
+% 25-July-2016 NAB adjusted backgroundcolor to be separate when adding the
+%   checkbox uicontrol
 
 try
     fprintf('\nRunning %s:\n',mfilename);
@@ -54,7 +57,7 @@ try
         dop.step.text.h = []; % clear text handles
         for i = 1 : numel(n.style)
             switch n.style{i}
-                case {'text','edit','pushbutton','popup'}
+                case {'text','edit','pushbutton','popup','checkbox'}
                     % generic
                     dop.step.current.h(i) = uicontrol(dop.step.h,...
                         'style',n.style{i},'String',n.string{i},...
@@ -63,16 +66,26 @@ try
                         'Position',n.position(i,:),...
                         'HorizontalAlignment',n.HorizontalAlignment{i},...
                         'FontSize',dop.step.FontSize);
-                    % specific
-                    switch n.style{i}
-                        case 'text'
+                   %% background colour
+                   switch n.style{i}
+                        case {'text','checkbox'}
                             set(dop.step.current.h(i),'BackgroundColor',...
                                 get(dop.step.h,'Color'));
                             if isfield(dop.step.current,'col') && ~isempty(dop.step.current.col{i})
                                 set(dop.step.current.h(i),'BackgroundColor',...
                                 dop.step.current.col{i});
                             end
-                        case {'edit','pushbutton','popup'}
+                   end
+                    % specific
+                    switch n.style{i}
+%                         case 'text'
+%                             set(dop.step.current.h(i),'BackgroundColor',...
+%                                 get(dop.step.h,'Color'));
+%                             if isfield(dop.step.current,'col') && ~isempty(dop.step.current.col{i})
+%                                 set(dop.step.current.h(i),'BackgroundColor',...
+%                                 dop.step.current.col{i});
+%                             end
+                        case {'edit','pushbutton','popup','checkbox'}
                             dop.tmp.callback = dop.step.next.Callback{i};
                             if ~isempty(dop.tmp.callback) && isempty(strfind(dop.tmp.callback,'@'))
                                 dop.tmp.callback = eval(['[@',dop.step.next.Callback{i},'];']);
@@ -147,6 +160,7 @@ try
                         1/numel(n.string{i}) .5],...
                         'HandleVisibility','on');
                 end
+
                 otherwise
                     warndlg(sprintf('Style (%s), not recognised - can''t create',n.style{i}));
             end
@@ -193,6 +207,10 @@ try
                              ~isempty(dop.def.event_height)
                         % turn channel button on
                         set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
+                     end
+                case {'norm','heart'}
+                    if strcmp(dop.step.current.name,dop.step.action.tag{i}) % was 'norm' 25-july-2016
+                        set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
                     end
                 case 'plot'
                     % should the plot button be on?
