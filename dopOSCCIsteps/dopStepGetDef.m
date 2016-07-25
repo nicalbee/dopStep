@@ -49,6 +49,12 @@ try
                 warndlg(dop.tmp.warn,sprintf('%s entry error:',get(obj,'tag')));
                 set(obj,'String','re-type');
             end
+        case 'hc_type'
+            dop.tmp.value = get(get(obj,'SelectedObject'),'String');
+            dop.tmp.var = get(obj,'tag');
+            dop.def.(dop.tmp.var) = dop.tmp.value;
+            fprintf('''%s'' value set to: %s\n',...
+                dop.tmp.var,dop.tmp.value);
         case 'norm-method_radio'
             % normalisation method
             [dop.tmp.method_var,dop.tmp.rem] = strtok(get(obj,'tag'),'_');

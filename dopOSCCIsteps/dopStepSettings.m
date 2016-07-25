@@ -117,7 +117,8 @@ try
                     dop.step.next.left_pos+.1+.5 .65 .1 .1;
                     dop.step.next.left_pos .5 .6 .1;...
                     dop.step.next.left_pos .25 .8 .2];
-                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,{'center','center','center','left','left'}];
+                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,...
+                    {'center','center','center','left','left'}];
                 dop.step.next.Enable = {[],[],'off','on','on',[],[]};
                 dop.step.next.Callback = {[],[],[],[],'dopStepBrowseFile',[],[]};
                 dop.step.next.Visible = {'on','on','on','on','on','off','off'};
@@ -165,7 +166,8 @@ try
                     .2 .55 .1 .05; .3 .5 .3 .1; ...
                     .2 .4 .1 .05; .3 .35 .3 .1;
                     .1 .25 .8 .1];
-                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,{'center','center','center','center','center','center','left'}];
+                dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,...
+                    {'center','center','center','center','center','center','left'}];
                 dop.step.next.Enable = {[],[],'off','on','off','on','off','on','off'};
                 dop.step.next.Visible = {'on','on','on','on','on','on','on','on','off'};
                 dop.step.next.Callback = {[],[],[],'dopStepGetChannel',...
@@ -289,7 +291,7 @@ try
             %% > heart cycle integration
             case 'heart'
                 dop.step.next.style = {'text','text',...
-                    'text','text','text','checkbox'};
+                    'text','text','text','checkbox','text','text','radio'};
                 dop.step.next.string = {'Heart Cycle Integration:',...
                     ['Michael Deppe tested many different methods for ',...
                     'cleaning up the blood flow velocity signal and ',...
@@ -304,24 +306,32 @@ try
                     'up or down.'],...
                     ['You can explore what this looks like by viewing the ',...
                     'plot within this step. Check the box below to do this.'],...
-                    'View step function'};
+                    'View heart cycle correction',...
+                    ['There''s a choice about whether you use the step ',...
+                    'function (ie flat line between points) or a linear ',...
+                    'function (ie diagonal line between points).'],...
+                    'Function type:',{'step','linear'}};
                 dop.step.next.tag = {'title','info','title2','info2','info3',...
-                    'plot_check'};
+                    'plot_check','type_info','type_title','hc_type'};
                 
                 dop.step.next.position = [dop.step.next.title_position;... [dop.step.next.left_pos .87 .7 .1];
                     dop.step.next.info_position;... [dop.step.next.left_pos .7 .7 .1];
-                    dop.step.next.left_pos .65 .7 .05; ... % title2
-                    dop.step.next.left_pos .45 .7 .2; ... % info 2
-                    dop.step.next.left_pos .4 .7 .05; ... % info 3
-                    dop.step.next.left_pos .35 .5 .05; ... % plot_check
+                    dop.step.next.left_pos .7 .7 .05; ... % title2
+                    dop.step.next.left_pos .55 .7 .15; ... % info 2
+                    dop.step.next.left_pos .5 .7 .05; ... % info 3
+                    dop.step.next.left_pos .45 .5 .05; ... % plot_check
+                    dop.step.next.left_pos .275 .7 .075; ... % type_text
+                    dop.step.next.left_pos .175 .15 .075; ... % type_text
+                    dop.step.next.left_pos+.15 .175 .2 .075; ... % hc_type_radio
                     ]; %title2
                 dop.step.next.HorizontalAlignment = [dop.step.next.HorizontalAlignment,...
-                    {'left','left','left','left'}];
-                dop.step.next.Enable = {[],[],[],[],[],'on'};
+                    {'left','left','left','left','left','left','left'}];
+                dop.step.next.Enable = {[],[],[],[],[],'on',[],[],'on'};
 
                 dop.step.next.visible = {'on','on',...
-                    'on','on','on','on'};
-                dop.step.next.Callback = {[],[],[],[],[],'dopStepGetDef'};
+                    'on','on','on','on','on','on','on'};
+                dop.step.next.Callback = {[],[],[],[],[],'dopStepGetDef',...
+                    [],[],'dopStepGetDef'};
             case 'timing'
                 dop.step.next.size = [.2 .05];
                 dop.step.next.options = {'epoch','base','poi'};
