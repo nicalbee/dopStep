@@ -73,7 +73,20 @@ try
                 set(dop.tmp.h,'Visible','on');
             end
         case 'heart'
-            [dop,okay,msg] = dopHeartCycle(dop,'type','step');
+            dop.tmp.check = struct(...
+                'hc_type','step',...
+                'hc_plot',0);
+            dop.tmp.check_fields = fields(dop.tmp.check);
+            for i = 1 : numel(dop.tmp.check_fields)
+                if ~isfield(dop.def,dop.tmp.check_fields{i})
+                    dop.def.(dop.tmp.check_fields{i}) = dop.tmp.check.(dop.tmp.check_fields{i});
+                end
+            end
+            if dop.def.hc_plot
+                [dop,okay,msg] = dopHeartCycle(dop,'type',dop.def.hc_type,'plot');
+            else
+                [dop,okay,msg] = dopHeartCycle(dop,'type',dop.def.hc_type);
+            end
         case 'plot'
             dop = dopPlot(dop);
         otherwise

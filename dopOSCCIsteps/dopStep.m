@@ -71,8 +71,8 @@ try
             'Visible',dop.step.move.visible{i});
     end
     %% - action buttons
-    dop.step.action.string = {'Import','Channels','Events','Norm',...
-        'Heart','Epoch','Screen','Baseline','LI','Plot'}; % 
+    dop.step.action.string = {'Import','Channels','Events','Heart',...
+        'Norm','Epoch','Screen','Baseline','LI','Plot'}; % 
     dop.step.action.n = numel(dop.step.action.string);
     dop.step.action.tooltip = lower(dop.step.action.string); %{'import','channels','event','norm','heart','plot'};
     dop.step.action.tag = dop.step.action.tooltip;
