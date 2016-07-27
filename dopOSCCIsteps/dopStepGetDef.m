@@ -87,7 +87,7 @@ try
             [dop.tmp.h_var,dop.tmp.rem] = strtok(get(dop.step.current.h,'tag'),'_');
             dop.tmp.h_extra = strtok(dop.tmp.rem,'_');
             
-            
+            dop.tmp.filt = [];
             dop.tmp.filt.lower = ismember(dop.tmp.h_extra,'lower');
             dop.tmp.filt.upper = ismember(dop.tmp.h_extra,'upper');
             dop.tmp.times.list = fields(dop.tmp.times);
@@ -104,25 +104,6 @@ try
     set(dop.step.h,'UserData',dop);
 catch err
     save(dopOSCCIdebug);rethrow(err);
-end
-end
-%% dopEpochEnable(dop)
-function dopEpochEnable(dop)
-if strcmp(dop.step.current.name,'epoch') && isfield(dop.def,'epoch')
-    
-    dop.tmp.vars = {'epoch'};
-    
-    dop.tmp.required = [1];
-    
-    dop.tmp.okay = [0];
-    for i = 1 : numel(dop.tmp.vars)
-        if isfield(dop.def,dop.tmp.vars{i}) && numel(dop.def.(dop.tmp.vars{i})) == 2
-            dop.tmp.okay(i) = 1;
-        end
-    end
-    if sum(dop.tmp.required == dop.tmp.okay) == sum(dop.tmp.required)
-        set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
-    end
 end
 end
 %% dopButtonEnable
@@ -144,18 +125,21 @@ switch dop.step.current.name
                             dop.tmp.required = [1 1];
                     end
             end
-            dop.tmp.okay = [0 0];
-            for i = 1 : numel(dop.tmp.vars)
-                if isfield(dop.def,dop.tmp.vars{i}) && numel(dop.def.(dop.tmp.vars{i})) == 2
-                    dop.tmp.okay(i) = 1;
-                end
-            end
-            
-            dop.tmp.enable = 'off';
-            if strcmp(dop.def.norm_method,'overall') || sum(dop.tmp.required == dop.tmp.okay) == sum(dop.tmp.required)
-                dop.tmp.enable = 'on';
-            end
-            set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable',dop.tmp.enable);
         end
+    case 'epoch'
+        dop.tmp.vars = {'epoch'};
+        dop.tmp.required = 1;
 end
+dop.tmp.okay = zeros(1,numel(dop.tmp.vars));
+for i = 1 : numel(dop.tmp.vars)
+    if isfield(dop.def,dop.tmp.vars{i}) && numel(dop.def.(dop.tmp.vars{i})) == 2
+        dop.tmp.okay(i) = 1;
+    end
+end
+
+dop.tmp.enable = 'off';
+if strcmp(dop.def.norm_method,'overall') || and(sum(dop.tmp.okay),sum(dop.tmp.required == dop.tmp.okay) == numel(dop.tmp.okay))
+    dop.tmp.enable = 'on';
+end
+set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable',dop.tmp.enable);
 end

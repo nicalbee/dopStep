@@ -36,7 +36,7 @@ try
                 for i = 1 : numel(dop.step.current.h)
                     switch get(dop.step.current.h(i),'Style')
                         case 'popup'
-                           set(dop.step.current.h(i),'String',dop.data.channel_labels) 
+                            set(dop.step.current.h(i),'String',dop.data.channel_labels)
                     end
                 end
             end
@@ -83,9 +83,13 @@ try
                 end
             end
             if dop.def.hc_plot
-                [dop,okay,msg] = dopHeartCycle(dop,'type',dop.def.hc_type,'plot');
+                [dop,okay,msg] = dopHeartCycle(dop,'type',dop.def.hc_type,'plot','gui');
             else
-                [dop,okay,msg] = dopHeartCycle(dop,'type',dop.def.hc_type);
+                [dop,okay,msg] = dopHeartCycle(dop,'type',dop.def.hc_type,'gui');
+            end
+        case 'epoch'
+            if isfield(dop.def,'epoch') && ~isempty(dop.def.epoch)
+                [dop,okay,msg] = dopEpoch(dop,'epoch',dop.def.epoch,'gui');
             end
         case 'plot'
             dop = dopPlot(dop);

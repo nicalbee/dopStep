@@ -15,6 +15,8 @@ function dopPlotEpochAxesAdjust(handle,~)
 % 12-Sep-2014 NAB problem with mean/median using dop.plot.screen variable
 % 15-Nov-2014 NAB adjusted to get number inputs into display box working
 % 14-Feb-2016 NAB added x & y zero data
+% 27-Jul-2016 NAB adjusted to cope without extra patches
+% 27-Jul-2016 NAB copes without poi
 
 disp_options = {'all','median','mean'};
 % if ~isnan(str2double(get(handle,'string')))
@@ -106,10 +108,13 @@ switch get(handle,'tag')
         tmp_vis = cell(1,numel(tmp_labels));%size(dop.tmp.data,2));
         check_h = zeros(1,numel(tmp_labels));%size(dop.tmp.data,2));
         for i = 1 : numel(tmp_labels); % numel(dop.data.epoch_labels)
-            check_h(i) = legend_ch(strcmpi(get(legend_ch,'Tag'),[tmp_labels{i},'_check']));%dop.data.epoch_labels{i}));
-            tmp_vis{i} = get(get(check_h(i),'UserData'),'Visible');
-            if iscell(tmp_vis{i})
-                tmp_vis{i} = tmp_vis{i}{1};
+            tmp_filt = strcmpi(get(legend_ch,'Tag'),[tmp_labels{i},'_check']);
+            if sum(tmp_filt)
+                check_h(i) = legend_ch(tmp_filt);%dop.data.epoch_labels{i}));
+                tmp_vis{i} = get(get(check_h(i),'UserData'),'Visible');
+                if iscell(tmp_vis{i})
+                    tmp_vis{i} = tmp_vis{i}{1};
+                end
             end
         end
         
@@ -128,6 +133,7 @@ switch get(handle,'tag')
                             'Visible',tmp_vis{i});
                     end
                 case {'baseline','poi'}
+                    if ~isempty(dop.tmp.(tmp_labels{i}))
                     line_h = ...
                         patch([dop.tmp.(tmp_labels{i}) fliplr(dop.tmp.(tmp_labels{i}))],...
                         [ones(1,2)*max(get(axes_h,'Ylim')) ones(1,2)*min(get(axes_h,'Ylim'))],...
@@ -137,6 +143,7 @@ switch get(handle,'tag')
                         'EdgeColor',dopPlotColours(tmp_labels{i}),...
                         'DisplayName',tmp_labels{i},...
                         'Tag',tmp_labels{i});
+                    end
                 case 'peak'
                     
                     if peak_okay
@@ -152,12 +159,15 @@ switch get(handle,'tag')
                     if numel(size(plot_data)) == 3
                         calc_data = squeeze(mean(plot_data(:,dop.plot.screen,3),2));
                     end
-                    [dop.tmp.sum,peak_okay] = dopCalcSummary(calc_data,...
-                        'period','poi',...
-                        'epoch',dop.tmp.epoch,...
-                        'act_window',dop.tmp.act_window,...
-                        'sample_rate',dop.tmp.sample_rate,...
-                        'poi',dop.tmp.poi);
+                    peak_okay = 0;
+                    if ~isempty(dop.tmp.poi) % not necessarily available when using gui
+                        [dop.tmp.sum,peak_okay] = dopCalcSummary(calc_data,...
+                            'period','poi',...
+                            'epoch',dop.tmp.epoch,...
+                            'act_window',dop.tmp.act_window,...
+                            'sample_rate',dop.tmp.sample_rate,...
+                            'poi',dop.tmp.poi);
+                    end
                     if peak_okay
                         dop.tmp.act_values = [-dop.tmp.act_window*.5 dop.tmp.act_window*.5]+dop.tmp.sum.peak_latency;
                         line_h = ...
