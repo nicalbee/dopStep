@@ -35,6 +35,7 @@ try
                             dop.tmp.var,dop.tmp.element,dop.tmp.value);
                         %                         dop = dopStepTimingPlot(dop);
                         dopNormEnable(dop);
+                        dopEpochEnable(dop);
                     otherwise
                         dop.def.(get(obj,'tag')) = dop.tmp.value;
                         fprintf('''%s'' value set to: %i\n',get(obj,'tag'),dop.def.(get(obj,'tag')));
@@ -106,7 +107,25 @@ catch err
     save(dopOSCCIdebug);rethrow(err);
 end
 end
-
+%% dopEpochEnable(dop)
+function dopEpochEnable(dop)
+if strcmp(dop.step.current.name,'epoch') && isfield(dop.def,'epoch')
+    
+    dop.tmp.vars = {'epoch'};
+    
+    dop.tmp.required = [1];
+    
+    dop.tmp.okay = [0];
+    for i = 1 : numel(dop.tmp.vars)
+        if isfield(dop.def,dop.tmp.vars{i}) && numel(dop.def.(dop.tmp.vars{i})) == 2
+            dop.tmp.okay(i) = 1;
+        end
+    end
+    if sum(dop.tmp.required == dop.tmp.okay) == sum(dop.tmp.required)
+        set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
+    end
+end
+end
 %% dopNormEnable
 % enable the button
 function dopNormEnable(dop)
