@@ -20,15 +20,26 @@ try
                 'event_sep',...
                 'epoch_lower','epoch_upper',...
                 'base_lower','base_upper',...
-                'poi_lower','poi_upper'}
+                'poi_lower','poi_upper',...
+                'act_lower','act_upper',...
+                'act_separation','act_separation_pct',...
+                'baseline_lower','baseline_upper',...
+                'act_window' ...
+                }
             dop.tmp.value = str2double(event.Source.String);
             if ~isnan(dop.tmp.value)
                 switch get(obj,'tag')
                     case {'epoch_lower','epoch_upper',...
                             'base_lower','base_upper',...
-                            'poi_lower','poi_upper'}
+                            'poi_lower','poi_upper',...
+                            'act_lower','act_upper',...
+                            'baseline_lower','baseline_upper'}
                         dop.tmp.options = {'lower','upper'};
                         [dop.tmp.var,dop.tmp.rem] = strtok(get(obj,'tag'),'_');
+                        switch dop.tmp.var
+                            case 'act'
+                                dop.tmp.var = 'act_range';
+                        end
                         dop.tmp.element = strrep(dop.tmp.rem,'_','');
                         dop.def.(dop.tmp.var)(ismember(dop.tmp.options,dop.tmp.element)) = dop.tmp.value;
                         fprintf('''%s'' %s value set to: %i\n',...
@@ -129,16 +140,36 @@ switch dop.step.current.name
     case 'epoch'
         dop.tmp.vars = {'epoch'};
         dop.tmp.required = 1;
+    case 'screen'
+        dop.tmp.vars = {'act_sep','act_separation_pct'};
+        dop.tmp.required = [0 0];
+    case 'baseline'
+        dop.tmp.vars = {'baseline'};
+        dop.tmp.required = 1;
+    case 'li'
+        dop.tmp.vars = {'poi'};
+        dop.tmp.required = 1;
 end
 dop.tmp.okay = zeros(1,numel(dop.tmp.vars));
 for i = 1 : numel(dop.tmp.vars)
     if isfield(dop.def,dop.tmp.vars{i}) && numel(dop.def.(dop.tmp.vars{i})) == 2
-        dop.tmp.okay(i) = 1;
+        switch dop.step.current.name
+            case 'li'
+                if isfield(dop.def,'act_window') && ~isempty(dop.def.act_window)
+                    dop.tmp.okay(i) = 1;
+                end
+            otherwise
+                dop.tmp.okay(i) = 1;
+        end
     end
 end
 
 dop.tmp.enable = 'off';
-if strcmp(dop.def.norm_method,'overall') || and(sum(dop.tmp.okay),sum(dop.tmp.required == dop.tmp.okay) == numel(dop.tmp.okay))
+% switch dop.step.current.name
+%     case {'norm','epoch'}
+if isfield(dop.def,'norm_method') && strcmp(dop.def.norm_method,'overall') || ...
+        and(sum(dop.tmp.okay),sum(dop.tmp.required == dop.tmp.okay) == numel(dop.tmp.okay)) || ...
+        strcmp(dop.step.current.name,'screen')
     dop.tmp.enable = 'on';
 end
 set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable',dop.tmp.enable);
