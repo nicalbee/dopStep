@@ -26,6 +26,8 @@ function [dop,okay,msg] = dopHeartCycle(dop_input,varargin)
 % 04-Sep-2014 NAB msg & warn_wait updates
 % 20-May-2015 NAB added 'showmsg'
 % 25-july-2016 NAB changed 'correct' to 'step' for 'type' of correct
+% 30-July-2016 NAB updated 'linspace' setting to be 'linear' makes more
+%   sense and fits with dopStep gui explanation more transparently
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -41,7 +43,7 @@ try
             'sample_rate',[], ...
             'signal_channels',[2 3],...
             'event_channels',[],... % really need to keep event data somewhere
-            'type','linspace',... % 'step'
+            'type','linear',... % 'step'
             'window',3, ... % number of samples to look for peak of
             'plot_range',[500 700] ... % 2 numbers and plot will be created
             );
@@ -142,7 +144,7 @@ try
             
             %% correct?
             switch dop.tmp.type % if dop.tmp.correct || dop.tmp.smooth
-                case {'step','linspace'}
+                case {'step','linear'}
                     if strcmp(dop.tmp.type,'step')
                         msg{end+1} = 'Correcting for heart cycles using deppe method';
                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
@@ -151,8 +153,8 @@ try
                     dop.tmp.hc_correct = zeros(size(dop.tmp.data));
                     dop.tmp.hc_correct(:,3:end) = dop.tmp.data(:,3:end); % strcmp(dop.data.channel_labels,'event')
                     
-                    if strcmp(dop.tmp.type,'linspace')
-                        msg{end+1} = 'Correcting for heart cycles using deppe method + ''linspace'' adjustment';
+                    if strcmp(dop.tmp.type,'linear')
+                        msg{end+1} = 'Correcting for heart cycles using deppe method + ''linear'' adjustment';
                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                         dop.tmp.hc_linspace = dop.tmp.hc_correct;
                     end
@@ -181,7 +183,7 @@ try
                             end
                         end
                         %% > linspace smoothing
-                        if i > 2 && strcmp(dop.tmp.type,'linspace') && exist('linspace','file')
+                        if i > 2 && strcmp(dop.tmp.type,'linear') && exist('linspace','file')
 %                             switch i
 %                                 case 2
 %                                     dop.tmp.filt = 1 : dop.tmp.systolic(i-1);
@@ -223,7 +225,7 @@ try
             dop.data.hc_data = [dop.tmp.data(:,1:2),dop.data.hc_events*max(dop.tmp.data(:,1))*1.1];
             dop.data.channel_labels = {'rawleft','rawright','hc_events'};
             plot_okay = 1;
-            if strcmp(dop.tmp.type,'linspace') && exist('linspace','file') && isfield(dop.tmp,'hc_linspace')
+            if strcmp(dop.tmp.type,'linear') && exist('linspace','file') && isfield(dop.tmp,'hc_linspace')
                 dop.data.channel_labels(end+1:end+2) = {'correctleft','correctright'};
                 dop.data.hc_data = [dop.data.hc_data,dop.tmp.hc_linspace(:,1:2)];
             elseif isfield(dop.tmp,'hc_correct')
@@ -268,7 +270,7 @@ try
                         case 'step'
                             dop.data.hc_correct = dop.tmp.hc_correct;
                             [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'hc_correct');
-                        case 'linspace'
+                        case 'linear'
                             if exist('linspace','file')
                                 msg{end+1} = 'Smoothing heart cycles corrected data (corrected using deppe method)';
                                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);

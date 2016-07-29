@@ -53,6 +53,7 @@ try
         if isfield(dop.step.current,'h')
             dop.step.current = rmfield(dop.step.current,'h');
         end
+        set(dop.step.h,'UserData',dop); % maybe 30-jul-2016
         n = dop.step.current;
         dop.step.text.h = []; % clear text handles
         for i = 1 : numel(n.style)
@@ -66,32 +67,40 @@ try
                         'Position',n.position(i,:),...
                         'HorizontalAlignment',n.HorizontalAlignment{i},...
                         'FontSize',dop.step.FontSize);
-                   %% background colour
-                   switch n.style{i}
+                    
+                    %% background colour
+                    switch n.style{i}
                         case {'text','checkbox'}
                             set(dop.step.current.h(i),'BackgroundColor',...
                                 get(dop.step.h,'Color'));
                             if isfield(dop.step.current,'col') && ~isempty(dop.step.current.col{i})
                                 set(dop.step.current.h(i),'BackgroundColor',...
-                                dop.step.current.col{i});
+                                    dop.step.current.col{i});
                             end
-                   end
+                    end
                     % specific
                     switch n.style{i}
-%                         case 'text'
-%                             set(dop.step.current.h(i),'BackgroundColor',...
-%                                 get(dop.step.h,'Color'));
-%                             if isfield(dop.step.current,'col') && ~isempty(dop.step.current.col{i})
-%                                 set(dop.step.current.h(i),'BackgroundColor',...
-%                                 dop.step.current.col{i});
-%                             end
+                        %                         case 'text'
+                        %                             set(dop.step.current.h(i),'BackgroundColor',...
+                        %                                 get(dop.step.h,'Color'));
+                        %                             if isfield(dop.step.current,'col') && ~isempty(dop.step.current.col{i})
+                        %                                 set(dop.step.current.h(i),'BackgroundColor',...
+                        %                                 dop.step.current.col{i});
+                        %                             end
                         case {'edit','pushbutton','popup','checkbox'}
+                            
+                            % check if there's an existing definition value
+                            % available
+
+                            
                             dop.tmp.callback = dop.step.next.Callback{i};
                             if ~isempty(dop.tmp.callback) && isempty(strfind(dop.tmp.callback,'@'))
                                 dop.tmp.callback = eval(['[@',dop.step.next.Callback{i},'];']);
                             end
                             set(dop.step.current.h(i),'CallBack',dop.tmp.callback,...
                                 'Enable',n.Enable{i});
+                            % need to come after the default - I think
+                            dopStepGetDef(dop.step.current.h(i),'check_value');
                             %                             set(dop.step.current.h(i),'CallBack',dop.step.next.Callback{i},...
                             %                                 'Enable',n.Enable{i});
                             switch n.style{i}
@@ -141,6 +150,7 @@ try
                         set(dop.step.current.h(i),'Visible',dop.step.next.Visible{i});
                     end
                     dop.step.text.h(i) = dop.step.current.h(i);
+
                 case 'axes'
                     dop = dopStepTimingPlot(dop);
                 case 'radio'
@@ -150,17 +160,17 @@ try
                         'Units','Normalized',...
                         'Position',n.position(i,:),...'HorizontalAlignment',n.HorizontalAlignment{i},...
                         'FontSize',dop.step.FontSize,...
-                    'SelectionChangedFcn',@dopStepGetDef);
-                for j = 1 : numel(n.string{i})
-                    dop.step.current.h_button(j) = uicontrol(...
-                        dop.step.current.h(i),'Style','radiobutton',...
-                        'Units','Normalized',...
-                        'String',n.string{i}{j},...
-                        'Position',[.05+(1/numel(n.string{i})*(j-1)) .25 ...
-                        1/numel(n.string{i}) .5],...
-                        'HandleVisibility','on');
-                end
-
+                        'SelectionChangedFcn',@dopStepGetDef);
+                    for j = 1 : numel(n.string{i})
+                        dop.step.current.h_button(j) = uicontrol(...
+                            dop.step.current.h(i),'Style','radiobutton',...
+                            'Units','Normalized',...
+                            'String',n.string{i}{j},...
+                            'Position',[.05+(1/numel(n.string{i})*(j-1)) .25 ...
+                            1/numel(n.string{i}) .5],...
+                            'HandleVisibility','on');
+                    end
+                    
                 otherwise
                     warndlg(sprintf('Style (%s), not recognised - can''t create',n.style{i}));
             end
@@ -203,14 +213,25 @@ try
                         set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
                     end
                 case 'events'
-                     if isfield(dop,'def') && isfield(dop.def,'event_height') && ...
-                             ~isempty(dop.def.event_height)
+                    if isfield(dop,'def') && isfield(dop.def,'event_height') && ...
+                            ~isempty(dop.def.event_height)
                         % turn channel button on
                         set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
-                     end
-                case {'norm','heart'}
-                    if strcmp(dop.step.current.name,dop.step.action.tag{i}) % was 'norm' 25-july-2016
+                    end
+                case 'heart'
+%                     if strcmp(dop.step.current.name,dop.step.action.tag{i}) % was 'norm' 25-july-2016
                         set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
+%                     end
+                case 'norm'
+                    % need some checks here
+                    set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
+                case 'epoch'
+                    dop.tmp.var = {'epoch'};
+                    for j = 1 : numel(dop.tmp.var)
+                        if isfield(dop,'def') && isfield(dop.def,dop.tmp.var{j}) && ...
+                                ~isempty(dop.def.(dop.tmp.var{j})) && numel(dop.def.(dop.tmp.var{j})) == 2
+                            set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
+                        end
                     end
                 case 'plot'
                     % should the plot button be on?
