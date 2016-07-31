@@ -104,7 +104,7 @@ try
 % 21-Jan-2016 NAB added dopMultiFuncTmpCheck instead of above code
         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         %% clear previous data
-        if dop.tmp.clear && isfield(dop,'sum')
+        if isfield(dop,'sum') && isfield(dop.tmp,'clear') && dop.tmp.clear
             dop = rmfield(dop,'sum');
             msg{end+1} = 'Cleared previous calculations: ''dop.sum'' field removed';
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);

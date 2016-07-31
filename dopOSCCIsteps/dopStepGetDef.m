@@ -17,6 +17,7 @@ function dopStepGetDef(obj,event)
 %   exsit
 try
     dop = get(gcf,'UserData');
+    dop.tmp.options = {'lower','upper'};
     switch get(obj,'tag')
         case {'downsample_rate','event_height',...
                 'event_sep',...
@@ -62,7 +63,7 @@ try
                             'poi_lower','poi_upper',...
                             'act_lower','act_upper'...
                             }
-                        dop.tmp.options = {'lower','upper'};
+                        
                         [dop.tmp.var,dop.tmp.rem] = strtok(get(obj,'tag'),'_');
                         switch dop.tmp.var
                             case 'act'
@@ -153,6 +154,10 @@ try
                 end
                 dopButtonEnable(dop);
             end
+        case {'left_channel','right_channel','event_channel'}
+%             if isfield(dop,'data') && isfield(dop.data,'channel_labels')
+%                 set(obj,'Value',find(ismember(dop.data.channel_labels,strtok(get(obj,'Tag'),'_'))));
+%             end
         otherwise
             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
     end
@@ -176,7 +181,8 @@ switch dop.step.current.name
                     % need to have both of these values
                     switch dop.def.norm_method
                         case 'epoch'
-                            dop.tmp.required = [1 0];
+                            dop.tmp.vars(2) = [];
+                            dop.tmp.required = 1;
                         case 'deppe'
                             dop.tmp.required = [1 1];
                     end

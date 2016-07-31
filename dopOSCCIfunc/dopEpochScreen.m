@@ -43,6 +43,7 @@ try
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
         inputs.turnOff = {'comment'};
+        inputs.turnOn = {'gui'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'showmsg',1,...

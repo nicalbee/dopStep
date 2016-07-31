@@ -91,7 +91,7 @@ try
                             
                             % check if there's an existing definition value
                             % available
-
+                            
                             
                             dop.tmp.callback = dop.step.next.Callback{i};
                             if ~isempty(dop.tmp.callback) && isempty(strfind(dop.tmp.callback,'@'))
@@ -122,22 +122,28 @@ try
                                                             dop.tmp.signal_number = find(ismember(dop.tmp.signal_options,dop.tmp.ch));
                                                             dop.tmp.value = dop.def.signal_channels(dop.tmp.signal_number);
                                                             if dop.step.dopChannelExtract
-                                                                dop.tmp.value = dop.tmp.signal_number;
+                                                                set(dop.step.current.h(i),'String',dop.def.signal_channel_labels{dop.tmp.signal_number},...
+                                                                    'Enable','off');
+%                                                                 dop.tmp.value = dop.tmp.signal_number;
+                                                            else
+                                                                set(dop.step.current.h(i),'Value',dop.tmp.value);
+                                                                dop.step.channels_okay(dop.tmp.signal_number) = 1;
                                                             end
-                                                            set(dop.step.current.h(i),'Value',dop.tmp.value);
-                                                            dop.step.channels_okay(dop.tmp.signal_number) = 1;
                                                         end
-                                                    case 'events'
+                                                    case 'event'
                                                         if  isfield(dop.def,'event_channels')
                                                             dop.tmp.value = dop.def.event_channels;
                                                             if isfield(dop,'use') && isfield(dop.use,'event_channels')
                                                                 dop.tmp.value = dop.use.event_channels;
                                                             end
                                                             if dop.step.dopChannelExtract
-                                                                dop.tmp.value = 3;
-                                                            end
+%                                                                 dop.tmp.value = 3;
+                                                                set(dop.step.current.h(i),'String',dop.def.event_channel_labels{1},...
+                                                                    'Enable','off');
+                                                            else
                                                             set(dop.step.current.h(i),'Value',dop.tmp.value);
                                                             dop.step.channels_okay(3) = 1;
+                                                            end
                                                         end
                                                         
                                                 end
@@ -150,7 +156,7 @@ try
                         set(dop.step.current.h(i),'Visible',dop.step.next.Visible{i});
                     end
                     dop.step.text.h(i) = dop.step.current.h(i);
-
+                    
                 case 'axes'
                     dop = dopStepTimingPlot(dop);
                 case 'radio'
@@ -184,74 +190,105 @@ try
         for i = 1 : numel(dop.step.action.tag)
             
             dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,dop.step.action.tag{i}));
-            set(dop.tmp.h,'enable','off');
+            dop.tmp.enable = 'off';
             switch dop.step.action.tag{i}
                 case 'import'
                     % should the import button be on?
                     % if there's a data_file to import
-                    if isfield(dop,'fullfile') && exist(dop.fullfile,'file')
-                        set(dop.tmp.h,'enable','on');
-                        if sum(ismember(dop.step.current.tag,'import_text'))
-                            set(dop.step.current.h(ismember(dop.step.current.tag,'import_text')),'Visible','On')
+                    if strcmp(dop.step.current.name,dop.step.action.tag{i})
+                        if isfield(dop,'fullfile') && exist(dop.fullfile,'file')
+                            dop.tmp.enable = 'on'; % set(dop.tmp.h,'enable','on');
+                            if sum(ismember(dop.step.current.tag,'import_text'))
+                                set(dop.step.current.h(ismember(dop.step.current.tag,'import_text')),'Visible','On')
+                            end
                         end
                     end
                 case 'channels'
                     %% channel button visible
-                    if isfield(dop.step,'channels_okay') && sum(dop.step.channels_okay) == numel(dop.step.channels_okay)
-                        % turn channel button on
-                        if ~dop.step.dopChannelExtract
-                            set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
-                        end
-                        if sum(ismember(dop.step.current.tag,'ch_plot_text'))
-                            set(dop.tmp.h,'Visible','on');
+                    if strcmp(dop.step.current.name,dop.step.action.tag{i})
+                        if isfield(dop.step,'channels_okay') && sum(dop.step.channels_okay) == numel(dop.step.channels_okay)
+                            % turn channel button on
+                            if ~dop.step.dopChannelExtract
+                                dop.tmp.enable = 'on'; %
+                                %                             set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
+                            end
+                            if sum(ismember(dop.step.current.tag,'ch_plot_text'))
+                                set(dop.tmp.h,'Visible','on');
+                            end
+                            if isfield(dop.step,'dopChannelExtract') 
+                                if ~dop.step.dopChannelExtract
+                                    dop.tmp.enable = 'on';
+                                else
+                                    % make sure the strings are okay
+                                    keyboard
+                                end
+                            end
                         end
                     end
-                case 'downsample'
-                    if isfield(dop,'def') && isfield(dop.def,'downsample_rate') ...
-                            && isfield(dop.step,'dopDownsample') && ~dop.step.dopDownsample
-                        % turn channel button on
-                        set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
-                    end
+                    %                      set(dop.tmp.h,'Enable',dop.tmp.enable);
+                    %                 case 'downsample'
+                    %                     if isfield(dop,'def') && isfield(dop.def,'downsample_rate') ...
+                    %                             && isfield(dop.step,'dopDownsample') && ~dop.step.dopDownsample
+                    %                         % turn channel button on
+                    %                         dop.tmp.enable = 'on'; %
+                    %                         set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
+                    %                     end
                 case 'events'
-                    if isfield(dop,'def') && isfield(dop.def,'event_height') && ...
-                            ~isempty(dop.def.event_height)
-                        % turn channel button on
-                        set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
-                    end
-                case 'heart'
-%                     if strcmp(dop.step.current.name,dop.step.action.tag{i}) % was 'norm' 25-july-2016
-                        set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
-%                     end
-                case 'norm'
-                    % need some checks here
-                    set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
-                case 'epoch'
-                    dop.tmp.var = {'epoch'};
-                    for j = 1 : numel(dop.tmp.var)
-                        if isfield(dop,'def') && isfield(dop.def,dop.tmp.var{j}) && ...
-                                ~isempty(dop.def.(dop.tmp.var{j})) && numel(dop.def.(dop.tmp.var{j})) == 2
-                            set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
+                    if strcmp(dop.step.current.name,dop.step.action.tag{i})
+                        if isfield(dop,'def') && isfield(dop.def,'event_height') && ...
+                                ~isempty(dop.def.event_height)
+                            % turn channel button on
+                            dop.tmp.enable = 'on'; %
+                            %                         set(dop.step.action.h(ismember(dop.step.action.tag,'channels')),'enable','on');
                         end
+                    end
+                case {'heart','norm'}
+                    if strcmp(dop.step.current.name,dop.step.action.tag{i}) % was 'norm' 25-july-2016
+                        dop.tmp.enable = 'on'; %
+                        if isfield(dop.step,'dopHeartCycle') && ~isempty(dop.step.dopHeartCycle) && dop.step.dopHeartCycle
+                            dop.tmp.enable = 'off';
+                        end
+                        %                         set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
+                    end
+                    %                 case 'norm'
+                    %                     % need some checks here
+                    %                     dop.tmp.enable = 'on'; %
+                    %                     set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
+                case 'epoch'
+                    if strcmp(dop.step.current.name,dop.step.action.tag{i})
+                        if ~isfield(dop.data,'epoch') || isempty(dop.data.epoch)
+                            dop.tmp.var = {'epoch'};
+                            for j = 1 : numel(dop.tmp.var)
+                                if isfield(dop,'def') && isfield(dop.def,dop.tmp.var{j}) && ...
+                                        ~isempty(dop.def.(dop.tmp.var{j})) && numel(dop.def.(dop.tmp.var{j})) == 2
+                                    dop.tmp.enable = 'on'; %
+                                    %                             set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
+                                end
+                            end
+                        end
+                    end
+                case 'screen'
+                    if strcmp(dop.step.current.name,dop.step.action.tag{i}) && ...
+                            ~isfield(dop,'epoch') && ~isfield(dop.epoch,'screen') && isempty(dop.epoch.screen)
+                        dop.tmp.enable = 'on';
+                    end
+                case 'baseline'
+                    if strcmp(dop.step.current.name,dop.step.action.tag{i}) && ...
+                            isfield(dop,'def') && isfield(dop.def,'base') && ~isempty(dop.def.base) && numel(dop.def.base) == 2
+                            dop.tmp.enable = 'on';
                     end
                 case 'plot'
                     % should the plot button be on?
                     % if there's 'use' data to plot
                     if isfield(dop,'data') && isfield(dop.data,'use') && ~isempty(dop.data.use)
-                        set(dop.tmp.h,'enable','on');
+                        dop.tmp.enable = 'on'; % set(dop.tmp.h,'enable','on');
                         if sum(ismember(dop.step.current.tag,'plot_text'))
                             set(dop.step.current.h(ismember(dop.step.current.tag,'plot_text')),'Visible','On')
                         end
                     end
             end
+            set(dop.tmp.h,'enable',dop.tmp.enable);
         end
-        
-        %         for i = 1 : numel(dop.step.action.h)
-        %             switch get(dop.step.action.h(i),'tag')
-        %                 case 'import'
-        %
-        %                 case 'plot'
-        %             end
-        %         end
         
     end
     
