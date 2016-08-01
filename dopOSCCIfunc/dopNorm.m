@@ -130,7 +130,6 @@ try
         if isfield(dop.data,'norm')
             [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'norm');
         end
-        
         dop.okay = okay;
         dop.msg = msg;
         

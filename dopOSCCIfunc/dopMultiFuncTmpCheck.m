@@ -70,7 +70,7 @@ try
                         dop.tmp_now = dop.tmp;
                         
                         dop.tmp = dop.(tmp.stack(2).name);
-                        dop = rmfield(dop,tmp.stack(2).name);
+%                         dop = rmfield(dop,tmp.stack(2).name);
                         % current data set may have been updated also...
                         if isfield(dop,'data') && isfield(dop.data,'use')
                         dop.tmp.data = dop.data.use;

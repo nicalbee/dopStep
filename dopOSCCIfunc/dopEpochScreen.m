@@ -74,18 +74,18 @@ try
         
         %% run screening functions
         %% > dopEpochScreenManual
-        if okay
+        if okay && sum(ismember(dop.tmp.screen,'manual'))
             [dop,okay,msg] = dopEpochScreenManual(dop,okay,msg);
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         end
         %% > dopEpochScreenAct
-        if okay
+        if okay  && sum(ismember(dop.tmp.screen,'act'))
             [dop,okay,msg] = dopEpochScreenAct(dop,okay,msg,...
                 'act_range',dop.tmp.act_range);
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         end
         %% > dopEpochScreenSep
-        if okay
+        if okay  && sum(ismember(dop.tmp.screen,'sep'))
             [dop,okay,msg] = dopEpochScreenSep(dop,okay,msg,...
                 'act_separation',dop.tmp.act_separation,...
                 'act_separation_pct',dop.tmp.act_separation_pct);

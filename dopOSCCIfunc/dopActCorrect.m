@@ -378,6 +378,7 @@ try
                         dop.data.channel_labels = [{'rawleft','rawright'},dop.data.channel_labels,'act_correct'];
                         dop.data.act_correct_plot = [dop.tmp.data(:,1:2),dop.data.act_correct,dop.data.act_correct_sample];
                         [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'act_correct_plot');
+                        [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                         [dop,okay,msg] = dopPlot(dop,okay,msg);
                         
                         uiwait(dop.fig.h);

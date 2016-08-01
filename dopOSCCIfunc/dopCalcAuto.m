@@ -276,7 +276,8 @@ try
                                 'baseline',dop.tmp.baseline,...
                                 'file',dop.tmp.file,...
                                 'poi_select',dop.tmp.poi_select);% manual selection of poi
-                            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                            % possibly don't need this here... 1-Aug-2016
+%                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                             if strcmp(dop.tmp.sum,'epoch')
                                 % only need to do this once - overall vs odd
                                 % vs even makes no difference, defaults to
@@ -287,9 +288,9 @@ try
                         end
                         end
                     end
-                    if or(strcmp(dop.tmp.eps,'screen'),strcmp(dop.tmp.eps,'all')) && strcmp(dop.tmp.sum,'epoch')
-                        break; % don't need to keep doing this loop
-                    end
+%                     if or(strcmp(dop.tmp.eps,'screen'),strcmp(dop.tmp.eps,'all')) && strcmp(dop.tmp.sum,'epoch')
+%                         break; % don't need to keep doing this loop
+%                     end
                 end
             end
         end

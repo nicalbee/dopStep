@@ -23,6 +23,7 @@ function col_out = dopPlotColours(type,comment)
 % Created: 29-Aug-2014 NAB
 % Last edit:
 % 29-Aug-2014 NAB
+% 01-Aug-2016 NAB adjusted for epoch, base, & poi with number suffixes
 
 % if ~exist('okay','var') || isempty(okay)
 %     okay = 0;
@@ -71,6 +72,15 @@ try
             col_out = colours.(type);
             if comment
                 fprintf('Colour for %s: [%1.1f %1.1f %1.1f]',type,col_out);
+            end
+        elseif cell2mat(regexp(type,{'^epoch','^baseline','^poi'}))
+            % regular information at the start
+            tmp_set = {'epoch','baseline','poi'};
+            for i = 1 : numel(tmp_set)
+               if regexp(type,['^',tmp_set{i}])
+                   col_out = colours.(tmp_set{i});
+                   break
+               end
             end
         else
             fprintf('Type (%s) unknow, defaulting to blue\n',type');

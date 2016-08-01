@@ -72,9 +72,19 @@ try
                     % field existed - don't want this, needs to be new
                     % every time - actually, needs to be overwritten
                     % if size(tmp.stack,1) > 2 && ~isfield(dop,tmp.stack(3).name)
+%                     if size(tmp.stack,1) > 1 %&& ~isfield(dop,tmp.stack(end).name)
+%                         checks to see if there's a calling function
+%                         if so, holds the data
+%                         dop.(tmp.stack(2).name) = dop.tmp;
+%                         msg{end+1} = sprintf('''dop.tmp'' variable found, saved to %s:',tmp.stack(end).name);
+%                         dopMessage(msg,report,1,okay)
+%                     end
+                    % pre 1-Aug-2016 NAB
                     if size(tmp.stack,1) > 2 && ~isfield(dop,tmp.stack(3).name)
                         dop.(tmp.stack(3).name) = dop.tmp;
+                        msg{end+1} = sprintf('''dop.tmp'' variable found, saved to %s:',tmp.stack(end).name);
                     end
+                    
                     msg{end+1} = '''dop.tmp'' variable found, clearing';
                     dopMessage(msg,report,1,okay)
                     dop = rmfield(dop,'tmp');
