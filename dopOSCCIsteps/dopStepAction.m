@@ -1,4 +1,4 @@
-function dopStepAction(obj,event)
+function dopStepAction(obj,~)
 % dopOSCCI3: dopStepAction
 %
 % notes:
@@ -142,7 +142,7 @@ try
         else
             gui_msg = msg;
         end
-        warndlg(gui_msg,sprintf('%s action:',get(obj,'tag')));
+        msgbox(gui_msg,sprintf('%s action:',get(obj,'tag')));
     end
     %% update UserData
     set(dop.step.h,'UserData',dop);

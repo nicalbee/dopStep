@@ -111,7 +111,7 @@ try
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
                 %% specific output for gui (dopStep)
         if dop.tmp.gui
-            msg = sprintf('Channels set: %s\n',dop.tmp.file);
+            msg = sprintf('Channels set for: %s\n',dop.tmp.file);
             if ~okay
                 msg = sprintf('Problem with channels: %s\n',dop.tmp.file);
             end

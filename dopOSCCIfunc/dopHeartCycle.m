@@ -34,7 +34,7 @@ msg{end+1} = sprintf('Run: %s',mfilename);
 try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
-        inputs.turnOn = {'plot','filter'};
+        inputs.turnOn = {'plot','filter','gui'};
         inputs.turnOff = {'comment'};%,'correct','linspace'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
@@ -293,6 +293,12 @@ try
         %% outputs
         dop.okay = okay;
         dop.msg = msg;
+        if dop.tmp.gui
+            msg = sprintf('''%s'' function run with ''%s'' correction',mfilename,dop.tmp.type);
+            if ~okay
+                msg = sprintf('Problem with heart cycle correction... (function: %s)',mfilename);
+            end
+        end
         dopOSCCIindent('done',dop.tmp.comment);%fprintf('\nRunning %s:\n',mfilename);
     end
 catch err

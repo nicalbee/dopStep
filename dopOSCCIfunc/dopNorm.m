@@ -35,7 +35,7 @@ msg{end+1} = sprintf('Run: %s',mfilename);
 try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
-        
+        inputs.turnOn = {'gui'};        
 %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
@@ -132,8 +132,16 @@ try
         end
         dop.okay = okay;
         dop.msg = msg;
-        
-        dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
+                %% specific output for gui (dopStep)
+        if dop.tmp.gui
+            msg = sprintf('''%s'' function run successfully:\n\n\tNormed with ''%s'' method',...
+                mfilename,dop.tmp.norm_method);
+            if ~okay
+                msg = strrep(msg,'success','unsuccess');
+                msg = strrep(msg,'Normed','Not normed');
+            end
+        end
+        dopOSCCIindent('done');
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);

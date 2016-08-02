@@ -44,7 +44,7 @@ function [dop,okay,msg] = dopImport(dop_input,varargin)
 %   > e.g., ...,'variable_name',X,...
 %   note: '...' indicates that other inputs can be included before or
 %   after. The inputs can be included in any order.
-%   
+%
 % - 'file':
 %   > e.g., dopFunction(dop_input,okay,msg,...,'file','subjectX.exp',...)
 %   file name of the data file to be imported.
@@ -174,11 +174,11 @@ try
                     % 09-Dec-2015 NAB - seeing if the varargin works here -
                     % might but not tested.
                     [dop,okay,msg] = dopImport(dop,'nomat',varargin);
-%                     if dop.tmp.gui
-%                         [dop,okay,msg] = dopImport(dop,'nomat','gui');
-%                     else
-%                         [dop,okay,msg] = dopImport(dop,'nomat');
-%                     end
+                    %                     if dop.tmp.gui
+                    %                         [dop,okay,msg] = dopImport(dop,'nomat','gui');
+                    %                     else
+                    %                         [dop,okay,msg] = dopImport(dop,'nomat');
+                    %                     end
                 end
             elseif isTX(dop.fullfile)
                 [dop.data.raw,dop.file_info] = readTWfromTX(dop.fullfile);
@@ -196,17 +196,17 @@ try
                 if isfield(dop.file_info,'sampleRate')
                     dop.use.sample_rate = dop.file_info.sampleRate;
                 elseif isfield(dop.file_info,'sample_rate')
-                dop.use.sample_rate = dop.file_info.sample_rate;
+                    dop.use.sample_rate = dop.file_info.sample_rate;
                 else
                     okay = 0;
                     msg{end+1} = 'Sample rate information not found: this is a problem';
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 end
                 [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'raw');
                 [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-%                 if dop.tmp.extract
-%                     [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
-%                 end
+                %                 if dop.tmp.extract
+                %                     [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
+                %                 end
             end
             %% ready for channel extraction
             % reset this variable when data is imported
@@ -215,14 +215,17 @@ try
         
         dop.msg = msg;
         dop.okay = okay;
-        dopOSCCIindent('done');
+        
         %% specific output for gui (dopStep)
         if dop.tmp.gui
-            msg = sprintf('Imported: %s\n',dop.tmp.file);
+            msg = sprintf('''%s'' function run successfully:\n\n\tImported ''%s'' (%s)',...
+                mfilename,[dop.tmp.file_no_ext,dop.tmp.ext],dop.tmp.file_dir);
             if ~okay
-                msg = sprintf('Trouble importing %s\n',dop.tmp.file);
+                msg = strrep(msg,'success','unsuccess');
+                msg = strrep(msg,'Imported','Trouble importing');
             end
         end
+        dopOSCCIindent('done');
     end
 catch err
     save(dopOSCCIdebug);rethrow(err);

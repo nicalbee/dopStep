@@ -245,7 +245,7 @@ try
                 case {'heart','norm'}
                     if strcmp(dop.step.current.name,dop.step.action.tag{i}) % was 'norm' 25-july-2016
                         dop.tmp.enable = 'on'; %
-                        if isfield(dop.step,'dopHeartCycle') && ~isempty(dop.step.dopHeartCycle) && dop.step.dopHeartCycle
+                        if strcmp(dop.step.current.name,'heart') && isfield(dop.step,'dopHeartCycle') && ~isempty(dop.step.dopHeartCycle) && dop.step.dopHeartCycle
                             dop.tmp.enable = 'off';
                         end
                         %                         set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
