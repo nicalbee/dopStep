@@ -221,7 +221,9 @@ try
             [dop.tmp.file_dir,dop.tmp.file_no_ext,dop.tmp.ext] = fileparts(dop.use.fullfile);
             msg = sprintf('''%s'' function run successfully:\n\n\tImported ''%s''\n\n(From: %s)',...
                 mfilename,[dop.tmp.file_no_ext,dop.tmp.ext],dop.tmp.file_dir);
+            dop.step.(mfilename) = 1;
             if ~okay
+                dop.step.(mfilename) = 0;
                 msg = strrep(msg,'success','unsuccess');
                 msg = strrep(msg,'Imported','Trouble importing');
             end

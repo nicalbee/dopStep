@@ -72,7 +72,7 @@ try
     end
     %% - action buttons
     dop.step.action.string = {'Import','Channels','Events','Heart',...
-        'Norm','Epoch','Screen','Baseline','LI','Plot'}; %
+        'Norm','Epoch','Screen','Baseline','LI','Plot','Code'}; %
     dop.step.action.n = numel(dop.step.action.string);
     dop.step.action.tooltip = lower(dop.step.action.string); %{'import','channels','event','norm','heart','plot'};
     dop.step.action.tag = dop.step.action.tooltip;
@@ -84,7 +84,8 @@ try
         dop.step.action.pos_start(1):...
         dop.step.action.size(1):...
         dop.step.action.size(1)*dop.step.action.n;
-    dop.step.action.position(end,:) = [.88 .75]; % < top %[.9 .12]; % < bottom
+    dop.step.action.position(end-1,:) = [.88 .75]; % < top %[.9 .12]; % < bottom
+    dop.step.action.position(end,:) = [.88 .6];
     dop.step.action.visible = repmat({'on'},1,dop.step.action.n);%,'on','on','on','on''on',};
     dop.step.action.enable = repmat({'off'},1,dop.step.action.n);
     for i = 1 : dop.step.action.n

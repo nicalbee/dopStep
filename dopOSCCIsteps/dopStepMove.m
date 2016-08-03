@@ -11,6 +11,7 @@ function dopStepMove(button_handle,~,option)
 % Created: 14-Oct-2015 NAB
 % Edits:
 %   2015-Nov-30 NAB pulled movement code back in here
+% 03-Aug-2016 NAB set move to stop at 'finished' tab
 
 % options:
 % 14-Oct-2015 NAB consider doing for all font information - currently very
@@ -20,14 +21,14 @@ function dopStepMove(button_handle,~,option)
 try
     % probably don't want to report function name eventually
     fprintf('\nRunning %s: %s button\n',mfilename, get(button_handle,'tag'));
-%     if exist('move_direction','var') && isempty(move_direction)
-        move_direction =  get(button_handle,'tag');
-%     end
-%     case 'move_back'
-%         
-%         case 'move_next'
-%             
-% end
+    %     if exist('move_direction','var') && isempty(move_direction)
+    move_direction =  get(button_handle,'tag');
+    %     end
+    %     case 'move_back'
+    %
+    %         case 'move_next'
+    %
+    % end
     if ~exist('option','var') || isempty(option)
         option = '';
     end
@@ -61,10 +62,11 @@ try
                     dop.step.next.n = dop.step.current.n - 1;
                 end
             case 'move_next'
-                if dop.step.current.n == numel(dop.step.steps)-1
+                %                 if dop.step.current.n == numel(dop.step.steps)-2
+                if dop.step.current.n == find(ismember(dop.step.steps,'finished'))
                     fprintf('Last step - can''t move forward\n');
                     return % 07-Dec-2015 NAB no need to do anything
-%                     dop.step.next.n = dop.step.current.n;
+                    %                     dop.step.next.n = dop.step.current.n;
                 else
                     dop.step.next.n = dop.step.current.n + 1;
                 end
@@ -72,7 +74,7 @@ try
                 dop.step.next.n = 1;
         end
     end
-
+    
     %% pass data back to figure
     set(get(button_handle,'Parent'),'UserData',dop);
     dopStepSettings(get(button_handle,'parent'));

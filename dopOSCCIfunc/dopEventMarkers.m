@@ -264,7 +264,9 @@ try
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
                         %% specific output for gui (dopStep)
         if dop.tmp.gui
+            dop.step.(mfilename) = 0;
             if okay
+                dop.step.(mfilename) = 1;
                 msg = sprintf(['''%s'' function run: %i events found.',...
                     '\n\nMedian separation = ',...
                 '%3.2f seconds (min = %3.2f, max = %3.2f)\n'],...

@@ -137,7 +137,9 @@ try
         if dop.tmp.gui
             msg = sprintf('''%s'' function run successfully:\n\n\tNormed with ''%s'' method',...
                 mfilename,dop.tmp.norm_method);
+            dop.step.(mfilename) = 1;
             if ~okay
+                dop.step.(mfilename) = 0;
                 msg = strrep(msg,'success','unsuccess');
                 msg = strrep(msg,'Normed','Not normed');
             end

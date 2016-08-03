@@ -248,7 +248,9 @@ try
                 'Data epoched with %1.2f as the lower value and ',...
                 '%1.2f as the upper value.'],...
                 mfilename,dop.tmp.epoch);
+            dop.step.(mfilename) = 1;
             if ~okay
+                dop.step.(mfilename) = 0;
                 msg = strrep(msg,'success','unsuccess');
                 msg = strrep(msg,'Data epoched','Epoching attempted');
             end

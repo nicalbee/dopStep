@@ -113,7 +113,9 @@ try
         if dop.tmp.gui
             msg = sprintf('''%s'' function run successfully:\n\n\tChannels set for: ''%s''',...
                 mfilename,dop.tmp.file);
+            dop.step.(mfilename) = 1;
             if ~okay
+                dop.step.(mfilename) = 0;
                 msg = strrep(msg,'success','unsuccess');
                 msg = strrep(msg,'Channels set','Channels not set');
             end

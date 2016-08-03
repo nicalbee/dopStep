@@ -127,7 +127,9 @@ try
                 'Data baseline corrected with %1.2f as the lower value and ',...
                 '%1.2f as the upper value.'],...
                 mfilename,dop.tmp.baseline);
+            dop.step.(mfilename) = 1;
             if ~okay
+                dop.step.(mfilename) = 0;
                 msg = strrep(msg,'success','unsuccess');
                 msg = strrep(msg,'Data baseline corrected','Baselined correction attempted');
             end

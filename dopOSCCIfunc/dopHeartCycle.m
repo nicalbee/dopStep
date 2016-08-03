@@ -294,8 +294,10 @@ try
         dop.okay = okay;
         dop.msg = msg;
         if dop.tmp.gui
+            dop.step.(mfilename) = 1;
             msg = sprintf('''%s'' function run successfully with ''%s'' correction',mfilename,dop.tmp.type);
             if ~okay
+                dop.step.(mfilename) = 0;
                 msg = sprintf('Problem with heart cycle correction... (function: %s)',mfilename);
             end
         end

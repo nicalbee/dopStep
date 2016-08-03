@@ -110,7 +110,9 @@ try
             end
             
              msg = sprintf('%s\n\n%i epochs screened/removed',msg,dop.epoch.screen_removed);
+             dop.step.(mfilename) = 1;
             if ~okay
+                dop.step.(mfilename) = 0;
                 msg = strrep(msg,'success','unsuccess');
                 msg = strrep(msg,'Data screened','Attempted to screen');
             end

@@ -311,7 +311,9 @@ try
                     msg = sprintf('%s\t%s\n',msg,dop.msg{i});
                 end
             end
+            dop.step.(mfilename) = 1;
             if ~okay
+                dop.step.(mfilename) = 0;
                 msg = strrep(msg,'success','unsuccess');
                 msg = strrep(msg,'Data baseline corrected','Baselined correction attempted');
             end

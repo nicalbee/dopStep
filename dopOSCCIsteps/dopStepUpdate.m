@@ -296,6 +296,9 @@ try
                         end
                     end
             end
+            if strcmp(dop.step.current.name,'import') || ~isfield(dop.step,'dopImport') || ~dop.step.dopImport
+                dop.tmp.enable = 'off';
+            end
             set(dop.tmp.h,'enable',dop.tmp.enable);
         end
         

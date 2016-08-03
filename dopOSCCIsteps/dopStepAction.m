@@ -20,6 +20,7 @@ try
     switch get(obj,'tag')
         case 'import'
             [dop,okay,msg] = dopImport(dop,'file',dop.fullfile,'gui');
+            dop = dopStepHistory(dop,'dopImport','file',dop.fullfile);
             if okay
                 dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,'plot'));
                 set(dop.tmp.h,'enable','on');
