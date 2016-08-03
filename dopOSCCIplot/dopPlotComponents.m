@@ -10,6 +10,7 @@ function fig = dopPlotComponents(fig_h,varargin)
 %   interfering with y title
 % 04-Dec-2016 NAB added 'poi_select',0/1 ... input for manual selection of
 %   period of interest
+% 03-Aug-2016 NAB added hold checkbox for y-axis during epoch scrolling
 
 fig.h = fig_h; %figure;
 dop = get(fig.h,'UserData');
@@ -173,6 +174,18 @@ if ~yoff
             set(fig.yedit.h(i),'CallBack', @dopPlotEpochAxesAdjust);
         end
     end
+    %% add a checkbox so that can hold y-axis between epoch scrolling
+        fig.yhold.position = fig.yedit.position(1,:);
+        fig.yhold.position(2) = fig.yedit.position(1,2)-.1;
+        fig.yhold.h = uicontrol('parent',fig.h,'units','normalized',...
+            'style','check',...
+            'string','Hold y-axis',...
+            'tag','yhold',...'CallBack',@dopPlotAxesAdjust,...@dopPlotYadjust,...
+            'ToolTipString','Check to hold y-axis values between epoch scrolling - otherwise will adjust for the data range',...
+            'position',fig.yhold.position);
+        if isempty(varargin) || ~sum(strcmp(varargin,'epoch'))
+            set(fig.yhold.h,'Visible','off');
+        end
 end
 %% poi_select
 if ~isempty(varargin) && sum(strcmp(varargin,'poi_select'))

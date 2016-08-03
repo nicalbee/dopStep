@@ -129,6 +129,7 @@ try
         % update what's been done to the data
         if isfield(dop.data,'norm')
             [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'norm');
+            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         end
         dop.okay = okay;
         dop.msg = msg;

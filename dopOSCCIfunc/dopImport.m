@@ -218,7 +218,8 @@ try
         
         %% specific output for gui (dopStep)
         if dop.tmp.gui
-            msg = sprintf('''%s'' function run successfully:\n\n\tImported ''%s'' (%s)',...
+            [dop.tmp.file_dir,dop.tmp.file_no_ext,dop.tmp.ext] = fileparts(dop.use.fullfile);
+            msg = sprintf('''%s'' function run successfully:\n\n\tImported ''%s''\n\n(From: %s)',...
                 mfilename,[dop.tmp.file_no_ext,dop.tmp.ext],dop.tmp.file_dir);
             if ~okay
                 msg = strrep(msg,'success','unsuccess');

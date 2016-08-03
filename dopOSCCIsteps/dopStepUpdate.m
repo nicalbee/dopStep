@@ -245,8 +245,15 @@ try
                 case {'heart','norm'}
                     if strcmp(dop.step.current.name,dop.step.action.tag{i}) % was 'norm' 25-july-2016
                         dop.tmp.enable = 'on'; %
-                        if strcmp(dop.step.current.name,'heart') && isfield(dop.step,'dopHeartCycle') && ~isempty(dop.step.dopHeartCycle) && dop.step.dopHeartCycle
-                            dop.tmp.enable = 'off';
+                        switch dop.step.current.name
+                            case 'norm'
+                                if ~isfield(dop,'def') || ~isfield(dop.def,'norm_method')
+                                    dop.def.norm_method = 'overall';
+                                end
+                            case 'heart'
+                                if isfield(dop.step,'dopHeartCycle') && ~isempty(dop.step.dopHeartCycle) && dop.step.dopHeartCycle
+                                    dop.tmp.enable = 'off';
+                                end
                         end
                         %                         set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
                     end
@@ -256,7 +263,7 @@ try
                     %                     set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
                 case 'epoch'
                     if strcmp(dop.step.current.name,dop.step.action.tag{i})
-                        if ~isfield(dop.data,'epoch') || isempty(dop.data.epoch)
+                        if ~isfield(dop,'data') || ~isfield(dop.data,'epoch') || isempty(dop.data.epoch)
                             dop.tmp.var = {'epoch'};
                             for j = 1 : numel(dop.tmp.var)
                                 if isfield(dop,'def') && isfield(dop.def,dop.tmp.var{j}) && ...
@@ -268,9 +275,11 @@ try
                         end
                     end
                 case 'screen'
-                    if strcmp(dop.step.current.name,dop.step.action.tag{i}) && ...
-                            ~isfield(dop,'epoch') && ~isfield(dop.epoch,'screen') && isempty(dop.epoch.screen)
-                        dop.tmp.enable = 'on';
+                    if strcmp(dop.step.current.name,dop.step.action.tag{i})
+                        if ~isfield(dop,'epoch') || ~isfield(dop.epoch,'screen') && isempty(dop.epoch.screen) || ...
+                                isfield(dop,'def') && isfield(dop.def,'act_range') && ~isempty(dop.def.act_range)
+                            dop.tmp.enable = 'on';
+                        end
                     end
                 case 'baseline'
                     if strcmp(dop.step.current.name,dop.step.action.tag{i}) && ...

@@ -34,6 +34,7 @@ function [dop,okay,msg] = dopEpochScreen(dop_input,varargin)
 % 14-Sep-2014 NAB included dopEpochScreenCombine
 % 16-Sep-2014 NAB added dopEpochScreenManual
 % 20-May-2015 NAB added 'showmsg'
+% 03-Aug-2016 NAB added gui message
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -42,8 +43,8 @@ try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
-        inputs.turnOff = {'comment'};
         inputs.turnOn = {'gui'};
+        inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'showmsg',1,...
@@ -95,11 +96,25 @@ try
         if okay
             [dop,okay,msg] = dopEpochScreenCombine(dop,okay,msg,...
                 'screen',dop.tmp.screen);
+            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         end
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;
         
+        if dop.tmp.gui
+            msg = sprintf(['''%s'' function run successfully:\n\n%i epochs ',...
+                'screened with:'],mfilename,numel(dop.epoch.screen));
+            for i = 1 : numel(dop.tmp.screen)
+                msg = sprintf('%s\n\t- %s:\t%i okay',msg,dop.tmp.screen{i},sum(dop.epoch.(dop.tmp.screen{i})));
+            end
+            
+             msg = sprintf('%s\n\n%i epochs screened/removed',msg,dop.epoch.screen_removed);
+            if ~okay
+                msg = strrep(msg,'success','unsuccess');
+                msg = strrep(msg,'Data screened','Attempted to screen');
+            end
+        end
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
     end
 catch err

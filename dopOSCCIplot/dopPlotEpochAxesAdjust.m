@@ -17,6 +17,7 @@ function dopPlotEpochAxesAdjust(handle,~)
 % 14-Feb-2016 NAB added x & y zero data
 % 27-Jul-2016 NAB adjusted to cope without extra patches
 % 27-Jul-2016 NAB copes without poi
+% 03-Aug-2016 NAB adjusted for y-hold option for epoch scrolling
 
 disp_options = {'all','median','mean'};
 % if ~isnan(str2double(get(handle,'string')))
@@ -118,6 +119,11 @@ switch get(handle,'tag')
             end
         end
         
+        ch = get(gcf,'Children');
+        yhold_h = ch(ismember(get(ch,'Tag'),'yhold'));
+        yhold_value = get(yhold_h,'Value');
+        y_hold_lim = get(axes_h,'Ylim');
+        
         for i = 1 : numel(tmp_labels) %numel(dop.data.epoch_labels)
             if i == 1 && ishold(axes_h); hold; end
             switch tmp_labels{i}
@@ -134,15 +140,15 @@ switch get(handle,'tag')
                     end
                 case {'baseline','poi'}
                     if ~isempty(dop.tmp.(tmp_labels{i}))
-                    line_h = ...
-                        patch([dop.tmp.(tmp_labels{i}) fliplr(dop.tmp.(tmp_labels{i}))],...
-                        [ones(1,2)*max(get(axes_h,'Ylim')) ones(1,2)*min(get(axes_h,'Ylim'))],...
-                        dopPlotColours(tmp_labels{i}),...
-                        'Parent',axes_h,...
-                        'FaceAlpha',.3,'EdgeAlpha',0,...
-                        'EdgeColor',dopPlotColours(tmp_labels{i}),...
-                        'DisplayName',tmp_labels{i},...
-                        'Tag',tmp_labels{i});
+                        line_h = ...
+                            patch([dop.tmp.(tmp_labels{i}) fliplr(dop.tmp.(tmp_labels{i}))],...
+                            [ones(1,2)*max(get(axes_h,'Ylim')) ones(1,2)*min(get(axes_h,'Ylim'))],...
+                            dopPlotColours(tmp_labels{i}),...
+                            'Parent',axes_h,...
+                            'FaceAlpha',.3,'EdgeAlpha',0,...
+                            'EdgeColor',dopPlotColours(tmp_labels{i}),...
+                            'DisplayName',tmp_labels{i},...
+                            'Tag',tmp_labels{i});
                     end
                 case 'peak'
                     
@@ -195,6 +201,7 @@ switch get(handle,'tag')
             set(check_h(i),'UserData',line_h);
             %             if i == 1; hold; end
             if i == 1; hold;
+                
                 plot(axes_h,dop.epoch.times,...
                     zeros(size(dop.epoch.times)),...
                     'color',dopPlotColours('yzero'),...
@@ -269,6 +276,11 @@ end
 % else
 %     fprintf('!! Problem...\n');
 % end
+
+if exist('yhold_value','var') && yhold_value
+    ylim = y_hold_lim;
+end
+
 set(axes_h,'Xlim',xlim,'Ylim',ylim);
 set(lower_yh,'string',ylim(1));
 set(upper_yh,'string',ylim(2));

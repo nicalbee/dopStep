@@ -26,6 +26,7 @@ function [dop,okay,msg] = dopBaseCorrect(dop_input,varargin)
 % 18-Aug-2014 NAB
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn updates
+% 03-Aug-2016 NAB added gui comment
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -34,8 +35,8 @@ try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
+        inputs.turnOn = {'gui'};
         inputs.turnOff = {'comment'};
-        inputs.turnOn = {'gui'}
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'msg',1,...
@@ -114,12 +115,23 @@ try
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             
             [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'base');
+            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         end
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;
         
+         if dop.tmp.gui
+            msg = sprintf(['''%s'' function run successfully:\n\n',...
+                'Data baseline corrected with %1.2f as the lower value and ',...
+                '%1.2f as the upper value.'],...
+                mfilename,dop.tmp.baseline);
+            if ~okay
+                msg = strrep(msg,'success','unsuccess');
+                msg = strrep(msg,'Data baseline corrected','Baselined correction attempted');
+            end
+        end
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
     end
 catch err

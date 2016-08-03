@@ -42,7 +42,7 @@ try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
-        inputs.turnOn = {};
+        inputs.turnOn = {'gui'};
         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
@@ -102,7 +102,8 @@ try
 %             dop.tmp.data = dop.data.use;
 %         end
 % 21-Jan-2016 NAB added dopMultiFuncTmpCheck instead of above code
-        [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+%         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+        % don't think that it's needed here... 03-Aug-2016
         %% clear previous data
         if isfield(dop,'sum') && isfield(dop.tmp,'clear') && dop.tmp.clear
             dop = rmfield(dop,'sum');
@@ -300,6 +301,21 @@ try
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;
+        
+        if dop.tmp.gui
+            msg = sprintf('''%s'' function run successfully\n\n',...
+                mfilename);
+            dop.tmp.summary_check = ~cellfun('isempty',regexp(dop.msg,'^Summary of*'));
+            if sum(dop.tmp.summary_check)
+                for i = find(dop.tmp.summary_check,1,'last') : numel(dop.msg)
+                    msg = sprintf('%s\t%s\n',msg,dop.msg{i});
+                end
+            end
+            if ~okay
+                msg = strrep(msg,'success','unsuccess');
+                msg = strrep(msg,'Data baseline corrected','Baselined correction attempted');
+            end
+        end
         
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
     end

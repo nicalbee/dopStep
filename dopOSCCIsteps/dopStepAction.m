@@ -27,7 +27,7 @@ try
                 set(dop.tmp.h,'Visible','on');
                 dop.step.dopChannelExtract = 0;
                 dop.step.dopHeartCycle = 0;
-%                 set(obj,'Enable','off');
+                %                 set(obj,'Enable','off');
             end
         case 'channels'
             [dop,okay,msg] = dopChannelExtract(dop,'signal_channels',dop.def.signal_channels,...
@@ -38,14 +38,14 @@ try
                 % also need to adjust the strings - not so sure about this
                 % 30-jul-2016 NAB makes sense to know what the original
                 % data was
-%                 dop.step.next.ch_list = dop.data.channel_labels;
-%                 for i = 1 : numel(dop.step.current.h)
-%                     switch get(dop.step.current.h(i),'Style')
-%                         case 'popupmenu'
-%                             set(dop.step.current.h(i),'String',dop.data.channel_labels)
-%                             set(dop.step.current.h(i),'Value',find(ismember(dop.data.channel_labels,strtok(get(dop.step.current.h(i),'Tag'),'_'))));
-%                     end
-%                 end
+                %                 dop.step.next.ch_list = dop.data.channel_labels;
+                %                 for i = 1 : numel(dop.step.current.h)
+                %                     switch get(dop.step.current.h(i),'Style')
+                %                         case 'popupmenu'
+                %                             set(dop.step.current.h(i),'String',dop.data.channel_labels)
+                %                             set(dop.step.current.h(i),'Value',find(ismember(dop.data.channel_labels,strtok(get(dop.step.current.h(i),'Tag'),'_'))));
+                %                     end
+                %                 end
                 set(obj,'Enable','off');
                 % turn off the popup menus as well
                 % look for tags with '_channel' at the end
@@ -56,13 +56,13 @@ try
             if isfield(dop,'def') && isfield(dop.def,'norm_method')
                 switch dop.def.norm_method
                     case 'overall'
-                        [dop,okay,msg] = dopNorm(dop,'norm_method',dop.def.norm_method);
+                        [dop,okay,msg] = dopNorm(dop,'norm_method',dop.def.norm_method,'gui');
                     case 'epoch'
                         [dop,okay,msg] = dopNorm(dop,'norm_method',dop.def.norm_method,...
-                            'epoch',dop.def.epoch);
+                            'epoch',dop.def.epoch,'gui');
                     case 'deppe'
                         [dop,okay,msg] = dopNorm(dop,'norm_method','deppe_epoch',dop.def.norm_method,...
-                            'epoch',dop.def.epoch,'baseline',dop.def.base,'gui');
+                            'epoch',dop.def.epoch,'baseline',dop.def.baseline,'gui');
                 end
             end
         case 'downsample'
@@ -104,33 +104,42 @@ try
                 dop.step.dopHeartCycle = 1;
             end
         case 'epoch'
-%             if isfield(dop.def,'epoch') && ~isempty(dop.def.epoch)
-                [dop,okay,msg] = dopEpoch(dop,'epoch',dop.def.epoch,'gui');
-%             end
+            %             if isfield(dop.def,'epoch') && ~isempty(dop.def.epoch)
+            [dop,okay,msg] = dopEpoch(dop,'epoch',dop.def.epoch,'gui');
+            %             end
+            if okay && isfield(dop.data,'epoch') && ~isempty(dop.data.epoch)
+                set(obj,'Enable','off');
+            end
         case 'screen'
-            [dop,okay,msg] = dopEpochScreen(dop,'screen',{'length','act','sep'},...
-                'act_range',dop.def.act_range,'sep',dop.def.act_separation,...
-                'act_separation_pct',dop.def.act_separation_pct,'gui');
+            if isfield(dop.def,'act_separation') && ~isempty(dop.def.act_separation) && ...
+                    isfield(dop.def,'act_separation_pct') && ~isempty(dop.def.act_separation_pct)
+                [dop,okay,msg] = dopEpochScreen(dop,'screen',{'length','act','sep'},...
+                    'act_range',dop.def.act_range,'sep',dop.def.act_separation,...
+                    'act_separation_pct',dop.def.act_separation_pct,'gui');
+            else
+                [dop,okay,msg] = dopEpochScreen(dop,'screen',{'length','act'},...
+                    'act_range',dop.def.act_range,'gui');
+            end
             if okay
                 set(obj,'Enable','off');
             end
         case 'baseline'
-            [dop,okay,msg] = dopBaseCorrect(dop,'baseline',dop.def.base,'gui');
+            [dop,okay,msg] = dopBaseCorrect(dop,'baseline',dop.def.baseline,'gui');
             if okay
                 set(obj,'Enable','off');
             end
         case 'li'
             [dop,okay,msg] = dopCalcAuto(dop,'poi',dop.def.poi,'act_window',dop.def.act_window,'gui');
-%             [dop.sum,okay,msg] = dopCalcSummary(dop.data,...
-%                 'summary',dop.tmp.sum,... % 'overall' or epoch'
-%                 'period',dop.tmp.prd,...
-%                 'epoch',dop.tmp.epoch,...
-%                 'act_window',dop.tmp.act_window,...
-%                 'sample_rate',dop.tmp.sample_rate,...
-%                 'poi',dop.tmp.poi(jjj,:),...
-%                 'baseline',dop.tmp.baseline,...
-%                 'file',dop.tmp.file,...
-%                 'poi_select',dop.tmp.poi_select);% manual selection of poi
+            %             [dop.sum,okay,msg] = dopCalcSummary(dop.data,...
+            %                 'summary',dop.tmp.sum,... % 'overall' or epoch'
+            %                 'period',dop.tmp.prd,...
+            %                 'epoch',dop.tmp.epoch,...
+            %                 'act_window',dop.tmp.act_window,...
+            %                 'sample_rate',dop.tmp.sample_rate,...
+            %                 'poi',dop.tmp.poi(jjj,:),...
+            %                 'baseline',dop.tmp.baseline,...
+            %                 'file',dop.tmp.file,...
+            %                 'poi_select',dop.tmp.poi_select);% manual selection of poi
         case 'plot'
             dop = dopPlot(dop);
         otherwise

@@ -134,6 +134,7 @@ msg{end+1} = sprintf('Run: %s',mfilename);
 try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
+        inputs.turnOn = {'gui'};
         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
@@ -231,6 +232,7 @@ try
             % set the dop.data.use = dop.data.epoch... not sure about this
             % 10-Aug-2014
             [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'epoch');
+            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
             % don't think I'll update the dop.tmp.data variable here, just
             % use dop.data.epoch when it's appropriate.
             %         otherwise
@@ -240,6 +242,18 @@ try
         end
         dop.okay = okay;
         dop.msg = msg;
+        
+        if dop.tmp.gui
+            msg = sprintf(['''%s'' function run successfully:\n\n',...
+                'Data epoched with %1.2f as the lower value and ',...
+                '%1.2f as the upper value.'],...
+                mfilename,dop.tmp.epoch);
+            if ~okay
+                msg = strrep(msg,'success','unsuccess');
+                msg = strrep(msg,'Data epoched','Epoching attempted');
+            end
+        end
+        
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
     end
 catch err

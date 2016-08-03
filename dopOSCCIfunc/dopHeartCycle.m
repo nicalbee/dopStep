@@ -294,7 +294,7 @@ try
         dop.okay = okay;
         dop.msg = msg;
         if dop.tmp.gui
-            msg = sprintf('''%s'' function run with ''%s'' correction',mfilename,dop.tmp.type);
+            msg = sprintf('''%s'' function run successfully with ''%s'' correction',mfilename,dop.tmp.type);
             if ~okay
                 msg = sprintf('Problem with heart cycle correction... (function: %s)',mfilename);
             end

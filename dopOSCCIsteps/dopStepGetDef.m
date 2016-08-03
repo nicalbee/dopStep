@@ -13,8 +13,9 @@ function dopStepGetDef(obj,event)
 % Created: 29-Oct-2015 NAB
 % Edits:
 % 04-Nov-2015 NAB added channels option - no action yet
-% 30-Jul-2015 NAB added search to add definition values to gui if values
+% 30-Jul-2016 NAB added search to add definition values to gui if values
 %   exsit
+% 03-Aug-2016 NAB lots of development - fixed epoch enable today
 try
     dop = get(gcf,'UserData');
     dop.tmp.options = {'lower','upper'};
@@ -22,7 +23,7 @@ try
         case {'downsample_rate','event_height',...
                 'event_sep',...
                 'epoch_lower','epoch_upper',...
-                'base_lower','base_upper',...
+                'baseline_lower','baseline_upper',...
                 'poi_lower','poi_upper',...
                 'act_lower','act_upper',...
                 'act_separation','act_separation_pct',...
@@ -38,7 +39,7 @@ try
                 dop.tmp.element = strrep(dop.tmp.rem,'_','');
                 switch get(obj,'tag')
                     case {'epoch_lower','epoch_upper',...
-                            'base_lower','base_upper',...
+                            'baseline_lower','baseline_upper',...
                             'poi_lower','poi_upper',...
                             'act_lower','act_upper' ...
                             }
@@ -59,7 +60,7 @@ try
             if ~isempty(dop.tmp.value) && ~isnan(dop.tmp.value)
                 switch get(obj,'tag')
                     case {'epoch_lower','epoch_upper',...
-                            'base_lower','base_upper',...
+                            'baseline_lower','baseline_upper',...
                             'poi_lower','poi_upper',...
                             'act_lower','act_upper'...
                             }
@@ -129,15 +130,15 @@ try
                 switch dop.tmp.value
                     case 'overall'
                         set(dop.step.action.h(ismember(dop.step.action.tag,strtok(get(obj,'tag'),'-'))),'enable','on');
-                        dop.tmp.times = struct('base','off','epoch','off');
+                        dop.tmp.times = struct('baseline','off','epoch','off');
                         set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','on');
                     case {'epoch','deppe'}
                         set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable','off');
                         switch dop.tmp.value
                             case 'epoch'
-                                dop.tmp.times = struct('base','off','epoch','on');
+                                dop.tmp.times = struct('baseline','off','epoch','on');
                             case 'deppe'
-                                dop.tmp.times = struct('base','on','epoch','on');
+                                dop.tmp.times = struct('baseline','on','epoch','on');
                         end
                 end
                 [dop.tmp.h_var,dop.tmp.rem] = strtok(get(dop.step.current.h,'tag'),'_');
@@ -173,7 +174,7 @@ function dopButtonEnable(dop)
 switch dop.step.current.name
     case 'norm'
         if isfield(dop.def,'norm_method')
-            dop.tmp.vars = {'epoch','base'};
+            dop.tmp.vars = {'epoch','baseline'};
             switch dop.def.norm_method
                 case 'overall'
                     dop.tmp.required = [0 0];
@@ -193,7 +194,7 @@ switch dop.step.current.name
         dop.tmp.required = 1;
     case 'screen'
         dop.tmp.vars = {'act_sep','act_separation_pct'};
-        dop.tmp.required = [0 0];
+        dop.tmp.required = [1 0];
     case 'baseline'
         dop.tmp.vars = {'baseline'};
         dop.tmp.required = 1;
@@ -221,7 +222,7 @@ if ~isempty(dop.tmp.vars)
     dop.tmp.enable = 'off';
     % switch dop.step.current.name
     %     case {'norm','epoch'}
-    if isfield(dop.def,'norm_method') && strcmp(dop.def.norm_method,'overall') || ...
+    if strcmp(dop.step.current.name,'norm') && isfield(dop.def,'norm_method') && strcmp(dop.def.norm_method,'overall') || ...
             and(sum(dop.tmp.okay),sum(dop.tmp.required == dop.tmp.okay) == numel(dop.tmp.okay)) || ...
             strcmp(dop.step.current.name,'screen')
         dop.tmp.enable = 'on';
