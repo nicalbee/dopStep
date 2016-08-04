@@ -19,6 +19,7 @@ function varargout = dopOSCCIversion%(output)
 % 3.0.2 22-Jan-2016 manual POI selection and stitching working with toggles
 %   so no longer auto file recognition, use dop.def.poi_select = 1 and
 %   dop.def.stitch = 1;
+% 3.1.2 05-Aug-2016  dopStep development - minor changes throughout
 
 %
 % -------------------------------------------------------------------------
@@ -54,10 +55,10 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.0.2';
-    dop_date = 'Friday 22nd of Jan 2016';
+    dop_version = '3.1.2';
+    dop_date = 'Friday 5th of August 2016';
     dop_out = [dop_version,': ',dop_date];
-    fprintf('Matlab version: %s\n',version);
+    fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...
         dop_version,dop_date);
     

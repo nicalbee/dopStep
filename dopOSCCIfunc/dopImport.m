@@ -152,6 +152,9 @@ try
                 'Dir = %s\n\tExtension = %s\n\n'],...
                 dop.use.file,dop.use.dir,dop.file_ext);
             dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            if dop.tmp.gui
+                dop.tmp.box_h = msgbox(msg{end},'Loading...');
+            end
             %             tmp_file,tmp_dir,tmp_ext);
             % check for a mat file first
             dop.tmp.mat_dir = dop.dir;
@@ -218,6 +221,9 @@ try
         
         %% specific output for gui (dopStep)
         if dop.tmp.gui
+            if isfield(dop.tmp,'box_h')
+                try; delete(dop.tmp.box_h); end
+            end
             [dop.tmp.file_dir,dop.tmp.file_no_ext,dop.tmp.ext] = fileparts(dop.use.fullfile);
             msg = sprintf('''%s'' function run successfully:\n\n\tImported ''%s''\n\n(From: %s)',...
                 mfilename,[dop.tmp.file_no_ext,dop.tmp.ext],dop.tmp.file_dir);

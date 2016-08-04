@@ -143,8 +143,9 @@ try
             %                 'poi_select',dop.tmp.poi_select);% manual selection of poi
         case 'plot'
             dop = dopPlot(dop);
+            dop = dopStepCode(dop,'dopPlot');
         case 'code'
-            dopStepCode(dop,'export');
+            dop = dopStepCode(dop,'export');
         otherwise
             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
     end
