@@ -20,7 +20,7 @@ try
     switch get(obj,'tag')
         case 'import'
             [dop,okay,msg] = dopImport(dop,'file',dop.fullfile,'gui');
-            dop = dopStepHistory(dop,'dopImport','file',dop.fullfile);
+            dop = dopStepCode(dop,'dopImport','file',dop.fullfile);
             if okay
                 dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,'plot'));
                 set(dop.tmp.h,'enable','on');
@@ -143,6 +143,8 @@ try
             %                 'poi_select',dop.tmp.poi_select);% manual selection of poi
         case 'plot'
             dop = dopPlot(dop);
+        case 'code'
+            dopStepCode(dop,'export');
         otherwise
             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
     end

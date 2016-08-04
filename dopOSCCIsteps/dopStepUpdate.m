@@ -298,6 +298,8 @@ try
             end
             if strcmp(dop.step.current.name,'import') || ~isfield(dop.step,'dopImport') || ~dop.step.dopImport
                 dop.tmp.enable = 'off';
+            elseif strcmp(dop.step.current.name,'code') && isfield(dop.step,'code') && ~isempty(dop.step.code)
+                dop.tmp.enable = 'on';
             end
             set(dop.tmp.h,'enable',dop.tmp.enable);
         end
