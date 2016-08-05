@@ -39,7 +39,17 @@ switch dop.tmp.run_export
             dop.tmp.function = varargin{1};
             
             for i = 2 : numel(varargin)
-                dop.tmp.inputs = sprintf('%s,''%s''',dop.tmp.inputs,varargin{i});
+                if iscell(varargin{i})
+                    dop.tmp.eval = 'dop.tmp.inputs = sprintf([''%s,'',dopVarType(varargin{i},[],[],1)],dop.tmp.inputs';
+                    for j = 1 : numel(varargin{i}) 
+                        tmp_var = varargin{i}{j};
+                        dop.tmp.eval = sprintf(['%s,',dopVarType(tmp_var,[],[],1)],dop.tmp.eval,tmp_var);
+                    end
+                    dop.tmp.eval = sprintf('%s);',dop.tmp.eval);
+                    eval(dop.tmp.eval);
+                else
+                    dop.tmp.inputs = sprintf(['%s,',dopVarType(varargin{i},[],[],1)],dop.tmp.inputs,varargin{i});
+                end
             end
             dop.step.code.data{end+1} = sprintf('%s %s(%s);',dop.tmp.outputs,dop.tmp.function,dop.tmp.inputs);
             

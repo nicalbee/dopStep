@@ -1,4 +1,4 @@
-function [var_type,okay,msg] = dopVarType(in_var,comment,num_decimals)
+function [var_type,okay,msg] = dopVarType(in_var,comment,num_decimals,eval_out)
 % dopOSCCI3: dopVarType
 %
 % notes:
@@ -25,6 +25,7 @@ function [var_type,okay,msg] = dopVarType(in_var,comment,num_decimals)
 % Created: 10-Aug-2014 NAB
 % Last edit:
 % 10-Aug-2014 NAB
+% 06-Aug-2016 NAB updated for eval_out as part of dopStepCode
 
 var_type = '%s'; % string by default
 var_type_name = 'string';
@@ -39,6 +40,10 @@ if ~exist('num_decimals','var') || isempty(num_decimals)
     % could vary leading number here too...
 end
 
+if ~exist('eval_out','var') || isempty(eval_out)
+    eval_out = 0;
+end
+
 try
     dopOSCCIindent('run',comment);%fprintf('\nRunning %s:\n',mfilename);
     
@@ -48,7 +53,7 @@ try
         if isnan(in_var)
             var_type = '%s';
             var_type_name = 'NaN';
-        elseif numel(in_var) == 1 && diff([abs(round(in_var)),abs(in_var)]) ~= 0 
+        elseif numel(in_var) == 1 && diff([abs(round(in_var)),abs(in_var)]) ~= 0
             var_type = sprintf('%%3.%uf',num_decimals);
             var_type_name = 'decimal number';
         elseif numel(in_var) > 1
@@ -86,20 +91,43 @@ try
         switch var_type_name
             case 'cell'
                 msg{end+1} = sprintf(...
-            ['Variable is a %s,'...
-            ' value/s = ',var_type,...
-            ': format = %s'],var_type_name,in_var{:},var_type);
+                    ['Variable is a %s,'...
+                    ' value/s = ',var_type,...
+                    ': format = %s'],var_type_name,in_var{:},var_type);
             otherwise
-        msg{end+1} = sprintf(...
-            ['Variable is a %s,'...
-            ' value = ',var_type,...
-            ': format = %s'],var_type_name,in_var,var_type);
+                msg{end+1} = sprintf(...
+                    ['Variable is a %s,'...
+                    ' value = ',var_type,...
+                    ': format = %s'],var_type_name,in_var,var_type);
         end
     else
         msg{end+1} = sprintf(...
             ['Variable is a %s, '...
             'sprintf or fprintf doesn''t work with these'],var_type_name);
     end
+    if eval_out
+        %         if iscell(in_var)
+        %             var_type = strrep('%s','''%s''',var_type);
+        %             var_type = sprintf('{%s}',var_type);
+        %         else
+        if strcmp(var_type,'%s') || iscell(in_var)
+            var_type = strrep(var_type,'%s','''%s''');
+            
+            if iscell(in_var)
+                var_type = strrep(var_type,' ',',');
+                if strcmp(var_type(end),',')
+                    var_type(end) = []; % remove last comma
+                end
+                var_type = sprintf('{%s}',var_type); % add curly brackets
+            end
+        elseif sum(ismember(var_type,'%')) > 1
+            if strcmp(var_type(end),' ')
+                var_type(end) = []; % remove last space
+            end
+            var_type = sprintf('[%s]',var_type);
+        end
+    end
+    
     if comment; fprintf('\t%s\n',msg{end}); end
     
     dopOSCCIindent('done',comment);%fprintf('\nRunning %s:\n',mfilename);
