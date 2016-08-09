@@ -52,7 +52,7 @@ function [dop,okay,msg,dop_output] = dopSetBasicInputs(dop_input,varargin)
 %
 % Created: 22-Aug-2014 NAB
 % Last edit:
-% 22-Aug-2014 NAB % created
+% 09-Aug-2016 NAB this could also do the dopStepCode... maybe later
 
 dop = dop_input;
 okay = 1;

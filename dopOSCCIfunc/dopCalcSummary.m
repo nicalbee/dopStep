@@ -328,13 +328,17 @@ try
                     dop_output.ci,dop_output.stats] = ttest(dop.tmp.window_data);
                 
                 if strcmp(dop.tmp.summary,'overall')
-                    [dop_output.tsig,dop_output.tp,...
+                    [dop_output.t_sig,dop_output.t_p,...
                         dop_output.ci,dop_output.stats] = ttest(dop_output.peak_mean); %ttest(dop.tmp.window_data);
                 end
                 
                 dop_output.t_value = dop_output.stats.tstat;
                 dop_output.t_df = dop_output.stats.df;
                 dop_output.t_sd = dop_output.stats.sd;
+                
+                
+                msg{end+1} = sprintf('t(%i) = %3.2f, p = %3.2f',dop_output.t_df,dop_output.t_value,dop_output.t_p);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             elseif ~dop.tmp.ttest
                 msg{end+1} = '''ttest'' variable set to 0, not running';
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);

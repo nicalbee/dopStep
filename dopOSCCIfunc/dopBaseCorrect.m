@@ -72,6 +72,19 @@ try
         %% main code
         if okay
             %         dop.tmp.data = dop.data.epoch; % this will be overwritten
+            % added 09-Aug-2016 but started saving required variables into
+            % dop.def structure so should be available.
+%             if ~isfield(dop.tmp,'epoch') || isempty(dop.tmp.epoch)
+%                 % okay - might be a problem here - need this information
+%                 if isfield(dop,'epoch') && isfield(dop.epoch,'samples') ...
+%                         && isfield(dop.tmp,'sample_rate') && ~isempty(dop.tmp.sample_rate)
+%                     dop.tmp.epoch = dop.epoch.samples/dop.tmp.sample_rate;
+%                 else
+%                     msg{end+1} = 'Epoch information not found and required';
+%                     okay = 0;
+%                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%                 end
+%             end
             dop.tmp.base = zeros(size(dop.tmp.data));
             dop.tmp.base_filt = (-dop.tmp.epoch(1) + dop.tmp.baseline)*dop.tmp.sample_rate;
             if dop.tmp.base_filt(1) < 1

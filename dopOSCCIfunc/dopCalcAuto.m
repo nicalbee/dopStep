@@ -34,6 +34,7 @@ function [dop,okay,msg] = dopCalcAuto(dop_input,varargin)
 %   be inside the dopCalcSummary function but some of the internal code
 %   here over-rides that. Clues about this below if I ever need them.
 %   Please email me if you're unsure!
+% 09-Aug-2016 NAB added 'ttest' input to flow through into dopCalcSummary
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -59,6 +60,7 @@ try
             'poi_file',[],...
             'act_window',[], ... %
             'sample_rate',[], ...
+            'ttest',1,...
             'clear',1 ... % remove previous ''dop.sum'' field/data
             );
         % cells don't work in struct function...
@@ -70,6 +72,7 @@ try
             {'poi','baseline','act_window','sample_rate'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
+        if okay
         if isfield(dop.tmp,'data') && size(dop.tmp.data,3) == 1
             okay = 0;
             msg{end+1} = sprintf(['''dop.tmp.data'' doesn''t looked like' ...
@@ -89,6 +92,7 @@ try
                 mfilename,dop.tmp.file);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
+        end
         %% tmp check
 %         if okay && isfield(dop,mfilename)
 %             make sure the dop.tmp variable is correct: with multiple
@@ -105,14 +109,14 @@ try
 %         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         % don't think that it's needed here... 03-Aug-2016
         %% clear previous data
-        if isfield(dop,'sum') && isfield(dop.tmp,'clear') && dop.tmp.clear
+        if okay && isfield(dop,'sum') && isfield(dop.tmp,'clear') && dop.tmp.clear
             dop = rmfield(dop,'sum');
             msg{end+1} = 'Cleared previous calculations: ''dop.sum'' field removed';
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
         
         %% manual poi selection
-        if dop.tmp.poi_select
+        if okay && dop.tmp.poi_select
             [dop,okay,msg] = dopManualPOI(dop,okay,msg,...
                 'poi_select',dop.tmp.poi_select,...
                 'poi_fullfile',dop.tmp.poi_fullfile, ... 
@@ -276,6 +280,7 @@ try
                                 'poi',dop.tmp.poi(jjj,:),...
                                 'baseline',dop.tmp.baseline,...
                                 'file',dop.tmp.file,...
+                                'ttest',dop.tmp.ttest,...
                                 'poi_select',dop.tmp.poi_select);% manual selection of poi
                             % possibly don't need this here... 1-Aug-2016
 %                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);

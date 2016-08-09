@@ -20,7 +20,7 @@ try
     switch get(obj,'tag')
         case 'import'
             [dop,okay,msg] = dopImport(dop,'file',dop.fullfile,'gui');
-            dop = dopStepCode(dop,'dopImport','file',dop.fullfile);
+            dop = dopStepCode(dop,'dopImport','file',dop.fullfile,'gui');
             if okay
                 dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,'plot'));
                 set(dop.tmp.h,'enable','on');
@@ -34,7 +34,7 @@ try
             [dop,okay,msg] = dopChannelExtract(dop,'signal_channels',dop.def.signal_channels,...
                 'event_channels',dop.def.event_channels,'gui');
             dop = dopStepCode(dop,'dopChannelExtract','signal_channels',dop.def.signal_channels,...
-                'event_channels',dop.def.event_channels);
+                'event_channels',dop.def.event_channels,'gui');
             if okay
                 dop.tmp.h = dop.step.current.h(ismember(dop.step.current.tag,'ch_plot_text'));
                 set(dop.tmp.h,'Visible','on');
@@ -60,14 +60,14 @@ try
                 switch dop.def.norm_method
                     case 'overall'
                         [dop,okay,msg] = dopNorm(dop,'norm_method',dop.def.norm_method,'gui');
-                        if okay; dop = dopStepCode(dop,'dopNorm','norm_method',dop.def.norm_method); end
+                        if okay; dop = dopStepCode(dop,'dopNorm','norm_method',dop.def.norm_method,'gui'); end
                     case 'epoch'
                         [dop,okay,msg] = dopNorm(dop,'norm_method',dop.def.norm_method,...
                             'epoch',dop.def.epoch,'gui');
                         if okay;
                             dop = dopStepCode(dop,'dopNorm',...
                                 'norm_method',dop.def.norm_method,...
-                                'epoch',dop.def.epoch);
+                                'epoch',dop.def.epoch,'gui');
                         end
                     case 'deppe'
                         [dop,okay,msg] = dopNorm(dop,'norm_method','deppe_epoch',dop.def.norm_method,...
@@ -76,7 +76,7 @@ try
                             dop = dopStepCode(dop,'dopNorm',...
                                 'norm_method',dop.def.norm_method,...
                                 'epoch',dop.def.epoch,...
-                                'baseline',dop.def.baseline);
+                                'baseline',dop.def.baseline,'gui');
                         end
                 end
             end
@@ -95,13 +95,13 @@ try
                 if okay;
                     dop = dopStepCode(dop,'dopEventMarkers',...
                         'event_height',dop.def.event_height,...
-                        'event_sep',dop.def.event_sep);
+                        'event_sep',dop.def.event_sep,'gui');
                 end
             else
                 [dop,okay,msg] = dopEventMarkers(dop,'event_height',dop.def.event_height,'gui'); % done automatically in (and redone at end of) dopDataTrim
                 if okay;
                     dop = dopStepCode(dop,'dopEventMarkers',...
-                        'event_height',dop.def.event_height);
+                        'event_height',dop.def.event_height,'gui');
                 end
             end
             if okay
@@ -122,13 +122,13 @@ try
                 [dop,okay,msg] = dopHeartCycle(dop,'type',dop.def.hc_type,'plot','gui');
                 if okay;
                     dop = dopStepCode(dop,'dopHeartCycle',...
-                        'type',dop.def.hc_type,'plot');
+                        'type',dop.def.hc_type,'plot','gui');
                 end
             else
                 [dop,okay,msg] = dopHeartCycle(dop,'type',dop.def.hc_type,'gui');
                 if okay;
                     dop = dopStepCode(dop,'dopHeartCycle',...
-                        'type',dop.def.hc_type);
+                        'type',dop.def.hc_type,'gui');
                 end
             end
             if okay
@@ -140,7 +140,7 @@ try
             [dop,okay,msg] = dopEpoch(dop,'epoch',dop.def.epoch,'gui');
             if okay;
                 dop = dopStepCode(dop,'dopEpoch',...
-                    'epoch',dop.def.epoch);
+                    'epoch',dop.def.epoch,'gui');
             end
             %             end
             if okay && isfield(dop.data,'epoch') && ~isempty(dop.data.epoch)
@@ -153,18 +153,18 @@ try
                     'act_range',dop.def.act_range,'sep',dop.def.act_separation,...
                     'act_separation_pct',dop.def.act_separation_pct,'gui');
                 if okay;
-                    dop = dopStepCode(dop,'dopEpoch',...
+                    dop = dopStepCode(dop,'dopEpochScreen',...
                         'screen',{'length','act','sep'},...
                         'act_range',dop.def.act_range,'sep',dop.def.act_separation,...
-                        'act_separation_pct',dop.def.act_separation_pct);
+                        'act_separation_pct',dop.def.act_separation_pct,'gui');
                 end
             else
                 [dop,okay,msg] = dopEpochScreen(dop,'screen',{'length','act'},...
                     'act_range',dop.def.act_range,'gui');
                 if okay;
-                    dop = dopStepCode(dop,'dopEpoch',...
+                    dop = dopStepCode(dop,'dopEpochScreen',...
                         'screen',{'length','act'},...
-                        'act_range',dop.def.act_range);
+                        'act_range',dop.def.act_range,'gui');
                 end
             end
             if okay
@@ -174,7 +174,7 @@ try
             [dop,okay,msg] = dopBaseCorrect(dop,'baseline',dop.def.baseline,'gui');
             if okay;
                 dop = dopStepCode(dop,'dopBaseCorrect',...
-                    'baseline',dop.def.baseline);
+                    'baseline',dop.def.baseline,'gui');
             end
             if okay
                 set(obj,'Enable','off');
@@ -184,7 +184,7 @@ try
             
             if okay;
                 dop = dopStepCode(dop,'dopCalcAuto',...
-                    'poi',dop.def.poi,'act_window',dop.def.act_window);
+                    'poi',dop.def.poi,'act_window',dop.def.act_window,'gui');
             end
             
             %             [dop.sum,okay,msg] = dopCalcSummary(dop.data,...
@@ -199,7 +199,7 @@ try
             %                 'poi_select',dop.tmp.poi_select);% manual selection of poi
         case 'plot'
             dop = dopPlot(dop);
-            dop = dopStepCode(dop,'dopPlot');
+            dop = dopStepCode(dop,'dopPlot','gui');
         case 'code'
             dop = dopStepCode(dop,'export');
         otherwise

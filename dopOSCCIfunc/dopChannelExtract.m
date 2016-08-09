@@ -63,7 +63,7 @@ try
                 if ~dop.tmp.gui
                     [dop,okay,msg] = dopChannelAdjust(dop,okay,msg);
                     % refresh the data if necessary
-                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                    [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                 end
             end
             if okay

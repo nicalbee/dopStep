@@ -45,6 +45,7 @@ function [dop,okay,msg]  =  dopSetGetInputs(dop_input,inputs,msg,report)
 % 22-Aug-2014 NAB added 'created' and 'last edit' details...
 % 05-Sep-2014 NAB changed 'comment' to 'report'
 % 09-Dec-2015 NAB updated collection of invoking function variables
+% 09-Aug-2016 NAB adding required variables to dop.def structure
 
 % set default outputs
 dop = [];
@@ -326,6 +327,12 @@ try
                         ' not be able to be calculated without it']);
                 end
                 dopMessage(msg,report,1,okay)
+            elseif okay && sum(ismember(dop.tmp.required,tmp.var))
+                if ~isfield(dop,'def') || ~isfield(dop.def,tmp.var)
+                    % collect the required information in the definition
+                    % structure
+                    dop.def.(tmp.var) = dop.tmp.(tmp.var);
+                end
             end
             if ~okay
                 fprintf('\tAborting, missing required variable: %s\n',tmp.var);
