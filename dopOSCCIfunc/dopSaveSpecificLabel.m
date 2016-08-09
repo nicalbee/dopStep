@@ -17,12 +17,31 @@ function period_specific_string = dopSaveSpecificLabel(period_string,period_limi
 % > Inputs:
 % - period_string = string array relating to variable (e.g., 'poi')
 %
-% > Outputs: 
+% > Outputs:
 % - period_limits = 2 item numeric array denoting upper and lower temporal
 %   limits of period (e.g., [5 15] or [-15 -5]
 %
 % Created: 15-Sep-2015 NAB
+% Edits:
+% 09-Aug-2016 NAB floating point numbers
 
-period_specific_string = sprintf('%s%ito%i',period_string,period_limits);
+% check float/decimal places
+float_check = mod(period_limits,floor(period_limits));
+if sum(float_check)
+    period_specific_string = sprintf('%s',period_string);
+    period_text = {'','to'};
+    for i = 1 : numel(period_limits)
+        if float_check(i)
+            period_specific_string = sprintf('%s%s%ip%i',...
+                period_specific_string,period_text{i},floor(period_limits(i)),float_check(i)*10);
+        else
+            period_specific_string = sprintf('%s%s%i',...
+                period_specific_string,period_text{i},period_limits(i));
+        end
+    end
+else
+    period_specific_string = sprintf('%s%ito%i',period_string,period_limits);
+end
 % replace minus signs with 'n'
 period_specific_string = strrep(period_specific_string,'-','n');
+

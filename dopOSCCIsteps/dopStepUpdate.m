@@ -296,7 +296,9 @@ try
                         end
                     end
             end
-            if strcmp(dop.step.current.name,'import') || ~isfield(dop.step,'dopImport') || ~dop.step.dopImport
+            if strcmp(dop.step.action.tag{i},'close')
+                dop.tmp.enable = 'on';
+            elseif strcmp(dop.step.current.name,'import') || ~isfield(dop.step,'dopImport') || ~dop.step.dopImport
                 dop.tmp.enable = 'off';
             elseif strcmp(dop.step.current.name,'code') && isfield(dop.step,'code') && ~isempty(dop.step.code)
                 dop.tmp.enable = 'on';

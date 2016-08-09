@@ -44,7 +44,7 @@ switch dop.tmp.run_export
             for i = 2 : numel(varargin)
                 if iscell(varargin{i})
                     dop.tmp.eval = 'dop.tmp.inputs = sprintf([''%s,'',dopVarType(varargin{i},[],[],1)],dop.tmp.inputs';
-                    for j = 1 : numel(varargin{i}) 
+                    for j = 1 : numel(varargin{i})
                         tmp_var = varargin{i}{j};
                         dop.tmp.eval = sprintf(['%s,',dopVarType(tmp_var,[],[],1)],dop.tmp.eval,tmp_var);
                     end
@@ -54,10 +54,39 @@ switch dop.tmp.run_export
                     dop.tmp.inputs = sprintf(['%s,',dopVarType(varargin{i},[],[],1)],dop.tmp.inputs,varargin{i});
                 end
             end
+            
+            %% comments before the code
+            dop.tmp.prefix = [];
+            switch dop.tmp.function
+                case 'dopChannelExtract'
+            end
+            if ~isempty(dop.tmp.prefix)
+                dop.step.code.data(end+1:end+numel(dop.tmp.suffix)) = dop.tmp.prefix;
+            end
+            
+            %% the code
             dop.step.code.data{end+1} = sprintf('%s %s(%s);',dop.tmp.outputs,dop.tmp.function,dop.tmp.inputs);
             
+            %% comments after the code
+            dop.tmp.suffix = [];
+            switch dop.tmp.function
+                case 'dopChannelExtract'
+                    if sum(strcmp(varargin,'gui'))
+                        dop.tmp.suffix = {...
+                            ['% Please note, when run without the ''gui'' input, ',...
+                            'signal and event channel numbers '],...
+                            ['% should match their ',...
+                            'respective column numbers in the data file.'], ...
+                            ''};
+                    end   
+            end
+            if ~isempty(dop.tmp.suffix)
+                dop.step.code.data(end+1:end+numel(dop.tmp.suffix)) = dop.tmp.suffix;
+            end
         end
-        set(dop.step.action.h(ismember(get(dop.step.action.h,'Tag'),'code')),'Enable','on');
+        if isfield(dop.step,'action') && isfield(dop.step.action,'h') && ~isempty(dop.step.action.h)
+            set(dop.step.action.h(ismember(get(dop.step.action.h,'Tag'),'code')),'Enable','on');
+        end
     case 1
         if isfield(dop,'step') && isfield(dop.step,'code') && isfield(dop.step.code,'data') && ~isempty(dop.step.code.data)
             

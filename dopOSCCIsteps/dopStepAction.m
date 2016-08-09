@@ -202,6 +202,9 @@ try
             dop = dopStepCode(dop,'dopPlot','gui');
         case 'code'
             dop = dopStepCode(dop,'export');
+        case 'close'
+            close(dop.step.h);
+            return
         otherwise
             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
     end
