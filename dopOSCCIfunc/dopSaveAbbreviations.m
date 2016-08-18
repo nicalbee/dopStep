@@ -47,10 +47,10 @@ function output = dopSaveAbbreviations(varargin)
 %        period_mean: 'period_mean'
 %          period_sd: 'period_sd'
 %     period_latency: 'period_latency'
-%             peak_n: 'n'
-%          peak_mean: 'mean'
-%            peak_sd: 'sd'
-%       peak_latency: 'latency'
+%             peak_n: 'peak_n'
+%          peak_mean: 'peak_mean'
+%            peak_sd: 'peak_sd'
+%       peak_latency: 'peak_latency'
 %
 % Created: 15-Aug-2014 NAB
 % Last edit:
@@ -63,15 +63,12 @@ function output = dopSaveAbbreviations(varargin)
 %   that this needs to be indicated as 'epochs' which will be abbreviated
 %   to 'ep'
 % 14-Oct-2015 NAB also added 'baseline' to be 'baseline' as well...
+% 18-Aug-2016 NAB added 'peak' back into peak summaries - previously:
+%             peak_n: 'n'
+%          peak_mean: 'mean'
+%            peak_sd: 'sd'
+%       peak_latency: 'latency'
 
-% if ~exist('okay','var') || isempty(okay)
-%     okay = 0;
-% end
-% if ~exist('msg','var')
-%     msg = [];
-% end
-% msg{end+1} = sprintf('Run: %s',mfilename);
-%
 msg = 0;
 variable_name = [];
 if nargin
@@ -110,13 +107,24 @@ try
         'period_sd_of_sd','period_sd_sd',...
         'period_mean_of_sd','period_mean_sd',...
         'period_latency','period_latency', ...
-        'peak_n','n',... % number of epochs
-        'peak_mean','mean',...
-        'peak_sd_of_mean','sd',...
-        'peak_mean_sd','mean_sd',...
-        'peak_sd_of_sd','sd_sd',...
-        'peak_latency','latency' ...
+                'peak_n','peak_n',... % number of epochs
+        'peak_mean','peak_mean',...
+        'peak_sd_of_mean','+peak_sd',...
+        'peak_mean_sd','peak_mean_sd',...
+        'peak_sd_of_sd','peak_sd_sd',...
+        'peak_latency','peak_latency' ...
         );
+    % this code will remove 'peak' from the start of the variable names -
+    % usually okay like this but can be confusing when 'period' summaries
+    % are included as this contrasts with nothing (ie '') for 'peak'
+    % summaries.
+    %
+    %         'peak_n','n',... % number of epochs
+    %         'peak_mean','mean',...
+    %         'peak_sd_of_mean','sd',...
+    %         'peak_mean_sd','mean_sd',...
+    %         'peak_sd_of_sd','sd_sd',...
+    %         'peak_latency','latency' ...
     tmp.fields = fields(abbreviations);
     if msg
         for i = 1 : numel(tmp.fields);

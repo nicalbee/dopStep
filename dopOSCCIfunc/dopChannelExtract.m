@@ -67,7 +67,7 @@ try
                 end
             end
             if okay
-                if size(dop.data.use,2) >= max([dop.use.signal_channels dop.use.event_channels])
+                if size(dop.data.use,2) >= max([dop.use.signal_channels dop.use.event_channels]) && min([dop.use.signal_channels dop.use.event_channels]) > 0
                     dop.data.channel_labels = dop.tmp.channel_labels;%{'left','right'};
                     dop.data.channel_colours = dop.tmp.channel_colours; %{'b','r'};
                     %                 dop.tmp.event_colours = dop.tmp.event{'g','c','m','k'};
@@ -80,6 +80,7 @@ try
                         end
                         dop.data.channel_colours{end+1} = dop.tmp.event_colours{c};
                     end
+                    
                     dop.data.channels = dop.data.use(:,[dop.use.signal_channels dop.use.event_channels]);
                     msg{end+1} = sprintf(['Created ''dop.data.channels'' '...
                         'variable with: '...

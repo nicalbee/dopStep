@@ -128,6 +128,7 @@ function [dop,okay,msg] = dopSaveCollect(dop_input,varargin)
 % 19-Oct-2014 NAB - updating the dop.tmp.times variable to look for and use
 %   dop.epoch.times if it exists.
 % 26-June-2015 NAB 'sprintf' mistype
+% 18-Aug-2016 NAB - fixed up check for 'collect' data in elseif
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -159,7 +160,10 @@ try
             if isfield(dop.collect,dop.tmp.type) && isfield(dop.collect.(dop.tmp.type),'data')
                 dop.tmp.data = dop.collect.(dop.tmp.type).data;
             elseif strcmp(dop.tmp.type,'use') && isfield(dop,'data') ...
-                    && isfield(dop.data,'use_type') && ~isempty(dop.data.use_type)
+                    && isfield(dop.data,'use_type') && ~isempty(dop.data.use_type) && ...
+                    isfield(dop,'collect') && isfield(dop.collect,dop.data.use_type) && ...
+                    isfield(dop.collect.(dop.data.use_type),'data') && ...
+                    ~isempty(dop.collect.(dop.data.use_type).data)
                 dop.tmp.type = dop.data.use_type;
                 dop.tmp.data = dop.collect.(dop.tmp.type).data;
             elseif strcmp(dop.tmp.type,'use')

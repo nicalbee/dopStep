@@ -129,12 +129,13 @@ function [dop,okay,msg] = dopMessageSave(dop_input,varargin)
 % 08-Sep-2014 NAB - continually updating list of input help information
 % 19-Nov-2014 NAB - continuing
 % 19-May-2015 NAB - added some help information on finding msgbox handles
+% 18-Aug-2016 NAB - back to this...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
 try
-    if okay
+%     if okay % doesn't matter for this function - try to save anyway
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
         %         inputs.turnOn = {'nomsg'};
@@ -143,15 +144,20 @@ try
         inputs.defaults = struct(...
             'message_fullfile',[],...
             'message_file','dopOSCCI',... 'task_name','dopSave',...
+            'message_ext','.dat',...
             'message_dir',[],...
             'message',1, ...
             'delim','\t', ...
+            'error','',... % add error flag to individual file name
             'file',[],... % for error reporting mostly
             'msg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
-        inputs.required = ...
-            {'epoch'};
+        inputs.required = []; %...
+%             {'epoch'};
+if ~okay
+    inputs.defaults.error = 'e';
+end
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% save file name
         if okay && or(isempty(dop.tmp.message_file),strcmp(dop.tmp.message_file,dop.tmp.defaults.message_file))
@@ -161,14 +167,96 @@ try
                 
                 dop.def.task_name = dop.tmp.defaults.message_file;
             end
-            dop.tmp.message_file = sprintf('%sMessageData.dat',dop.def.task_name);
+            dop.tmp.message_file = sprintf('%sMessageData%s',dop.def.task_name,dop.tmp.message_ext);
         end
+        if okay && or(isempty(dop.tmp.message_dir),strcmp(dop.tmp.message_dir,dop.tmp.defaults.message_dir))
+            if isfield(dop,'save') && isfield(dop.save,'save_dir') && ~isempty(dop.save.save_dir)
+                dop.tmp.message_dir = fullfile(dop.save.save_dir,'messages');
+            else
+                dop.tmp.message_dir = fullfile(dopSaveDir(dop),'messages');
+            end
+        end
+        if okay 
+            if isempty(dop.tmp.message_fullfile)
+            dop.tmp.message_fullfile = fullfile(dop.tmp.message_dir,dop.tmp.message_file);
+            end
+            [dop.tmp.message_dir,dop.tmp.message_file_noext,dop.tmp.ext] = fileparts(dop.tmp.message_fullfile);
+            dop.tmp.message_file = [dop.tmp.message_file_noext,dop.tmp.ext];
+            msg{end+1} = ...
+                sprintf('Message data to be saved to: %s (dir = %s)',...
+                dop.tmp.message_file,dop.tmp.message_dir);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            if ~exist(dop.tmp.message_dir,'dir');
+                mkdir(dop.tmp.message_dir);
+                msg{end+1} = sprintf('Creating directory = %s)',...
+                    dop.tmp.message_dir);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
+            if ~isempty(dop.tmp.file)
+                [~,dop.tmp.message_file_id] = fileparts(dop.tmp.file);
+                dop.tmp.message_file_ind = strrep(...
+                    dop.tmp.message_fullfile,dop.tmp.message_ext,...
+                    sprintf('_%s%s',dop.tmp.message_file_id,dop.tmp.message_ext));
+            else
+                dop.tmp.message_file_id = 0;
+                dop.tmp.message_file_ind = strrep(...
+                    dop.tmp.message_fullfile,dop.tmp.message_ext,...
+                    sprintf('_%i_%s',dop.tmp.message_file_id,dop.tmp.message_ext));
+            end
+            dop.tmp.message_fullfiles = {dop.tmp.message_fullfile,...
+                dop.tmp.message_file_ind};
+            if isnumeric(dop.tmp.message_file_id)
+                while 1
+                    dop.tmp.message_file_id = dop.tmp.message_file_id + 1;
+                    dop.tmp.message_file_ind = strrep(...
+                        dop.tmp.message_file_ind,num2str(dop.tmp.message_file_id-1),...
+                        num2str(dop.tmp.message_file_id));
+                    if ~exist(dop.tmp.message_file_ind,'file')
+                        dop.tmp.message_file_id = num2str(dop.tmp.message_file_id);
+                        break
+                    end
+                end
+            end
+        end
+               
         %% main code
         if okay && ~isempty(msg) && iscell(msg)
-            dop.tmp.fid = fopen(dop
-            for i = 1 : numel(msg)
+            for j = 1 : numel(dop.tmp.message_fullfiles)
+                if ~exist(dop.tmp.message_fullfiles{j},'file')
+                    dop.tmp.fid = fopen(dop.tmp.message_fullfiles{j},'w');
+                    dop.tmp.labels = {'number','file','message'};
+                    for i = 1 : numel(dop.tmp.labels)
+                        if i < numel(dop.tmp.labels)
+                            fprintf(dop.tmp.fid,['%s',dop.tmp.delim],dop.tmp.labels{i});
+                        else
+                            fprintf(dop.tmp.fid,'%s\n',dop.tmp.labels{i});
+                        end
+                    end
+                    fclose(dop.tmp.fid);
+                end
+                dop.tmp.fid = fopen(dop.tmp.message_fullfiles{j},'a');
+                k = 0;
+                for i = 1 : numel(msg)
+                    use_msg = msg(i);
+                    newlines = regexp(msg{i},'\n');
+                    if ~isempty(newlines)
+                        newlines = [1 newlines length(use_msg{1})];
+                        tmp_msg = [];
+                        for ii = 2 : numel(newlines)
+                            tmp_msg{ii-1} = use_msg{1}(newlines(ii-1):newlines(ii));
+                        end
+                        use_msg = tmp_msg;
+                    end
+                    for ii = 1 : numel(use_msg)
+                        k = k + 1;
+                    fprintf(dop.tmp.fid,sprintf('%%i%s%%s%s%%s\\n',dop.tmp.delim,dop.tmp.delim),...
+                        k,dop.tmp.message_file_id,regexprep(use_msg{ii},'\n',''));
+                    end
+%                         
+                end
+                fclose(dop.tmp.fid);
+                
             end
-            fclose(dop.tmp.fid);
             %% might be helpful
 %             allHandle = allchild(0);
 %             allTag = get(allHandle, 'Tag');
@@ -177,17 +265,18 @@ try
 %             
 %             If you have a newer Matlab version, FINDOBJ can apply regular expression, which allows for a more compact version:
 %             delete(findobj(allchild(0), '-regexp', 'Tag', '^Msgbox_'))
+        else
+            msg{end+1} = sprintf('Some issue with message saving (%s)',mfilename);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
-        %% example msg
-        msg{end+1} = 'some string';
-        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;
         
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
-    end
+%     end
 catch err
     save(dopOSCCIdebug);rethrow(err);
 end

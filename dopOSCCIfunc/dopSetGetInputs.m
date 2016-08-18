@@ -46,6 +46,7 @@ function [dop,okay,msg]  =  dopSetGetInputs(dop_input,inputs,msg,report)
 % 05-Sep-2014 NAB changed 'comment' to 'report'
 % 09-Dec-2015 NAB updated collection of invoking function variables
 % 09-Aug-2016 NAB adding required variables to dop.def structure
+% 18-Aug-2016 NAB - fiddling with order of 'use' and 'def' structure checks
 
 % set default outputs
 dop = [];
@@ -287,6 +288,13 @@ try
                     if exist('dop_input','var') && ~isempty(dop_input) ...
                             && strcmp(dopInputCheck(dop_input),'dop')
                         tmp.check = {'save','use','def','file_info'}; % order of these matters
+%                         tmp.stack = dbstack;
+%                         if strcmp(tmp.stack.name(2),'dopChannelExtract')
+%                             % want to check for the 'def' information
+%                             % before the 'use' because this changes
+%                             % better to do this in dopImport function
+%                             tmp.check = {'save','def','use','file_info'}; % order of these matters
+%                         end
                         for j = 1 : numel(tmp.check)
                             if isfield(dop,tmp.check{j}) ...
                                     && isfield(dop.(tmp.check{j}),tmp.var)

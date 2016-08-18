@@ -7,22 +7,22 @@ clear dop
 
 dop.struc_name = 'dop';
 
-dop.def.task_name = 'wordGenAbbie';
+dop.def.task_name = 'dopOSCCIdemo';
 % definition information
-dop.def.signal_channels = [1 2]; % columns in file (e.g., .TW/TX)
-dop.def.event_channels = 3; % TX/TW files
-% dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
-% dop.def.event_channels = 5; % EXP files
+% dop.def.signal_channels = [1 2]; % columns in file (e.g., .TW/TX)
+% dop.def.event_channels = 3; % TX/TW files
+dop.def.signal_channels = [3 4]; % columns in file (e.g., EXP)
+dop.def.event_channels = 9; % EXP files
 dop.def.event_height = 1000; % 400; % greater than
-dop.def.event_sep = 40; %
-dop.def.num_events = 23;
+dop.def.event_sep = 55; %
+dop.def.num_events = 13;
 
 dop.def.downsample_rate = 100; % Hertz
 
 % lower and upper values
-dop.def.epoch = [-17 15]; %[-5 20];
+dop.def.epoch = [-15 25]; %[-5 20];
 dop.def.baseline = [-15 -5];
-dop.def.poi = [3 13;-5 1];
+dop.def.poi = [5 15];
 dop.def.act_window = 2; % activation window
 
 dop = dopPeriodChecks(dop,'wait_warn',1);
@@ -42,7 +42,7 @@ dop.def.screen = {'length','act','sep'};
 dop.def.keep_data_steps = 1;
 
 dop.save.extras = {'file'};%{'file','norm','base'}; % you can add your own variables to this, just need to be defined somewhere as dop.save.x = where x = variable name
-dop.save.summary = {'overall','epochs'}; % vs 'epoch'
+dop.save.summary = {'overall'}; % vs 'epoch'
 dop.save.channels = {'Difference'};
 dop.save.periods = {'poi'};
 dop.save.epochs = {'screen','odd','even'};
@@ -56,11 +56,15 @@ dop.save.save_file = []; % this will be auto completed based upon the dop.def.ta
 % or
 % dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
-% in.dir = '/Users/mq20111600/Documents/nData/tmp';%'/Users/mq20111600/Documents/nData/2013/201312infant_fTCD_UniSA/'; %
-dop.data_dir = '/Users/mq20111600/Documents/nData/Study AA (Abbie doppler stories)/data/raw/dopTrials/wordGen';
-% dop.data_dir = '/Users/mq20111600/Documents/nData/2015/ppValidation/raw/validation/wordGen/';
-% in.file_list = dir(fullfile(in.dir,'*.exp'));
-% dop.file_list = dopGetFileList(dop.data_dir);%;dir(in.dir);
+% default location of demo data
+dop.data_dir = fullfile(getHigherDir,'dopOSCCIdemo_data');
+
+if ~exist(dop.data_dir,'dir')
+    dop.tmp.msg = 'Problem with demo data directory - aborting.';
+    warndlg(dop.tmp.msg, 'Data Directory not found:');
+    return
+end
+
 [dop,okay] = dopGetFileList(dop);%;dir(in.dir);
 % in.file_list = {'test.exp'};
 if okay
@@ -115,17 +119,17 @@ if okay
         % other functions
         % [dop,okay,msg] = dopUseDataOperations(dop,'base');
         fprintf('%u: %u %s\n',i,okay,in.file);
-        %         if ~okay && isempty(dop)
-        %             pause;
-        %         end
+        
         %% collect grp data?
-        [dop] = dopDataCollect(dop,okay,msg);
+        dop = dopDataCollect(dop,okay,msg);
         %         end
         %         if ~okay
         %             keyboard
         %             % type 'return' to exit keyboard mode
         %         end
         dop = dopProgress(dop);
+        
+        dop = dopMessageSave(dop,okay,msg);
     end
     % save the 'collected' data for all okay files
     [dop,okay,msg] = dopSaveCollect(dop);

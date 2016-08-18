@@ -95,6 +95,7 @@ function [dop,okay,msg] = dopImport(dop_input,varargin)
 %   19-Aug-2014 NAB
 %   09-Sep-2014 NAB updated documentation
 %   03-Nov-2015 NAB updated to keep file_info within dop.data structure
+%   18-Aug-2016 NAB - added a remove of the dop.use structure - refresh it
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -115,8 +116,13 @@ try
             {'file'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% check for existing data
-        if okay && isfield(dop,'data')
+        if okay
+            if isfield(dop,'data')
             dop = rmfield(dop,'data');
+            end
+            if isfield(dop,'use')
+                dop = rmfield(dop,'use');
+            end
         end
         
         %% check file
