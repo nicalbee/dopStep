@@ -1,10 +1,10 @@
-dopOSCCI 3: dopStep
+DOPOSCCI 3: dopStep
 A functional Transcranial Doppler Ultrasound (fTCD) Summary MATLAB Toolbox
 where:
 dop = Doppler
 OSCCI = Oxford Study of Children’s Communication Impairments)
 
-dopOSCCI is a MATLAB toolbox for handling and summarising fTCD data.
+DOPOSCCI is a MATLAB toolbox for handling and summarising fTCD data.
 
 It has been programmed to work with .TX/.TW and .EXP data files acquired with DopplerBox hardware from DWL. But there’s no reason it couldn’t be updated for additional data formats.
 
