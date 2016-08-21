@@ -18,6 +18,7 @@ function dopPlotEpochAxesAdjust(handle,~)
 % 27-Jul-2016 NAB adjusted to cope without extra patches
 % 27-Jul-2016 NAB copes without poi
 % 03-Aug-2016 NAB adjusted for y-hold option for epoch scrolling
+% 21-Aug-2016 NAB fixed 'all' option for n = 4, check for this first
 
 disp_options = {'all','median','mean'};
 % if ~isnan(str2double(get(handle,'string')))
@@ -128,15 +129,15 @@ switch get(handle,'tag')
             if i == 1 && ishold(axes_h); hold; end
             switch tmp_labels{i}
                 case dop.data.epoch_labels
-                    if size(plot_data,2) == numel(dop.data.epoch_labels)
-                        line_h = plot(axes_h,dop.epoch.times,plot_data(:,i),...
-                            'color',dopPlotColours(lower(dop.data.epoch_labels{i})),...
-                            'Visible',tmp_vis{i},'LineWidth',2);
-                    elseif size(plot_data,3) == numel(dop.data.epoch_labels)
+                    if size(plot_data,3) == numel(dop.data.epoch_labels)
                         % multiple lines - not sure if this will work
                         line_h = plot(axes_h,dop.epoch.times,squeeze(plot_data(:,:,i)),...
                             'color',dopPlotColours(lower(dop.data.epoch_labels{i})),...
                             'Visible',tmp_vis{i});
+                    elseif size(plot_data,2) == numel(dop.data.epoch_labels)
+                        line_h = plot(axes_h,dop.epoch.times,plot_data(:,i),...
+                            'color',dopPlotColours(lower(dop.data.epoch_labels{i})),...
+                            'Visible',tmp_vis{i},'LineWidth',2);
                     end
                 case {'baseline','poi'}
                     if ~isempty(dop.tmp.(tmp_labels{i}))
