@@ -30,6 +30,7 @@ function [input_type,okay,msg] = dopInputCheck(dop_input,varargin)
 % 10-Nov-2014 NAB added '.txt' to acceptable inputs
 % 20-May-2015 NAB changed 'folder' to 'dir' as input - more intuitive
 % 16-Jan-2016 NAB added csv to the mix
+% 23-Aug-2016 NAB added 'handle' option
 
 input_type = [];
 okay = 0;
@@ -63,6 +64,9 @@ try
         input_type = 'dop'; % maybe...
         msg{end+1} = 'Might be dopOSCCI structure - not sure';
         if comment; fprintf('\t%s\n',msg{end}); end;
+        okay = 1;
+    elseif ishandle(dop_input)
+        input_type = 'handle';
         okay = 1;
     elseif isnumeric(dop_input)
         if numel(dop_input) == 1

@@ -47,6 +47,7 @@ function [dop,okay,msg]  =  dopSetGetInputs(dop_input,inputs,msg,report)
 % 09-Dec-2015 NAB updated collection of invoking function variables
 % 09-Aug-2016 NAB adding required variables to dop.def structure
 % 18-Aug-2016 NAB - fiddling with order of 'use' and 'def' structure checks
+% 23-Aug-2016 NAB adjusted for 'handle' option
 
 % set default outputs
 dop = [];
@@ -125,6 +126,11 @@ try
                     okay = 0;
                     dopMessage(msg,report,1,okay)
                 end
+            case 'handle'
+                msg{end+1} = 'handle variable found';
+                dopMessage(msg,report,1,okay);
+                inputs = [];
+                dop.tmp.h = dop_input;
             otherwise % 'number'
                 msg{end+1} = 'Option not yet programmed...';
                 dopMessage(msg,report,1,okay)

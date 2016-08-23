@@ -60,8 +60,10 @@ try
 %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'plot_name',[],... % file name for plot image
+            'plot_file','dopOSCCIplot',... % file name for plot image
             'plot_dir',[],... % location for plot image
+            'plot_fullfile',[],...
+            'auto',1,...
             'file',[],... % for error reporting mostly
             'msg',1,... % show messages
             'wait_warn',0,... % wait to close warning dialogs
@@ -74,15 +76,74 @@ try
 %             {'epoch'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
-        
-        %% tmp check
-        [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+        if okay
+            if isfield(dop,'tmp') && isfield(dop.tmp,'h') && isprop(dop.tmp.h,'style')
+                switch get(dop.tmp.h,'style')
+                    case 'pushbutton'
+                    dop.tmp.plot_h = get(dop.tmp.h,'parent');
+                end
+                
+            else
+            end
+            % save location etc.
+            if dop.tmp.auto
+                dop.tmp.dir = fullfile(dopPlotSave(dop),'plots');
+                dop.tmp.file = [];
+            end
+            if isempty(dop.tmp.plot_fullfile) && isempty(dop.tmp.plot_dir)
+%                 dop.tmp.plot_dir = fullfile(dopSaveDir;
+                dop.step.code.fullfile = [];
+                switch questdlg(sprintf('Save the data to: %s? ',dop.step.code.dir),...
+                        'DOPOSCCI plot save directory','Yes','Choose','Cancel','Yes');
+                    case 'Choose'
+                        dop.step.code.dir = uigetdir(dop.step.code.dir,...
+                            'Choose DOPOSCCI code save directory:');
+                    case 'Cancel'
+                        dop.step.code.dir = [];
+                end
+                if ~isempty(dop.step.code.dir)
+                    dop.step.code.file = inputdlg('Please type file name:',...
+                        'DOPOSCCI code save filename (extension added later):',...
+                        1,dop.step.code.file);
+                    if ~isempty(dop.step.code.file{1})
+                        dop.step.code.fullfile = fullfile(dop.step.code.dir,[dop.step.code.file{1},'.m']);
+                    end
+                end
+            end
+            if ~isempty(dop.step.code.fullfile)
+                if ~exist(dop.step.code.dir,'dir')
+                    mkdir(dop.step.code.dir);
+                end
+                if exist(dop.step.code.dir,'dir')
+                    fprintf('Saving code to: %s (%s)\n',dop.step.code.dir,dop.step.code.file{1})
+                    dop.tmp.fid = fopen(dop.step.code.fullfile,'w');
+                    for i = 1 : numel(dop.step.code.data)
+                        fprintf(dop.tmp.fid,'%s\n',dop.step.code.data{i});
+                    end
+                    fclose(dop.tmp.fid);
+                    
+                    switch questdlg('Open code in MATLAB editor?','Open?','Yes','No','Yes');
+                        case 'Yes'
+                            eval(sprintf('edit %s',dop.step.code.fullfile));
+                        otherwise
+                            dop.tmp.msg = sprintf('Success! Examine by typing: edit %s',dop.step.code.fullfile);
+                            msgbox(dop.tmp.msg,'DOPOSCCI code saved:');
+                    end
+                else
+                    dop.tmp.msg = sprintf('Problem with save directory for: %s',dop.step.code.fullfile);
+                    warndlg(dop.tmp.msg,'Problem:');
+                end
+                
+            end
+        end
+%         %% tmp check
+%         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
 
         %% main code
         
         %% example msg
-        msg{end+1} = 'some string';
-        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+%         msg{end+1} = 'some string';
+%         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
