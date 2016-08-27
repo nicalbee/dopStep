@@ -129,8 +129,18 @@ try
             case 'handle'
                 msg{end+1} = 'handle variable found';
                 dopMessage(msg,report,1,okay);
-                inputs = [];
-                dop.tmp.h = dop_input;
+                inputs.varargin = [];
+                
+                dop.tmp.user_data = get(dop_input,'UserData');
+                if isfield(dop.tmp.user_data,'struc_name') && strcmp(dop.tmp.user_data.struc_name,'dop')
+                    dop = dop.tmp.user_data;
+                else
+                    dop.tmp.user_data = get(get(dop_input,'parent'),'UserData');
+                    if isfield(dop.tmp.user_data,'struc_name') && strcmp(dop.tmp.user_data.struc_name,'dop')
+                        dop = dop.tmp.user_data;
+                    end
+                end
+                dop.tmp.handle = dop_input;
             otherwise % 'number'
                 msg{end+1} = 'Option not yet programmed...';
                 dopMessage(msg,report,1,okay)

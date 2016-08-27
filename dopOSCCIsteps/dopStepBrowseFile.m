@@ -32,6 +32,7 @@ cd(dop.data_dir);
         [dop.tmp.types,dop.tmp.types_search] = dopFileTypes; %(0,search_dir);
         
         while 1
+%             fullfile(getHigherDir,'dopOSCCIdemo_data');
             [dop.tmp.filename, dop.tmp.data_dir, dop.tmp.filterindex] = uigetfile(dop.tmp.types_search, 'Browse for Doppler file:');
             if dop.tmp.filterindex == 1
                 [~,dop.tmp.file,dop.tmp.file_type] = fileparts(dop.tmp.filename);
