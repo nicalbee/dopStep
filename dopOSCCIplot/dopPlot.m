@@ -51,6 +51,35 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 % - 'act_window' = activation window duration in seconds
 %   e.g., ...,'act_window',2,...
 %
+% - 'y_scale' = maximum value of the y-axis so that continuous data, like
+%   the 'raw', can be seen when plotted - easy to think that it's empty if
+%   the max of the y-axis is set to the maximum sample number (ie EXP data)
+%
+% - 'plot_save' = logical (0 = no, 1 = yes) indicating whether an image
+%   file of the plot should be saved.
+%
+% - 'plot_file' =  file name for plot image
+%	e.g., ...,'plot_file','my_image_file',...
+%   > default is 'dopOSCCIplot' or derived from imported filename -
+%   recommend leaving blank
+%
+% - 'plot_dir' =  location for plot image
+%	e.g., ...,'plot_dir','/Users/me/Documents',...
+%       or ...,'plot_dir','D:\MyDocuments\plots',...
+%   > default is based on dop.def.task_name + settings
+%   recommend leaving blank
+%
+% - 'plot_fullfile' = location and filename of the to-be-save plot image
+%   > recommend leaving blank
+%
+% - 'plot_file_type' = image file type of the plot image
+%   e.g., ...,'plot_file_type','png',... 
+%   > 'png' = default
+%
+% - 'position' = figure position on the screen in normalized units:
+%   e.g., ...,'position',[.1 .3 .8 .3],...
+%   > [left bottom width height]
+%
 % Turn On inputs:
 % note: if included, the values for these variables will be 'turned on' to
 %   1, otherwise their value will be 0.
@@ -98,6 +127,9 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 %   substracting the first point rather than an average - specifcally for
 %   visualisation raw data
 % 25-July-2016 NAB added a check for the existance of the patch data
+% 28-Aug-2016 NAB added dopPlotSave
+% 30-Aug-2016 NAB scaling 'raw' plots a little for visibility
+% 30-Aug-2016 NAB various documentation added
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -105,7 +137,7 @@ try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
-        inputs.turnOn = {'collect','save','wait'};
+        inputs.turnOn = {'collect','save','gui'}; % ,'wait'
         %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
@@ -113,12 +145,20 @@ try
             'wait_warn',0,... % wait to close warning dialogs
             'type','use',...
             'plot',1,...
+            'plot_wait',0,...
             'epoch',[], ... %
             'poi',[],... %'
             'poi_select',0, ... % manual selection of period of interest
             'baseline',[],...
             'act_window',2,...
             'sample_rate',[], ... %
+            'y_scale',500,...
+            'save_dir',[],...
+            'plot_save',0,...
+            'plot_file',[],... % file name for plot image
+            'plot_dir',[],... % location for plot image
+            'plot_fullfile',[],...
+            'plot_file_type','png',... 'fig'
             'position',[.1 .3 .8 .3] ... % figure position
             );
         inputs.defaults.ep_vis = {'left','right','difference'};
@@ -191,7 +231,7 @@ try
                     case {'raw','channels','norm','down','trim','hc_data',...
                             'hc_correct','hc_linspace','act_correct','event',...
                             'act_correct_plot','clip'}
-                        dopPlotComponents(dop.fig.h);
+                        dopPlotComponents(dop.fig.h,'plot_save',dop.tmp.plot_save);
                         
                         dop.fig.ch = get(dop.fig.h,'children');
                         dop.fig.ax = dop.fig.ch(strcmp(get(dop.fig.ch,'Type'),'axes'));
@@ -256,11 +296,50 @@ try
                         set(get(dop.fig.ax,'YLabel'),'string','Blood Flow Velocity');
                         set(get(dop.fig.ax,'XLabel'),'string','Recording time in seconds');
                         dopPlotSetAxes(dop);
-                        if dop.tmp.wait; uiwait(dop.fig.h); end
+                        
+                        %% scale y-axis?
+                        % bit hard to see the values at first glance/plot
+                        % with the default options
+                        if ~isempty(dop.tmp.y_scale) && isnumeric(dop.tmp.y_scale)
+                            dop.tmp.ch = get(dop.fig.h,'children');
+                            dop.tmp.yupper_h = dop.tmp.ch(ismember(get(dop.tmp.ch,'Tag'),'yupper'));
+                            dop.tmp.current_upper = str2double(get(dop.tmp.yupper_h,'String'));
+                            if dop.tmp.current_upper > dop.tmp.y_scale
+                                msg{end+1} = sprintf(...
+                                    ['Current upper y-value (%i) greater than ',...
+                                    'scale value (%s) - adjusting for visualisaion.'],...
+                                    dop.tmp.current_upper,dop.tmp.y_scale);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                
+                                set(dop.tmp.yupper_h,'String',num2str(dop.tmp.y_scale));
+                                dopPlotAxesAdjust(dop.tmp.yupper_h);
+                            else
+                                msg{end+1} = sprintf(...
+                                    ['Current upper y-axis value (%i) less than ',...
+                                    'scale value (%s) - not scaling.'],...
+                                    dop.tmp.current_upper,dop.tmp.y_scale);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            end
+                        end
+                        %% save image file?
+                        if dop.tmp.plot_save %&& dop.tmp.gui
+                            [dop,okay,msg] = dopPlotSave(dop,...
+                                'gui',dop.tmp.gui,'type',dop.tmp.type,...
+                                'handle',dop.fig.h,...
+                                'save_dir',dop.tmp.save_dir,...
+                                'plot_file',dop.tmp.plot_file,...
+                                'plot_dir',dop.tmp.plot_dir,... % location for plot image
+                                'plot_fullfile',dop.tmp.plot_fullfile,...
+                                'plot_file_type',dop.tmp.plot_file_type ...
+                                );
+                            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                        end
+                        
+                        if dop.tmp.plot_wait; uiwait(dop.fig.h); end
                         %% Epoched Plot
                     case {'epoch','base','epoch_norm'};
                         
-                        dopPlotComponents(dop.fig.h,'epoch','poi_select',dop.tmp.poi_select); % needs more work
+                        dopPlotComponents(dop.fig.h,'epoch','poi_select',dop.tmp.poi_select,'plot_save',dop.tmp.plot_save); % needs more work
                         dop.fig.ax = get(dop.fig.h,'CurrentAxes');
                         
                         %% > check scaling of data is around zero
@@ -440,7 +519,21 @@ try
                             %                     set(dop.fig.ch(and(strcmp(get(dop.fig.ch,'Type'),'uicontrol'),...
                             %                         strcmp(get(dop.fig.ch,'Tag'),'yupper'))),'string',dop.tmp.ylim(2));
                         end
-                        if dop.tmp.wait || and(dop.tmp.poi_select,~dop.tmp.collect); uiwait(dop.fig.h); end
+                        %% save image file?
+                        if dop.tmp.plot_save %&& dop.tmp.gui
+                            [dop,okay,msg] = dopPlotSave(dop,...
+                                'gui',dop.tmp.gui,'type',dop.tmp.type,...
+                                'handle',dop.fig.h,...
+                                'save_dir',dop.tmp.save_dir,...
+                                'plot_file',dop.tmp.plot_file,...
+                                'plot_dir',dop.tmp.plot_dir,... % location for plot image
+                                'plot_fullfile',dop.tmp.plot_fullfile,...
+                                'plot_file_type',dop.tmp.plot_file_type ...
+                                );
+                            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                        end
+                        %% wait?
+                        if dop.tmp.plot_wait || and(dop.tmp.poi_select,~dop.tmp.collect); uiwait(dop.fig.h); end
                         
                     otherwise
                         msg{end+1} = sprintf('''%s'' plot type not yet programmed',...
@@ -467,6 +560,17 @@ try
                         '''dopPlot'' function.'];
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                     dop = dop.tmp.poi;
+                end
+            end
+            %% gui message?
+            if dop.tmp.plot_save && dop.tmp.gui
+                dop.step.(mfilename) = 1;
+                msg = sprintf('Plot saved to: %s%s (%s)',...
+                    dop.safe.plot_file,dop.safe.plot_file_type,...
+                    dop.safe.plot_dir);
+                if ~okay
+                    dop.step.(mfilename) = 0;
+                    msg = sprintf('Problem saving plot... (function: %s)',mfilename);
                 end
             end
         else

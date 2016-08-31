@@ -160,7 +160,7 @@ try
 %                 set(obj,'Value',find(ismember(dop.data.channel_labels,strtok(get(obj,'Tag'),'_'))));
 %             end
         otherwise
-            fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
+%             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
     end
     %% update UserData
     set(dop.step.h,'UserData',dop);

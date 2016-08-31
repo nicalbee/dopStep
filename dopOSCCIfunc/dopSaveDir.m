@@ -144,6 +144,7 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 % 15-Sep-2015 NAB allowed for multiple rows of period - denoted with
 %   'Multiple' string in folder name, rather than #to#
 % 09-Nov-2015 NAB adjusted for act_separation_index
+% 30-Aug-2016 NAB added 'gui' option
 
 if ~exist('dop_input','var')
     dop_input = [];
@@ -168,6 +169,7 @@ try
             'prefix',[],... % string to add before the variables/folder name
             'suffix',[],... % string to add after the variables/folder name
             'dir_out',0,...
+            'gui',0,...
             'file',[],... % for error reporting mostly
             'msg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
@@ -189,6 +191,7 @@ try
             mfile_dir = fileparts(mfile_fullfile);
             current_dir = pwd;
             cd(fullfile(mfile_dir,'..','..'));
+            %             cd(getHigherDir
             dop_dir = pwd;
             cd(current_dir); % change back to where the path was set
             msg{end+1} = sprintf(['Setting base directory 2 levels up'...
@@ -218,13 +221,13 @@ try
                     otherwise
                         if size(dop.tmp.(dop.tmp.vn),1) > 1
                             dop.tmp.save_name = sprintf('%s_%sMultiple',dop.tmp.save_name,...
-                            dopSaveAbbreviations(dop.tmp.vn));
+                                dopSaveAbbreviations(dop.tmp.vn));
                         else
-                        dop.tmp.programmed = 0;
-                        msg{end+1} = sprintf(['''%s'' variable not',...
-                            ' included in directory name: not setup for %u item variables'],...
-                            dop.tmp.vn, numel(dop.tmp.(dop.tmp.vn)));
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            dop.tmp.programmed = 0;
+                            msg{end+1} = sprintf(['''%s'' variable not',...
+                                ' included in directory name: not setup for %u item variables'],...
+                                dop.tmp.vn, numel(dop.tmp.(dop.tmp.vn)));
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                         end
                 end
                 if dop.tmp.programmed
@@ -245,10 +248,10 @@ try
                     switch dop.tmp.vn
                         case 'prefix'
                             dop.tmp.save_name = sprintf([dopVarType(dop.tmp.(dop.tmp.vn)),'_%s'],...
-                        dop.tmp.(dop.tmp.vn),dop.tmp.save_name);
+                                dop.tmp.(dop.tmp.vn),dop.tmp.save_name);
                         case 'suffix'
                             dop.tmp.save_name = sprintf(['%s_',dopVarType(dop.tmp.(dop.tmp.vn))],...
-                        dop.tmp.save_name,dop.tmp.(dop.tmp.vn));
+                                dop.tmp.save_name,dop.tmp.(dop.tmp.vn));
                     end
                     
                     msg{end+1} = sprintf(['%s (''',...
@@ -275,15 +278,21 @@ try
         %         if ~isempty(dop.tmp.poi)
         %             dop.tmp.save_name = sprintf('%s_poi%ito%i',dop.tmp.save_name,dop.tmp.poi);
         %         end
-        
-        while 1
-            dop.tmp.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.task_name,dop.tmp.save_name);
-            if ~exist(dop.tmp.save_dir,'dir')
-                break
+        if dop.tmp.gui
+            dop.tmp.task_name = 'dopStepGUI';
+            dop.tmp.save_name = [];
+            %             dop.tmp.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.task_name,dop.tmp.save_name);
+        else
+            while 1
+                dop.tmp.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.task_name,dop.tmp.save_name);
+                if ~exist(dop.tmp.save_dir,'dir')
+                    break
+                end
+                dop.tmp.save_name = [dop.tmp.save_name,'+'];
             end
-            dop.tmp.save_name = [dop.tmp.save_name,'+'];
         end
         dop.save.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.task_name,dop.tmp.save_name);%dop.tmp.save_dir;
+        
         msg{end+1} = sprintf('Original directory name: %s',...
             dop.save.save_dir);
         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);

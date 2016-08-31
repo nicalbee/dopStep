@@ -23,6 +23,7 @@ function dop = dopStepSettings(h,steps)
 % 02-Dec-2015 NAB adjusting for optional buttons
 % 03-Aug-2016 NAB lots of development in the lead up to the Laterality
 %   workshop - more or less finished :)
+% 30-Aug-2016 NAB corrected for extra buttons in step movement
 
 try
     fprintf('\nRunning %s:\n',mfilename);
@@ -38,7 +39,8 @@ try
     %% define list of steps
     dop.step.steps = {'welcome'};
     dop.step.steps(end+1:end+numel(dop.step.action.string)) = lower(dop.step.action.string);%...;%...
-    dop.step.steps(end-1:end+1) = {'finished',dop.step.steps{end-1:end}};
+    dop.tmp.li_num = diff([find(ismember(dop.step.action.string,'LI')),numel(dop.step.action.string)])-1;
+    dop.step.steps(end-dop.tmp.li_num:end+1) = {'finished',dop.step.steps{end-dop.tmp.li_num:end}};
     %         {'welcome','data_file','channels','event',...
     %         'timing'}; %,'downsample','definition','task_name'
     %     dop.step.action.string = {'Import','Channels','Events','Norm',...

@@ -15,6 +15,8 @@ function dopStepAction(obj,~)
 % 04-Nov-2015 NAB added channels option - no action yet
 % 05-Nov-2015 NAB sorted channels action
 % 30-jul-2016 NAB fixed channel popup menu after extraction
+% 28-Aug-2016 NAB added 'plotsave'
+% 30-Aug-2016 NAB fixed enable buttons for import
 try
     dop = get(gcf,'UserData');
     switch get(obj,'tag')
@@ -22,8 +24,13 @@ try
             [dop,okay,msg] = dopImport(dop,'file',dop.fullfile,'gui');
             dop = dopStepCode(dop,'dopImport','file',dop.fullfile,'gui');
             if okay
-                dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,'plot'));
-                set(dop.tmp.h,'enable','on');
+                dop.tmp.enable_tags = {'plot','plotsave','plot_text'};
+                for i = 1 : numel(dop.tmp.enable_tags)
+                    dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,dop.tmp.enable_tags{i}));
+                    set(dop.tmp.h,'enable','on');
+                end
+%                 dop.tmp.h = dop.step.action.h(ismember(dop.step.action.tag,'plot'));
+%                 set(dop.tmp.h,'enable','on');
                 dop.tmp.h = dop.step.current.h(ismember(dop.step.current.tag,'plot_text'));
                 set(dop.tmp.h,'Visible','on');
                 dop.step.dopChannelExtract = 0;
@@ -199,14 +206,19 @@ try
             %                 'poi_select',dop.tmp.poi_select);% manual selection of poi
         case 'plot'
             dop = dopPlot(dop);
-            dop = dopStepCode(dop,'dopPlot','gui');
+            dop = dopStepCode(dop,'dopPlot');
+        case 'plotsave'
+            [dop,okay,msg] = dopPlot(dop,'plot_save',1,'gui');
+            if okay
+                dop = dopStepCode(dop,'dopPlot','plot_save',1,'gui');
+            end
         case 'code'
             dop = dopStepCode(dop,'export');
         case 'close'
             close(dop.step.h);
             return
         otherwise
-            fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
+%             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
     end
     if exist('msg','var') && ~isempty(msg)
         if iscell(msg)

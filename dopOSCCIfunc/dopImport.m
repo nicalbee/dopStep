@@ -227,7 +227,7 @@ try
         
         %% specific output for gui (dopStep)
         if dop.tmp.gui
-            if isfield(dop.tmp,'box_h')
+            if isfield(dop.tmp,'box_h') && ishandle(dop.tmp.box_h)
                 try; delete(dop.tmp.box_h); end
             end
             [dop.tmp.file_dir,dop.tmp.file_no_ext,dop.tmp.ext] = fileparts(dop.use.fullfile);

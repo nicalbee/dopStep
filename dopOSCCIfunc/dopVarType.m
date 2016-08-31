@@ -26,6 +26,7 @@ function [var_type,okay,msg] = dopVarType(in_var,comment,num_decimals,eval_out)
 % Last edit:
 % 10-Aug-2014 NAB
 % 06-Aug-2016 NAB updated for eval_out as part of dopStepCode
+% 28-Aug-2016 NAB added 'handle' and fixed isstruct
 
 var_type = '%s'; % string by default
 var_type_name = 'string';
@@ -82,7 +83,11 @@ try
             var_type = [var_type,dopVarType(in_var{i}),' '];
         end
         var_type_name = 'cell';
-    else isstruc(in_var)
+    elseif ishandle(in_var)
+        var_type = '!!';
+        var_type_name = 'handle';
+        okay = 1; % can work with this but can't report it in the same way for some outputs
+    elseif isstruct(in_var)
         var_type = '!!';
         var_type_name = 'structure';
         okay = 0; % can't work with this

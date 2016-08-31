@@ -286,7 +286,7 @@ try
                             isfield(dop,'def') && isfield(dop.def,'base') && ~isempty(dop.def.base) && numel(dop.def.base) == 2
                             dop.tmp.enable = 'on';
                     end
-                case 'plot'
+                case {'plot','plotsave'}
                     % should the plot button be on?
                     % if there's 'use' data to plot
                     if isfield(dop,'data') && isfield(dop.data,'use') && ~isempty(dop.data.use)
