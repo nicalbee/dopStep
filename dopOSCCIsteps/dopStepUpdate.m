@@ -296,7 +296,7 @@ try
                         end
                     end
             end
-            if strcmp(dop.step.action.tag{i},'close')
+            if strcmp(dop.step.action.tag{i},'close') || strcmp(dop.step.action.tag{i},'dop')
                 dop.tmp.enable = 'on';
             elseif strcmp(dop.step.current.name,'import') || ~isfield(dop.step,'dopImport') || ~dop.step.dopImport
                 dop.tmp.enable = 'off';
@@ -307,12 +307,23 @@ try
         end
         
     end
-    
+    dopStepButtonEnable(dop);
     %% update UserData
     set(dop.step.h,'UserData',dop);
     % welcome/instruction
     %     dop = dopStepWelcome(dop);
-    
+    %% adjust the colour of the 'back' and 'next' buttons
+    for i = 1 : numel(dop.step.move.string)
+        switch dop.step.current.name
+            case 'welcome'
+                dop.tmp.col = [dop.step.col.stop;dop.step.col.go];
+            case 'finished'
+                dop.tmp.col = [dop.step.col.go;dop.step.col.stop];
+            otherwise
+                dop.tmp.col = [dop.step.col.go;dop.step.col.go];
+        end
+        set(dop.step.move.h(ismember(dop.step.move.string,dop.step.move.string{i})),'BackgroundColor',dop.tmp.col(i,:));
+    end
 catch err
     save(dopOSCCIdebug);rethrow(err);
 end

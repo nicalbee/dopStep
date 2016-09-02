@@ -75,7 +75,7 @@ try
                         fprintf('''%s'' %s value set to: %i\n',...
                             dop.tmp.var,dop.tmp.element,dop.tmp.value);
                         %                         dop = dopStepTimingPlot(dop);
-                        dopButtonEnable(dop);
+                        dopStepButtonEnable(dop);
                     otherwise
                         dop.def.(get(obj,'tag')) = dop.tmp.value;
                         fprintf('''%s'' value set to: %i\n',get(obj,'tag'),dop.def.(get(obj,'tag')));
@@ -153,7 +153,7 @@ try
                     set(dop.step.current.h(and(dop.tmp.filt.var,dop.tmp.filt.lower)),'enable',dop.tmp.times.(dop.tmp.times.list{i}));
                     set(dop.step.current.h(and(dop.tmp.filt.var,dop.tmp.filt.upper)),'enable',dop.tmp.times.(dop.tmp.times.list{i}));
                 end
-                dopButtonEnable(dop);
+                dopStepButtonEnable(dop);
             end
         case {'left_channel','right_channel','event_channel'}
 %             if isfield(dop,'data') && isfield(dop.data,'channel_labels')
@@ -166,67 +166,5 @@ try
     set(dop.step.h,'UserData',dop);
 catch err
     save(dopOSCCIdebug);rethrow(err);
-end
-end
-%% dopButtonEnable
-% enable the button
-function dopButtonEnable(dop)
-switch dop.step.current.name
-    case 'norm'
-        if isfield(dop.def,'norm_method')
-            dop.tmp.vars = {'epoch','baseline'};
-            switch dop.def.norm_method
-                case 'overall'
-                    dop.tmp.required = [0 0];
-                case {'epoch','deppe'}
-                    % need to have both of these values
-                    switch dop.def.norm_method
-                        case 'epoch'
-                            dop.tmp.vars(2) = [];
-                            dop.tmp.required = 1;
-                        case 'deppe'
-                            dop.tmp.required = [1 1];
-                    end
-            end
-        end
-    case 'epoch'
-        dop.tmp.vars = {'epoch'};
-        dop.tmp.required = 1;
-    case 'screen'
-        dop.tmp.vars = {'act_sep','act_separation_pct'};
-        dop.tmp.required = [1 0];
-    case 'baseline'
-        dop.tmp.vars = {'baseline'};
-        dop.tmp.required = 1;
-    case 'li'
-        dop.tmp.vars = {'poi'};
-        dop.tmp.required = 1;
-    otherwise
-        dop.tmp.vars = [];
-end
-if ~isempty(dop.tmp.vars)
-    dop.tmp.okay = zeros(1,numel(dop.tmp.vars));
-    for i = 1 : numel(dop.tmp.vars)
-        if isfield(dop.def,dop.tmp.vars{i}) && numel(dop.def.(dop.tmp.vars{i})) == 2
-            switch dop.step.current.name
-                case 'li'
-                    if isfield(dop.def,'act_window') && ~isempty(dop.def.act_window)
-                        dop.tmp.okay(i) = 1;
-                    end
-                otherwise
-                    dop.tmp.okay(i) = 1;
-            end
-        end
-    end
-    
-    dop.tmp.enable = 'off';
-    % switch dop.step.current.name
-    %     case {'norm','epoch'}
-    if strcmp(dop.step.current.name,'norm') && isfield(dop.def,'norm_method') && strcmp(dop.def.norm_method,'overall') || ...
-            and(sum(dop.tmp.okay),sum(dop.tmp.required == dop.tmp.okay) == numel(dop.tmp.okay)) || ...
-            strcmp(dop.step.current.name,'screen')
-        dop.tmp.enable = 'on';
-    end
-    set(dop.step.action.h(ismember(dop.step.action.tag,dop.step.current.name)),'enable',dop.tmp.enable);
 end
 end

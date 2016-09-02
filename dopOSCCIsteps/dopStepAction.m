@@ -174,18 +174,18 @@ try
                         'act_range',dop.def.act_range,'gui');
                 end
             end
-            if okay
-                set(obj,'Enable','off');
-            end
+%             if okay
+%                 set(obj,'Enable','off');
+%             end
         case 'baseline'
             [dop,okay,msg] = dopBaseCorrect(dop,'baseline',dop.def.baseline,'gui');
             if okay;
                 dop = dopStepCode(dop,'dopBaseCorrect',...
                     'baseline',dop.def.baseline,'gui');
             end
-            if okay
-                set(obj,'Enable','off');
-            end
+%             if okay
+%                 set(obj,'Enable','off');
+%             end
         case 'li'
             [dop,okay,msg] = dopCalcAuto(dop,'poi',dop.def.poi,'act_window',dop.def.act_window,'gui');
             
@@ -214,6 +214,8 @@ try
             end
         case 'code'
             dop = dopStepCode(dop,'export');
+        case 'dop'
+            dopStepDop2workspace;
         case 'close'
             close(dop.step.h);
             return
@@ -230,6 +232,7 @@ try
     end
     %% update UserData
     set(dop.step.h,'UserData',dop);
+    dopStepButtonEnable(dop);
 catch err
     save(dopOSCCIdebug);rethrow(err);
 end

@@ -14,7 +14,7 @@ function [full_file,file_name,data_dir] = dopStepBrowseFile(varargin)
 % - writing for the gui in the first instance
 % - could be more general later
 % Edits:
-% 
+%   2-Sep-2016 NAB added info to dop.def structure
 full_file = [];
 file_name = [];
 data_dir = [];
@@ -57,6 +57,9 @@ cd(dop.data_dir);
                 dop.data_dir = data_dir;
                 dop.fullfile = full_file;
                 dop.file = file_name; % file name only
+                dop.def.data_dir = data_dir;
+                dop.def.fullfile = full_file;
+                dop.def.file = file_name; % file name only
                 break
             elseif isnumeric(dop.tmp.filename) && ~dop.tmp.filename
                 break
