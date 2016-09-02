@@ -165,7 +165,7 @@ try
                         'act_range',dop.def.act_range,'sep',dop.def.act_separation,...
                         'act_separation_pct',dop.def.act_separation_pct,'gui');
                 end
-            else
+            elseif isfield(dop.def,'act_range') && ~isempty(dop.def.act_range) && numel(dop.def.act_range) == 2
                 [dop,okay,msg] = dopEpochScreen(dop,'screen',{'length','act'},...
                     'act_range',dop.def.act_range,'gui');
                 if okay;

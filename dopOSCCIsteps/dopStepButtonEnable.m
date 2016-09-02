@@ -78,10 +78,15 @@ if ~isempty(dop.tmp.vars) && isfield(dop,'def')
     dop.tmp.enable = 'off';
     % switch dop.step.current.name
     %     case {'norm','epoch'}
-    if strcmp(dop.step.current.name,'norm') && isfield(dop.def,'norm_method') && strcmp(dop.def.norm_method,'overall') && ~isfield(dop.step,'dopNorm') || ...
+    if strcmp(dop.step.current.name,'norm') && isfield(dop.def,'norm_method') && strcmp(dop.def.norm_method,'overall')  || ...
             and(sum(dop.tmp.okay),sum(dop.tmp.required == dop.tmp.okay) == numel(dop.tmp.okay)) || ...
             strcmp(dop.step.current.name,'screen')
         dop.tmp.enable = 'on';
+    end
+    % check if the function's been run
+    dop.step.func = struct('epoch','dopEpoch','norm','dopNorm');
+    if isfield(dop.step.func,dop.step.current.name) && isfield(dop.step,dop.step.func.(dop.step.current.name))
+        dop.tmp.enable = 'off';
     end
     set(dop.step.action.h(ismember(dop.tmp.check_tags,dop.step.current.name)),'enable',dop.tmp.enable);
 end

@@ -48,6 +48,8 @@ function [dop,okay,msg]  =  dopSetGetInputs(dop_input,inputs,msg,report)
 % 09-Aug-2016 NAB adding required variables to dop.def structure
 % 18-Aug-2016 NAB - fiddling with order of 'use' and 'def' structure checks
 % 23-Aug-2016 NAB adjusted for 'handle' option
+% 02-Sep-2016 NAB added check to clear dop.tmp.(function) if gui is running
+%    - might only be relevant for dopEpochScreen - could be made specific
 
 % set default outputs
 dop = [];
@@ -83,7 +85,8 @@ try
 %                         dopMessage(msg,report,1,okay)
 %                     end
                     % pre 1-Aug-2016 NAB
-                    if size(tmp.stack,1) > 2 && ~isfield(dop,tmp.stack(3).name)
+                    if size(tmp.stack,1) > 2 && ~isfield(dop,tmp.stack(3).name) || ...
+                            size(tmp.stack,1) > 2 && isfield(dop,tmp.stack(3).name) && ~isempty(strcmp(inputs.varargin,'gui'))
                         dop.(tmp.stack(3).name) = dop.tmp;
                         msg{end+1} = sprintf('''dop.tmp'' variable found, saved to %s:',tmp.stack(end).name);
                     end
