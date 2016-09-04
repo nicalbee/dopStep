@@ -10,24 +10,23 @@ function dopStepFontAdjust(button_handle,~)
 %
 % Created: 14-Oct-2015 NAB
 % Edits:
-%
+% 30-Oct-2015 NAB updated to use dop.step.text.h
+% 01-Dec-2015 NAB updated to keep track of font size
+% 02-Dec-2015 NAB updated to use tracked font size rather than get
+% 02-Sep-2016 NAB fixed adjusted for move and action buttons
 
 % options:
 % 14-Oct-2015 NAB consider doing for all font information - currently very
 %   specifc for stepInfo text object but could save a set of handles, e.g.,
 %   dop.step.font.h(1:n), and adjust all in one hit
 %   > do this by saving the 'dop' field into the figure 'UserData'
-% 30-Oct-2015 NAB updated to use dop.step.text.h
-% 01-Dec-2015 NAB updated to keep track of font size
-% 02-Dec-2015 NAB updated to use tracked font size rather than get
-%
+
 try
     % probably don't want to report function name eventually
     fprintf('\nRunning %s:\n',mfilename);
     
     dop = get(gcf,'UserData');
     if isfield(dop,'step') && isfield(dop.step,'text') && isfield(dop.step.text,'h')
-        for i = 1 : numel(dop.step.text.h)
             dop.tmp.font_size = dop.step.FontSize; %get(dop.step.text.h(i),'FontSize');
             switch get(button_handle,'tag')
                 case 'font_adj_larger'
@@ -37,11 +36,9 @@ try
                         dop.tmp.font_size_adj = dop.tmp.font_size - 1;
                     end
             end
-            set(dop.step.text.h(i),'FontSize',dop.tmp.font_size_adj);
-
-        end
+            set([dop.step.move.h,dop.step.text.h,dop.step.action.h],'FontSize',dop.tmp.font_size_adj);
         dop.step.FontSize = dop.tmp.font_size_adj;
-        dop = set(gcf,'UserData',dop);
+        set(gcf,'UserData',dop);
         %     dop.tmp.fig_ch = get(get(button_handle,'Parent'),'Children');
         %     dop.tmp.ch_tags = get(dop.tmp.fig_ch,'tag');
         %     dop.tmp.info_index = find(ismember(dop.tmp.ch_tags,'stepInfo'));

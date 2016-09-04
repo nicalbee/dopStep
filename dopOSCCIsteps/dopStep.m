@@ -133,8 +133,9 @@ try
             sprintf('Click to %s',dop.step.action.tooltip.(dop.step.action.tag{i})),...{i}),...
             'Visible',dop.step.action.visible{i},...
             'enable',dop.step.action.enable{i});
+        
     end
-            dop.step.FontSize = get(dop.step.action.h(i),'FontSize');
+    dop.step.FontSize = get(dop.step.action.h(i),'FontSize');
     %% - optional action buttons
     dop.step.option.on = 0;
     if dop.step.option.on
