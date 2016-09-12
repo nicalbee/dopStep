@@ -34,7 +34,7 @@ try
     end
     steps = 1; % return dop.step.steps list from dopStepSettings
     dop = dopStepSettings(get(button_handle,'parent'),steps);
-    
+    fprintf('\tSetting up: %s\n',dop.step.next.name);
     %% movement
     if isfield(dop.step,'current')
         dop.step.previous = dop.step.current;

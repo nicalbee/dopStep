@@ -155,12 +155,83 @@ try
                 end
                 dopStepButtonEnable(dop);
             end
+        case {'save_summary_overall','save_summary_epoch'...
+                'save_channels_left','save_channels_right','save_channels_difference','save_channels_average',...
+                'save_periods_epoch','save_periods_baseline','save_periods_poi',...
+                'save_epochs_all','save_epochs_screen','save_epochs_odd','save_epochs_even'...
+                'save_variables_n','save_variables_LI','save_variables_SD','save_variables_Latency'}
+            %                 fprintf('\t%s\n',get(obj,'tag'));
+            [~,dop.tmp.rem] = strtok(get(obj,'tag'),'_'); % drop the 'save' bit
+            [dop.tmp.var,dop.tmp.rem] = strtok(dop.tmp.rem,'_'); % get the variable name
+            dop.tmp.option = strtok(dop.tmp.rem,'_'); % get the option information
+            if ischar(event)
+                dop.tmp.value = 0;
+                
+                
+                if isfield(dop,'save') && isfield(dop.save,dop.tmp.var) && ...
+                        sum(ismember(dop.save.(dop.tmp.var),dop.tmp.option))
+                    dop.tmp.value = 1;
+                elseif isfield(dop,'step') && isfield(dop.step,'next') && isfield(dop.step.next,'checked')
+                    dop.tmp.tag_num = find(ismember(dop.step.next.tag,get(obj,'tag')));
+                    if ~isempty(dop.tmp.tag_num) && dop.tmp.tag_num && numel(dop.step.next.checked) >= dop.tmp.tag_num
+                        dop.tmp.value = dop.step.next.checked(dop.tmp.tag_num);
+                    end
+                    if dop.tmp.value
+                        switch dop.tmp.var
+                            case 'variables'
+                                % translate this
+                                dop.tmp.translation = struct(...
+                                    'n','peak_n',...
+                                    'LI','peak_mean',...
+                                    'SD','peak_sd_of_mean',...
+                                    'Latency','peak_latency');
+                                dop.tmp.option = dop.tmp.translation.(dop.tmp.option);
+                        end
+                        if ~isfield(dop,'save') || ~isfield(dop.save,dop.tmp.var)
+                            dop.save.(dop.tmp.var) = {dop.tmp.option};
+                        else
+                            dop.save.(dop.tmp.var){end+1} = dop.tmp.option;
+                        end
+                    end
+                end
+                
+                set(obj,'value',dop.tmp.value);
+                
+            else
+                dop.tmp.value = event.Source.Value;
+                switch dop.tmp.var
+                    case 'variables'
+                        % translate this
+                        dop.tmp.translation = struct(...
+                            'n','peak_n',...
+                            'LI','peak_mean',...
+                            'SD','peak_sd_of_mean',...
+                            'Latency','peak_latency');
+                        dop.tmp.option = dop.tmp.translation.(dop.tmp.option);
+                end
+                if dop.tmp.value
+                    dop.save.(dop.tmp.var){end+1} = dop.tmp.option;
+                else
+                    if numel(dop.save.(dop.tmp.var)) == 1
+                        dop.tmp.msg = sprintf('''%s'' save variable must have at least 1 item',dop.tmp.var);
+                        fprintf('%s\n',dop.tmp.msg);
+                        warndlg(dop.tmp.msg,'Must maintain variable:');
+                        set(obj,'Value',1);
+                        return
+                    else
+                        dop.save.(dop.tmp.var)(ismember(dop.save.(dop.tmp.var),dop.tmp.option)) = [];
+                    end
+                end
+                dop.tmp.include = {'exluded from','included in'};
+                fprintf('\t''%s'' option %s ''%s'' save variable\n',...
+                    dop.tmp.option,dop.tmp.include{dop.tmp.value+1},dop.tmp.var);
+            end
         case {'left_channel','right_channel','event_channel'}
-%             if isfield(dop,'data') && isfield(dop.data,'channel_labels')
-%                 set(obj,'Value',find(ismember(dop.data.channel_labels,strtok(get(obj,'Tag'),'_'))));
-%             end
+            %             if isfield(dop,'data') && isfield(dop.data,'channel_labels')
+            %                 set(obj,'Value',find(ismember(dop.data.channel_labels,strtok(get(obj,'Tag'),'_'))));
+            %             end
         otherwise
-%             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
+            %             fprintf('''%s'' action not yet supported\n',get(obj,'tag'));
     end
     %% update UserData
     set(dop.step.h,'UserData',dop);
