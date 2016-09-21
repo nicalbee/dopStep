@@ -3,7 +3,6 @@ function varargout = dopOSCCIversion%(output)
 % output some information as to the version - mostly so this can be
 % included in the debugging files (see dopOSCCIdebug)
 %
-
 % -------------------------------------------------------------------------
 % 3.0.0 24-Apr-2013 revising dopOSCCI2... nearly from scratch
 % 3.0.0 05-Sep-2014 continuing with Heather Payne's input
@@ -16,6 +15,7 @@ function varargout = dopOSCCIversion%(output)
 %   dop.def.stitch = 1;
 % 3.1.2 05-Aug-2016  dopStep development - minor changes throughout
 % 3.1.3 30-Aug-2016 ready for dopOSCCI Laterality workshop
+% 3.2.0 22-Sep-2016 added the save button etc. to the dopStep gui
 
 %
 % -------------------------------------------------------------------------
@@ -51,8 +51,8 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.1.3';
-    dop_date = 'Tuesday 30th of August 2016';
+    dop_version = '3.2.0';
+    dop_date = 'Thursday 22nd of September 2016';
     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...
