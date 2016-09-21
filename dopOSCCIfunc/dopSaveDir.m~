@@ -145,7 +145,6 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 %   'Multiple' string in folder name, rather than #to#
 % 09-Nov-2015 NAB adjusted for act_separation_index
 % 30-Aug-2016 NAB added 'gui' option
-% 21-Sep-2016 NAB added 'save_dir' to the 'def' structure
 
 if ~exist('dop_input','var')
     dop_input = [];
@@ -162,7 +161,7 @@ try
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'task_name','a_task',...
-            'base_save_dir',[],...
+            'base_save_dir',[],..
             'epoch',[], ... % [lower upper] limits in seconds
             'baseline',[],...
             'poi',[],...
@@ -183,32 +182,25 @@ try
         
         %% main code
         if ~isempty(dop.tmp.base_save_dir)
-            if ~exist(dop.tmp.base_save_dir,'dir')
-                mkdir(dop.tmp.base_save_dir);
-            end
-            
-            msg{end+1} = sprintf(['Base directory variable inputted '...
-                ': %s'],dop.tmp.base_save_dir);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        elseif exist('dopOSCCI','file')
+    elseif exist('dopOSCCI','file')
             dop_fullfile = which('dopOSCCI');
-            dop.tmp.base_save_dir = fullfile(fileparts(dop_fullfile),'Data');
+            dop_dir = fileparts(dop_fullfile);
             msg{end+1} = sprintf(['Using ''dopOSCCI'' function location'...
-                ' as base for directory: %s'],dop.tmp.base_save_dir);
+                ' as base for directory: %s'],dop_dir);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         else
-%             mfile_fullfile = which(mfilename);
-%             mfile_dir = fileparts(mfile_fullfile);
-%             current_dir = pwd;
-%             cd(fullfile(mfile_dir,'..','..'));
+            mfile_fullfile = which(mfilename);
+            mfile_dir = fileparts(mfile_fullfile);
+            current_dir = pwd;
+            cd(fullfile(mfile_dir,'..','..'));
             %             cd(getHigherDir
-            dop.tmp.base_save_dir = fullfile(etHigherDir(2),'Data');
-%             cd(current_dir); % change back to where the path was set
+            dop_dir = pwd;
+            cd(current_dir); % change back to where the path was set
             msg{end+1} = sprintf(['Setting base directory 2 levels up'...
-                ' from mfile location: %s'],dop.tmp.base_save_dir);
+                ' from mfile location: %s'],dop_dir);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
-%         dop.tmp.base_save_dir = [dop_dir,'Data'];
+        dop.tmp.base_dir = [dop_dir,'Data'];
         dop.tmp.save_name = []; %datestr(now,30); %dop.tmp.task_name;
         dop.tmp.var_found = 0;
         for i = 1 : numel(dop.tmp.name_variables)
@@ -294,15 +286,14 @@ try
             %             dop.tmp.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.task_name,dop.tmp.save_name);
         else
             while 1
-                dop.tmp.save_dir = fullfile(dop.tmp.base_save_dir,dop.tmp.task_name,dop.tmp.save_name);
+                dop.tmp.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.task_name,dop.tmp.save_name);
                 if ~exist(dop.tmp.save_dir,'dir')
                     break
                 end
                 dop.tmp.save_name = [dop.tmp.save_name,'+'];
             end
         end
-        dop.save.save_dir = fullfile(dop.tmp.base_save_dir,dop.tmp.task_name,dop.tmp.save_name);%dop.tmp.save_dir;
-        dop.def.save_dir = dop.save.save_dir;
+        dop.save.save_dir = fullfile(dop.tmp.base_dir,dop.tmp.task_name,dop.tmp.save_name);%dop.tmp.save_dir;
         
         msg{end+1} = sprintf('Original directory name: %s',...
             dop.save.save_dir);

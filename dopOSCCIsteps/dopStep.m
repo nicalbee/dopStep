@@ -77,7 +77,7 @@ try
     end
     %% - action buttons
     dop.step.action.string = {'Import','Channels','Heart','Events',...
-        'Norm','Epoch','Screen','Baseline','LI','Plot','PlotSave','dop','Code','Close'}; %'Save',
+        'Norm','Epoch','Screen','Baseline','LI','Save','Plot','PlotSave','dop','Code','Close'}; %
     dop.step.action.n = numel(dop.step.action.string);
     dop.step.action.tooltip = struct(...
         'import','import selected file',...
@@ -100,11 +100,13 @@ try
     dop.step.action.tag = lower(dop.step.action.string);
     dop.step.action.tag{ismember(dop.step.action.tag,'events')} = 'event';
     
-    if sum(ismember(dop.step.action.tag,'save'))
-    dop.tmp.last_action_num = find(ismember(dop.step.action.tag,'save')); % place holder to adjust position of extra buttons
-    else
-        dop.tmp.last_action_num = find(ismember(dop.step.action.tag,'li'));
-    end
+        if sum(ismember(dop.step.action.tag,'save'))
+        dop.tmp.last_action_num = find(ismember(dop.step.action.tag,'save')); % place holder to adjust position of extra buttons
+        else
+            dop.tmp.last_action_num = find(ismember(dop.step.action.tag,'li'));
+        end
+%     dop.tmp.last_action_num = dopStepLastActionButton(dop);
+    
     dop.step.action.pos_start = [.01 .01];
     dop.step.action.size = [(1-dop.step.action.pos_start(1)*2)/dop.tmp.last_action_num .1]; % x & y dimensions
     dop.step.action.position = repmat(dop.step.action.pos_start,dop.step.action.n,1); % x & y start positions, bottom left corner

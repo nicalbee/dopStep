@@ -106,7 +106,7 @@ switch dop.tmp.run_export
                     dop.step.code.file = inputdlg('Please type file name:',...
                         'DOPOSCCI code save filename (extension added later):',...
                         1,dop.step.code.file);
-                    if ~isempty(dop.step.code.file{1})
+                    if ~isempty(dop.step.code.file) && ~isempty(dop.step.code.file{1})
                         dop.step.code.fullfile = fullfile(dop.step.code.dir,[dop.step.code.file{1},'.m']);
                     end
                 end

@@ -12,6 +12,8 @@ function dopStepMove(button_handle,~,option)
 % Edits:
 %   2015-Nov-30 NAB pulled movement code back in here
 % 03-Aug-2016 NAB set move to stop at 'finished' tab
+% 21-Sep-2016 NAB enable 'off' and 'on' so the update has finished before
+%   the next movement
 
 % options:
 % 14-Oct-2015 NAB consider doing for all font information - currently very
@@ -23,6 +25,7 @@ try
     fprintf('\nRunning %s: %s button\n',mfilename, get(button_handle,'tag'));
     %     if exist('move_direction','var') && isempty(move_direction)
     move_direction =  get(button_handle,'tag');
+    set(button_handle,'Enable','off');
     %     end
     %     case 'move_back'
     %
@@ -78,6 +81,7 @@ try
     %% pass data back to figure
     set(get(button_handle,'Parent'),'UserData',dop);
     dopStepSettings(get(button_handle,'parent'));
+    set(button_handle,'Enable','on');
 catch err
     save(dopOSCCIdebug);rethrow(err);
 end

@@ -16,7 +16,6 @@ function dopStepGetDef(obj,event)
 % 30-Jul-2016 NAB added search to add definition values to gui if values
 %   exsit
 % 03-Aug-2016 NAB lots of development - fixed epoch enable today
-% 21-Sep-2016 NAB added upper epoch < 1 check
 try
     dop = get(gcf,'UserData');
     dop.tmp.options = {'lower','upper'};
@@ -70,17 +69,8 @@ try
                         switch dop.tmp.var
                             case 'act'
                                 dop.tmp.var = 'act_range';
-                        end
-                        switch get(obj,'tag')
-                            case 'epoch_upper'
-                                if dop.tmp.value < 1
-                                    switch questdlg('Upper epoch value less than 1, please confirm:','Check value:','Yes','Oops','Oops');
-                                        case 'Oops'
-                                            set(obj,'String','Try again');
-                                            fprintf('Upper epoch value less than 1 (%i), Cancelling\n',dop.tmp.value);
-                                            return
-                                    end
-                                end
+                            case 'epoch'
+                                if dop.tmp.
                         end
                         dop.tmp.element = strrep(dop.tmp.rem,'_','');
                         dop.def.(dop.tmp.var)(ismember(dop.tmp.options,dop.tmp.element)) = dop.tmp.value;
@@ -168,7 +158,7 @@ try
                 dopStepButtonEnable(dop);
             end
         case {'save_summary_overall','save_summary_epoch'...
-                'save_channels_Left','save_channels_Right','save_channels_Difference','save_channels_Average',...
+                'save_channels_left','save_channels_right','save_channels_difference','save_channels_average',...
                 'save_periods_epoch','save_periods_baseline','save_periods_poi',...
                 'save_epochs_all','save_epochs_screen','save_epochs_odd','save_epochs_even'...
                 'save_variables_n','save_variables_LI','save_variables_SD','save_variables_Latency'}

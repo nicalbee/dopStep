@@ -126,6 +126,7 @@ try
 % it as it'll be 'full' of all the currently set options...
 %                                 else
                                     dop.save = dop.tmp.dop.save;
+                                    dop.def = dop.tmp.dop.def;
 %                                 end
                             end
                             %                             set(dop.step.current.h(i),'CallBack',dop.step.next.Callback{i},...
@@ -321,6 +322,10 @@ try
                         if sum(ismember(dop.step.current.tag,'plot_text'))
                             set(dop.step.current.h(ismember(dop.step.current.tag,'plot_text')),'Visible','On')
                         end
+                    end
+                case 'save'
+                    if isfield(dop,'sum')
+                        dop.tmp.enable = 'on';
                     end
             end
             if strcmp(dop.step.action.tag{i},'close') || strcmp(dop.step.action.tag{i},'dop')
