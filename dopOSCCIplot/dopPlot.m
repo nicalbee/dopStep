@@ -375,6 +375,8 @@ try
                             set(dop.fig.h,'UserData',dop); % update the tmp data - amongst other things
                             dop.tmp.plot_data = squeeze(dop.collect.(dop.tmp.type).data(:,dop.plot.screen,:));
                             if numel(dop.plot.screen) > 1
+                                dop.plot.screen = ~isnan(dop.collect.(dop.tmp.type).data(1,:,1));
+                                fprintf('Missing data for %i people of %s\n',sum(~dop.plot.screen),numel(dop.plot.screen));
                                 dop.tmp.plot_data = mean(squeeze(dop.collect.(dop.tmp.type).data(:,dop.plot.screen,:)),2);
                             end
                         end
