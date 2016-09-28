@@ -220,6 +220,7 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   numbers might have changed - better not to do this, that is, use
 %   multiple periods of interest with manual selection.
 % 22-Sep-2016 added 'gui' option and output
+% 28-Sep-2016 NAB updating for multiple events... 'base_event' variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -231,6 +232,7 @@ try
         inputs.turnOn = {'label_specs','gui'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
+            'save_event',1,...
             'save_file','dopSave',... 'task_name','dopSave',...
             'save_dir',[],...
             'save_mat',0,...
@@ -354,11 +356,11 @@ try
                                                 % ('screen','odd','even') isn't
                                                 % relevant to label
                                                 if isempty(dop.tmp.num_events)
-                                                    dop.tmp.num_events = dop.event.n;
+                                                    dop.tmp.num_events = dop.event(dop.tmp.save_event).n;
                                                     msg{end+1} = sprintf(['''num_events'' variable is empty. ',...
                                                         'Using current number of events (%i) instead. ',...
                                                         'May result in variable labelling issues if this isn''t the maximum for all files.'],...
-                                                        dop.event.n);
+                                                        dop.event(dop.tmp.save_event).n);
                                                     % set okay to zero here so
                                                     % there's a warning message
                                                     % as this is important
@@ -371,7 +373,7 @@ try
                                                     % what goes into the
                                                     % dopMessage function
                                                 end
-                                                for j = 1 : dop.tmp.num_events % dop.event.n % for the moment
+                                                for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
                                                     dop.save.labels{end+1} = sprintf('%s_%s%u%s_%s',... % '%s_%s%u%s_%s_%s'
                                                         dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,...dop.tmp.eps,...
                                                         dop.tmp.prd_spec);
@@ -449,7 +451,7 @@ try
                             % poi selection) this can't always find what
                             % it's looking for so need to 'search' for it.
                             % Will be difficult when there are multiple
-                            % POIs...
+                            % POIs...dop
                             if ~isfield(dop.sum.(dop.tmp.sum).(dop.tmp.ch),dop.tmp.prd_spec)
                                 dop.tmp.fields = fields(dop.sum.(dop.tmp.sum).(dop.tmp.ch));
                                 if numel(dop.tmp.fields) == 1
@@ -491,7 +493,7 @@ try
                                                     % once: 01-Dec-2015 NAB
                                                     dop.tmp.epoch_eps = 'all';
                                                 
-                                                for j = 1 : dop.tmp.num_events % dop.event.n % for the moment
+                                                for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
                                                     k = k + 1;
                                                     if k == numel(dop.save.labels)
                                                         dop.tmp.delims{3} = 2; % new line

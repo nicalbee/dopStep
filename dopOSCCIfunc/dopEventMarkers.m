@@ -81,14 +81,18 @@ try
                 % marker height and difference calculations aren't needed
                 % - I'm not sure whether dopEventChannel is a sensible
                 % thing 27-Aug-2014 NAB
-                dop.event.samples = find(dop.tmp.data(:,strcmp(dop.data.channel_labels,'event')));
-                if isempty(dop.event.samples)
-                    okay = 0;
-                    msg{end+1} = sprintf(['No events found in - could be that'...
-                        ' you''ve changed the length of the data after'...
-                        ' calling the ''dopEventChannels'' function\n(%s: %s)'],...
-                        mfilename,dop.file);
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dop.tmp.samples = find(dop.tmp.data(:,strcmp(dop.data.channel_labels,'event')));
+                
+                for j = 1 : numel(dop.data.channel_labels)
+                    dop.event(j).samples = dop.tmp.samples(j);
+                    if isempty(dop.event(j).samples)
+                        okay = 0;
+                        msg{end+1} = sprintf(['No events found in - could be that'...
+                            ' you''ve changed the length of the data after'...
+                            ' calling the ''dopEventChannels'' function\n(%s: %s)'],...
+                            mfilename,dop.file);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    end
                 end
             elseif size(dop.tmp.data,2) >= max([dop.use.signal_channels dop.use.event_channels])
                 dop.tmp.ev = dop.tmp.data(:,dop.tmp.event_channels) > dop.tmp.event_height;
@@ -108,9 +112,9 @@ try
                 if okay
                     % if point is wider than a single sample, there'll be heaps of points
                     % by subtracting point n from n+1, we'll get around this.
-                    dop.tmp.ev_diff = diff(dop.tmp.ev) > 0;
+                    dop.tmp.ev_diff = diff(dop.tmp.ev,1) > 0;
                 end
-                if okay && ~sum(dop.tmp.ev_diff)
+                if okay && ~sum(sum(dop.tmp.ev_diff)) % any of the events have missing markers
                     okay = 0;
                     msg{end+1} = sprintf(['No real events. Probably the case that' ...
                         ' the event signal was on at the start and was then' ...
@@ -119,37 +123,40 @@ try
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 elseif okay
                     % get the sample numbers
-                    dop.event.samples = find(dop.tmp.ev_diff,sum(dop.tmp.ev_diff));
+                    for j = 1 : size(dop.tmp.ev_diff,2)
+                        dop.event(j).samples = find(dop.tmp.ev_diff(:,j),sum(dop.tmp.ev_diff(:,j)));
+                    end
                 end
             end
             if okay
-                dop.event.n = numel(dop.event.samples);
-                msg{end+1} = sprintf('\tFound %u events:',dop.event.n);
+                for j = 1 : size(dop.tmp.ev_diff,2)
+                dop.event(j).n = numel(dop.event(j).samples);
+                msg{end+1} = sprintf('\tFound %u events:',dop.event(j).n);
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 
                 %% > separation
-                dop.event.separation_samples = mean(diff(dop.event.samples));
-                dop.event.separation_samples_stdev = std(diff(dop.event.samples));
-                dop.event.separation_samples_min = min(diff(dop.event.samples));
-                dop.event.separation_samples_max = max(diff(dop.event.samples));
+                dop.event(j).separation_samples = mean(diff(dop.event(j).samples));
+                dop.event(j).separation_samples_stdev = std(diff(dop.event(j).samples));
+                dop.event(j).separation_samples_min = min(diff(dop.event(j).samples));
+                dop.event(j).separation_samples_max = max(diff(dop.event(j).samples));
                 %% get the event times
                 if ~isempty(dop.tmp.sample_rate)
-                    dop.event.times_sec = dop.event.samples*(1/dop.tmp.sample_rate);
-                    dop.event.times_ms = dop.event.times_sec*1000;
-                    dop.event.times_min = dop.event.times_sec/60;
+                    dop.event(j).times_sec = dop.event(j).samples*(1/dop.tmp.sample_rate);
+                    dop.event(j).times_ms = dop.event(j).times_sec*1000;
+                    dop.event(j).times_min = dop.event(j).times_sec/60;
                     
-                    dop.event.separation_secs = diff(dop.event.samples*(1/dop.tmp.sample_rate));
-                    dop.event.separation_secs_mean = mean(dop.event.separation_secs);
-                    dop.event.separation_secs_median = median(dop.event.separation_secs);
-                    dop.use.event_sep = dop.event.separation_secs_mean; % update for auto use in dopSetGetInputs
-                    dop.event.separation_secs_stdev = std(dop.event.separation_secs);
-                    dop.event.separation_secs_min = min(dop.event.separation_secs);
-                    dop.event.separation_secs_max = max(dop.event.separation_secs);
-                    dop.event.separation_secs_iqr = [];
+                    dop.event(j).separation_secs = diff(dop.event(j).samples*(1/dop.tmp.sample_rate));
+                    dop.event(j).separation_secs_mean = mean(dop.event(j).separation_secs);
+                    dop.event(j).separation_secs_median = median(dop.event(j).separation_secs);
+                    dop.use.event_sep(j) = dop.event(j).separation_secs_mean; % update for auto use in dopSetGetInputs
+                    dop.event(j).separation_secs_stdev = std(dop.event(j).separation_secs);
+                    dop.event(j).separation_secs_min = min(dop.event(j).separation_secs);
+                    dop.event(j).separation_secs_max = max(dop.event(j).separation_secs);
+                    dop.event(j).separation_secs_iqr = [];
                     if license('test', 'statistics_toolbox')
-                        dop.event.separation_secs_iqr = iqr(dop.event.separation_secs);
+                        dop.event(j).separation_secs_iqr = iqr(dop.event(j).separation_secs);
                     end
-                    %         dop.event.use_samples = dop.event.samples;
+                    %         dop.event(j).use_samples = dop.event.samples;
                     %         dop.event.downsamples = ones(dop.event.n,1)*-1; % make it negative when it's not available
                     %         if exist('downsample_rate','var') && ~isempty(downsample_rate) && ~isfield(dop.event,'downsamples')
                     %             dop.event.downsamples = round(dop.event.samples/...
@@ -160,17 +167,17 @@ try
                     %             dop.event.downsamples = dop.event.sample;
                     %         end
                     
-                    for i = 1 : dop.event.n
+                    for i = 1 : dop.event(j).n
                         msg{end+1} = sprintf(['\t- %u:\t mins = %3.2f, secs = %3.2f, msecs = %.0f, ',...
                             '[sample = %u]'],...
-                            i,dop.event.times_min(i),dop.event.times_sec(i),...
-                            dop.event.times_ms(i),dop.event.samples(i));
+                            i,dop.event(j).times_min(i),dop.event(j).times_sec(i),...
+                            dop.event(j).times_ms(i),dop.event(j).samples(i));
                         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                         %             fprintf(['\t- %u:\t min = %3.1f, sec = %3.1f, ms = %.0f, ',...
                         %                 '[sample = %u, down samples = %i]\n'],...
-                        %                 i,dop.event.times_min(i),dop.event.times_sec(i),...
-                        %                 dop.event.times_ms(i),dop.event.samples(i),...
-                        %                 dop.event.downsamples(i));
+                        %                 i,dop.event(j).times_min(i),dop.event(j).times_sec(i),...
+                        %                 dop.event(j).times_ms(i),dop.event(j).samples(i),...
+                        %                 dop.event(j).downsamples(i));
                     end
                     
                     %% check the separation
@@ -180,18 +187,18 @@ try
                                 % assume normalish distribution and base
                                 % this cut-offs on 1.5*IQR beyond the
                                 % 25th & 75th percentiles
-                                dop.event.outliers_range = ...
-                                    dop.event.separation_secs_median+ ...
-                                    [-1 1]*dop.event.separation_secs_iqr*(1+dop.tmp.outlier_value);
+                                dop.event(j).outliers_range = ...
+                                    dop.event(j).separation_secs_median+ ...
+                                    [-1 1]*dop.event(j).separation_secs_iqr*(1+dop.tmp.outlier_value);
                             case 'sd' % standard deviation
-                                dop.event.outliers_range = ...
-                                    dop.event.separation_secs_mean+ ...
-                                    [-1 1]*dop.event.separation_secs_stdev*dop.tmp.outlier_value;
+                                dop.event(j).outliers_range = ...
+                                    dop.event(j).separation_secs_mean+ ...
+                                    [-1 1]*dop.event(j).separation_secs_stdev*dop.tmp.outlier_value;
                         end
-                        dop.event.outliers = or(dop.event.separation_secs < dop.event.outliers_range(1),...
-                            dop.event.separation_secs > dop.event.outliers_range(2));
-                        dop.event.outliers_short = dop.event.separation_secs < dop.event.outliers_range(1);
-                        dop.event.outliers_long = dop.event.separation_secs > dop.event.outliers_range(2);
+                        dop.event(j).outliers = or(dop.event(j).separation_secs < dop.event(j).outliers_range(1),...
+                            dop.event(j).separation_secs > dop.event(j).outliers_range(2));
+                        dop.event(j).outliers_short = dop.event(j).separation_secs < dop.event(j).outliers_range(1);
+                        dop.event(j).outliers_long = dop.event(j).separation_secs > dop.event(j).outliers_range(2);
                         
                         % these refer to the difference between events, so
                         % the affected events are the 'next' event based on
@@ -205,28 +212,28 @@ try
                         for i = 1 : numel(dop.tmp.outlier_labels)
                             % add a 0 at the start of an array, assuming
                             % that is a column/vertical vector
-                            dop.event.(['outliers',dop.tmp.outlier_labels{i}]) = ...
-                                logical([0;dop.event.(['outliers',dop.tmp.outlier_labels{i}])]);
+                            dop.event(j).(['outliers',dop.tmp.outlier_labels{i}]) = ...
+                                logical([0;dop.event(j).(['outliers',dop.tmp.outlier_labels{i}])]);
                             
                             % sum the values to get the n affected
-                            dop.event.(['outliers',dop.tmp.outlier_labels{i},'_n']) = ...
-                                sum(dop.event.(['outliers',dop.tmp.outlier_labels{i}]));
+                            dop.event(j).(['outliers',dop.tmp.outlier_labels{i},'_n']) = ...
+                                sum(dop.event(j).(['outliers',dop.tmp.outlier_labels{i}]));
                         end
                         
                         
-                        %                         dop.event.outliers_n = sum(dop.event.outliers);
-                        %                         dop.event.outliers_short_n = sum(dop.event.outliers_short);
-                        %                         dop.event.outliers_long_n = sum(dop.event.outliers_long);
+                        %                         dop.event(j).outliers_n = sum(dop.event(j).outliers);
+                        %                         dop.event(j).outliers_short_n = sum(dop.event(j).outliers_short);
+                        %                         dop.event(j).outliers_long_n = sum(dop.event(j).outliers_long);
                         
                         msg{end+1} = sprintf(['%i events marked as potential ouliers based upon ',...
                             'a temporal separation outside the range of ',...
-                            dopVarType(dop.event.outliers_range(1)),' to ',...
-                            dopVarType(dop.event.outliers_range(2)),' seconds, ',...
+                            dopVarType(dop.event(j).outliers_range(1)),' to ',...
+                            dopVarType(dop.event(j).outliers_range(2)),' seconds, ',...
                             dopVarType(dop.tmp.outlier_value),' based on %s. '...
-                            'Affected events: ',dopVarType(find(dop.event.outliers))],...
-                            dop.event.outliers_n,...
-                            dop.event.outliers_range,dop.tmp.outlier_value,...
-                            dop.tmp.outlier_type,find(dop.event.outliers));
+                            'Affected events: ',dopVarType(find(dop.event(j).outliers))],...
+                            dop.event(j).outliers_n,...
+                            dop.event(j).outliers_range,dop.tmp.outlier_value,...
+                            dop.tmp.outlier_type,find(dop.event(j).outliers));
                         %                         okay = 0; % to alert
                         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                         %                         okay = 1; % not dire...
@@ -251,10 +258,12 @@ try
                     % there is potentially overlap
                     [dop,~,msg] = dopPeriodChecks(dop,okay,msg);
                     [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                
                 else
                     msg{end+1} = ['''dop.tmp.sample_rate'' variable not',...
                         'specified. Sample times in seconds haven''t been calculated'];
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                end
                 end
             end
         end
@@ -271,8 +280,8 @@ try
                     '\n\nMedian separation = ',...
                 '%3.2f seconds (min = %3.2f, max = %3.2f)\n'],...
                 mfilename,...
-                dop.event.n,median(dop.event.separation_secs),...
-                min(dop.event.separation_secs),max(dop.event.separation_secs));
+                dop.event(j).n,median(dop.event(j).separation_secs),...
+                min(dop.event(j).separation_secs),max(dop.event(j).separation_secs));
             
 %                 msg = [];% has it's own warning sprintf('Problem with channels: %s\n',dop.tmp.file);
             end

@@ -26,6 +26,9 @@ function [dop,okay,msg] = dopDataTrim(dop_input,varargin)
 % 25-Feb-2016 NAB added a 'manual_trim' which allows you to cut-off the
 %   start and end of the data. In this case, used it to get rid of
 %   erroneous event makers but might be useful for other things...
+% 28-Sep-2016 NAB added trim event option so you can specify to trim the
+%   data based on a specific event channel, if there are more than 1.
+%   Defaults to the first.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -38,6 +41,7 @@ try
         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
+            'trim_event',1,...
             'showmsg',1,...
             'wait_warn',0,...
             'epoch',[], ... %
@@ -72,7 +76,7 @@ try
                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 
             else
-            dop.tmp.events = dop.event.samples;
+            dop.tmp.events = dop.event(dop.tmp.trim_event).samples;
             % current in seconds, need to turn into samples/sample
             % points
             dop.tmp.epoch_samples = dop.tmp.epoch/(1/dop.tmp.sample_rate);

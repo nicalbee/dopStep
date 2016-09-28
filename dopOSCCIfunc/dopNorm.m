@@ -28,6 +28,7 @@ function [dop,okay,msg] = dopNorm(dop_input,varargin)
 %   available. Added a try/catch to bsxfun(@rdivide and it's running and
 %   seems to be doing the same thing - perhaps mrdivide is quicker
 %   note: version = 7.11.1.866 (R2010b) Service Pack 1
+% 28-Sep-2016 NAB updating for multiple events... 'norm_event' variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -43,6 +44,7 @@ try
             'wait_warn',0,...
             'epoch',[], ... %
             'baseline',[],...
+            'norm_event',1,...
             'norm_method','overall',... % 'epoch' or 'deppe_epoch'
             'signal_channels',[],...
             'event_height',[],... % needed for dopEventMarkers if norm by epoch
@@ -71,7 +73,7 @@ try
 %                     [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                     dop.data.norm = zeros(size(dop.tmp.data));
                     
-                    for i = 1 : numel(dop.event.samples)
+                    for i = 1 : numel(dop.event(dop.tmp.norm_event).samples)
                         if dop.epoch.length(i)
                             switch dop.tmp.norm_method
                                 case 'epoch'

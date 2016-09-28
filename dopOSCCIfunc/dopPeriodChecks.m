@@ -150,6 +150,9 @@ try
             'poi',2, ...
             'event_sep',1 ...
             );
+        if isfield(dop,'event')
+            dop.length.event_sep = numel(dop.event);
+        end
         dop.length.fields = fields(dop.length);
         if okay
             for i = 1 : numel(dop.length.fields)

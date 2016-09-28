@@ -50,6 +50,8 @@ function [dop,okay,msg]  =  dopSetGetInputs(dop_input,inputs,msg,report)
 % 23-Aug-2016 NAB adjusted for 'handle' option
 % 02-Sep-2016 NAB added check to clear dop.tmp.(function) if gui is running
 %    - might only be relevant for dopEpochScreen - could be made specific
+% 28-Sep-2016 NAB adjusted for setting variable with missing value - use
+%   default
 
 % set default outputs
 dop = [];
@@ -243,13 +245,16 @@ try
                     elseif sum(strcmp(tmp.var,inputs.turnOff)) % == 1
                         dop.tmp.(tmp.var) = 0;
                         tmp.okay = 1;
-                    elseif sum(strcmp(tmp.var,dop.tmp.settings)) % == 1
+                    elseif sum(strcmp(tmp.var,dop.tmp.settings)) && numel(inputs.varargin) >= i+1 % == 1
                         dop.tmp.(tmp.var) = inputs.varargin{i+1};
                         tmp.okay = 1;
                         % looking for 'variable_name',variable_value
                         % form of inputs so if we find something, then
                         % need to skip ahead but 1.
                         i = i + 1; %tmp.skip = 1;
+                    elseif sum(strcmp(tmp.var,dop.tmp.settings)) && numel(inputs.varargin) < i+1
+                        msg{end+1} = sprintf('''%s'' variable doesn''t have accompanying input value - using default\n',tmp.var);
+                        fprintf('!!\t%s\n',msg{end});
                     end
                     msg{end+1} = sprintf('varargin %u: %s = not a setting',i,tmp.var);
                     if tmp.okay

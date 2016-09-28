@@ -27,6 +27,7 @@ function [dop,okay,msg] = dopBaseCorrect(dop_input,varargin)
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 03-Aug-2016 NAB added gui comment
+% 28-Sep-2016 NAB updating for multiple events... 'base_event' variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -39,6 +40,7 @@ try
         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
+            'base_event',1,...
             'msg',1,...
             'wait_warn',0,...
             'baseline',[], ... %
@@ -104,7 +106,7 @@ try
                 dop.tmp.base_filt,dop.tmp.baseline);
             msg{end+1} = dop.epoch.notes{end};
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-            for i = 1 : numel(dop.event.samples)
+            for i = 1 : numel(dop.event(dop.tmp.base_event).samples)
                 if dop.epoch.length(i)
                     % need baseline in samples relative to
                     % the start of the epoch, not

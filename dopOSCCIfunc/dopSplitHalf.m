@@ -10,7 +10,7 @@ if exist('dop_input','var') && ~isempty(dop_input) && exist(dop_input,'file')
     
     
     if sum(ismember(dop.tmp.headers,'meanDiff_odd_poi')) && sum(ismember(dop.tmp.headers,'meanDiff_even_poi'))
-        % remove 999 % missing values
+        % remove 999 % missing values - also NAN needs to be done
         if sum(dop.tmp.data.meanDiff_odd_poi == 999)
             dop.tmp.filt = dop.tmp.data.meanDiff_odd_poi == 999;
             dop.tmp.data(dop.tmp.filt,:) = [];

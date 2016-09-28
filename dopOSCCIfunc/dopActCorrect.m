@@ -81,6 +81,8 @@ function [dop,okay,msg] = dopActCorrect(dop_input,varargin)
 % 02-Sep-2014 NAB incorporated dopPlot continuous plotting
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 22-May-2015 NAB summary statistics
+% 28-Sep-2016 NAB updating for multiple events... - added act_correct_event
+
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -95,6 +97,7 @@ try
         inputs.defaults = struct(...
             'msg',1,...
             'wait_warn',0,...
+            'act_correct_event',1,...
             'correct',1,... % on by default
             'correct_range',[-3 4],...
             'correct_pct',5,...
@@ -173,7 +176,7 @@ try
             dop.tmp.n_epochs = 1;
             dop.data.act_correct = dop.tmp.data; %dop.data.use;
             if strcmp(dop.tmp.data_type,'continuous') && dop.tmp.by_epoch
-                dop.tmp.n_epochs = dop.event.n;
+                dop.tmp.n_epochs = dop.event(dop.tmp.act_correct_event).n;
                 dop.tmp.patch_k = 0;
                 dop.data.act_correct_sample = zeros(size(dop.tmp.data,1),1);
                 dop.data.act_correct_patch = []; % cue for plotting
@@ -193,7 +196,7 @@ try
             for j = 1 : dop.tmp.n_epochs
                 switch dop.tmp.data_type
                     case 'continuous'
-                        dop.tmp.filt_limits = dop.event.samples(j) + dop.tmp.epoch/(1/dop.tmp.sample_rate);
+                        dop.tmp.filt_limits = dop.event(dop.tmp.act_correct_event).samples(j) + dop.tmp.epoch/(1/dop.tmp.sample_rate);
                         if dop.tmp.filt_limits(1) < 1
                             msg{end+1} = sprintf(['Epoch %u is short by'...
                                 ' %u samples (%3.2f secs). Checking available'],...

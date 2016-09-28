@@ -27,6 +27,7 @@ function [dop,okay,msg] = dopEpochScreenAct(dop_input,varargin)
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 20-May-2015 NAB added 'showmsg' & act_remove output variable
 % 21-May-2015 NAB added descriptives
+% 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -134,7 +135,7 @@ try
         %% main code
         if okay
             if strcmp(dop.tmp.data_type,'continuous') %&& dop.tmp.correct_by_epoch
-                dop.tmp.n_epochs = dop.event.n;
+                dop.tmp.n_epochs = dop.event(dop.tmp.screen_event).n;
             elseif strcmp(dop.tmp.data_type,'epoched')
                 dop.tmp.n_epochs = size(dop.tmp.data,2);
             end
@@ -162,7 +163,7 @@ try
             for j = 1 : dop.tmp.n_epochs
                 switch dop.tmp.data_type
                     case 'continuous'
-                        dop.tmp.filt_limits = dop.event.samples(j) + dop.tmp.epoch/(1/dop.tmp.sample_rate);
+                        dop.tmp.filt_limits = dop.event(dop.tmp.screen_event).samples(j) + dop.tmp.epoch/(1/dop.tmp.sample_rate);
                         if dop.tmp.filt_limits(1) < 1
                             msg{end+1} = sprintf(['Epoch %u is short by'...
                                 ' %u samples (%3.2f secs). Checking avialable'],...

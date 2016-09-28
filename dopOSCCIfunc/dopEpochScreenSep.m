@@ -31,6 +31,7 @@ function [dop,okay,msg] = dopEpochScreenSep(dop_input,varargin)
 % 21-May-2015 NAB updated descriptives
 % 22-May-2015 NAB fixed descriptive calculation
 % 09-Nov-2015 NAB wondering about individually sensitive cut-offs
+% 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -42,6 +43,7 @@ try
         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
+            'screen_event',1,...
             'showmsg',1,...
             'wait_warn',0,...
             'act_separation',20,...
@@ -88,7 +90,7 @@ try
         %% main code
         if okay
             if strcmp(dop.tmp.data_type,'continuous')
-                dop.tmp.n_epochs = dop.event.n;
+                dop.tmp.n_epochs = dop.event(dop.tmp.screen_event).n;
             elseif strcmp(dop.tmp.data_type,'epoched')
                 dop.tmp.n_epochs = size(dop.tmp.data,2);
             end
@@ -112,7 +114,7 @@ try
                 for j = 1 : dop.tmp.n_epochs
                     switch dop.tmp.data_type
                         case 'continuous'
-                            dop.tmp.filt_limits = dop.event.samples(j) + dop.tmp.epoch/(1/dop.tmp.sample_rate);
+                            dop.tmp.filt_limits = dop.event(dop.tmp.screen_event).samples(j) + dop.tmp.epoch/(1/dop.tmp.sample_rate);
                             if dop.tmp.filt_limits(1) < 1
                                 msg{end+1} = sprintf(['Epoch %u is short by'...
                                     ' %u samples (%3.2f secs). Checking avialable'],...

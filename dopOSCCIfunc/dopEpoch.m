@@ -127,6 +127,7 @@ function [dop,okay,msg] = dopEpoch(dop_input,varargin)
 % 07-Sep-2014 NAB completed input descriptions
 % 07-Oct-2014 NAB updated dop.data.epoch assignment to be compatiable with
 %   negative or positive epoch numbers
+% 28-Sep-2016 NAB updating for multiple events... 'epoch_event' variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -142,6 +143,7 @@ try
             'msg',1,...
             'wait_warn',0,...
             'epoch',[], ...
+            'epoch_event',1,...
             'sample_rate',[], ...
             'event_height',[],... % needed for dopEventMarkers
             'event_channels',[] ... % needed for dopEventMarkers
@@ -185,10 +187,10 @@ try
             % rows = time, columns = epochs/trials, 3rd dim = hemisphere
             % (left/right)
             dop.data.epoch_labels = {'Left','Right','Difference','Average'};
-            dop.data.epoch = zeros(numel(dop.epoch.times),numel(dop.event.samples),numel(dop.data.epoch_labels));
+            dop.data.epoch = zeros(numel(dop.epoch.times),numel(dop.event(dop.tmp.epoch_event).samples),numel(dop.data.epoch_labels));
             % consider keeping data in dop.epoch structure as well: 10-Aug-2014
             dop.epoch.length_note = 'logical variable denoting epochs of acceptable length';
-            dop.epoch.length = zeros(1,numel(dop.event.samples));
+            dop.epoch.length = zeros(1,numel(dop.event(dop.tmp.epoch_event).samples));
             dop.epoch.notes = [];
             % considering that notes could be epoch specific... or screening
             % specific variables - currently not: 10-Aug-2014
@@ -197,8 +199,8 @@ try
             
             
             %         if okay
-            for i = 1 : numel(dop.event.samples)
-                dop.tmp.i_epoch = dop.event.samples(i) + dop.epoch.samples;
+            for i = 1 : numel(dop.event(dop.tmp.epoch_event).samples)
+                dop.tmp.i_epoch = dop.event(dop.tmp.epoch_event).samples(i) + dop.epoch.samples;
                 if dop.tmp.i_epoch(1) <= 0
                     
                     dop.epoch.notes{end+1} = sprintf(['Skipping epoch number %u: ' ...
@@ -221,11 +223,11 @@ try
             dop.epoch.screen = dop.epoch.length;
             
             dop.epoch.notes{end+1} = sprintf('%u epochs of suitable length found of %u available',...
-                sum(dop.epoch.length),numel(dop.event.samples));
+                sum(dop.epoch.length),numel(dop.event(dop.tmp.epoch_event).samples));
             msg{end+1} = dop.epoch.notes{end};
             fprintf('\n\t%s\n',msg{end});
             
-            for i = 1 : dop.event.n
+            for i = 1 : dop.event(dop.tmp.epoch_event).n
                 dop.data.epoch(:,i,3) = squeeze(dop.data.epoch(:,i,1)) - squeeze(dop.data.epoch(:,i,2));
                 dop.data.epoch(:,i,4) = mean(squeeze(dop.data.epoch(:,i,1:2)),2);
             end
