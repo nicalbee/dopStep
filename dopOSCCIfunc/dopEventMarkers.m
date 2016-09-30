@@ -26,6 +26,8 @@ function [dop,okay,msg] = dopEventMarkers(dop_input,varargin) % ,downsample_rate
 % 04-Sep-14 NAB msg & wait_warn updates
 % 05-Sep-14 NAB added dopPeriodCheck
 % 03-Jul-15 NAB examining separation between events for outliers
+% 30-Sep-16 NAB added data column to dop.event(x) structure for epoching -
+%   multiple event processing/periods of interest
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -100,7 +102,8 @@ try
                 % may or may not be multiple event channels, not sure this
                 % is programmed to cope with it but perhaps eventually
                 % 12-Aug-2014
-                dop.tmp.ev = dop.tmp.data(:,strcmp(dop.data.channel_labels,'event')) > dop.tmp.event_height;
+                dop.tmp.ev_columns = find(strcmp(dop.data.channel_labels,'event'));
+                dop.tmp.ev = dop.tmp.data(:,dop.tmp.ev_columns) > dop.tmp.event_height;
             end
             if ~isfield(dop.data,'event_plot')
                 if ~sum(dop.tmp.ev)
@@ -130,6 +133,8 @@ try
             end
             if okay
                 for j = 1 : size(dop.tmp.ev_diff,2)
+                    dop.tmp.ev_columns = find(strcmp(dop.data.channel_labels,'event'));
+                    dop.event(j).data = dop.tmp.data(:,dop.tmp.ev_columns(j));
                 dop.event(j).n = numel(dop.event(j).samples);
                 msg{end+1} = sprintf('\tFound %u events:',dop.event(j).n);
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);

@@ -128,6 +128,9 @@ function [dop,okay,msg] = dopEpoch(dop_input,varargin)
 % 07-Oct-2014 NAB updated dop.data.epoch assignment to be compatiable with
 %   negative or positive epoch numbers
 % 28-Sep-2016 NAB updating for multiple events... 'epoch_event' variable
+% 30-Sep-16 NAB epoched dop.event(x).data structure for multiple event 
+%   processing/periods of interest = dop.event(x).epoched. Only exist for
+%   event channels that aren't used for the epoching per se
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -197,6 +200,13 @@ try
             
             % possilbe that the inputted data won't be right
             
+            if numel(dop.event) > 1
+                dop.tmp.events2epoch = 1:numel(dop.event);
+                dop.tmp.events2epoch(dop.tmp.epoch_event) = []; % clear the one in use but keep the others
+                for i = 1 : numel(dop.tmp.events2epoch)
+                    dop.event(dop.tmp.events2epoch(i)).epoched = zeros(numel(dop.epoch.times),numel(dop.event(dop.tmp.epoch_event).samples));
+                end
+            end
             
             %         if okay
             for i = 1 : numel(dop.event(dop.tmp.epoch_event).samples)
@@ -217,6 +227,14 @@ try
                 else
                     dop.epoch.length(i) = 1;
                     dop.data.epoch(:,i,1:2) = dop.tmp.data(dop.tmp.i_epoch(1):dop.tmp.i_epoch(2),:);
+                    % epoch the event channesl
+                    if numel(dop.event) > 1
+                        dop.tmp.events2epoch = 1:numel(dop.event);
+                        dop.tmp.events2epoch(dop.tmp.epoch_event) = []; % clear the one in use but keep the others
+                        for j = 1 : numel(dop.tmp.events2epoch)
+                            dop.event(dop.tmp.events2epoch(j)).epoched(:,i) = dop.event(dop.tmp.events2epoch(j)).data(dop.tmp.i_epoch(1):dop.tmp.i_epoch(2));
+                        end
+                    end
                 end
             end
             dop.epoch.length = logical(dop.epoch.length); % convert to logical array
