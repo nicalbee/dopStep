@@ -24,6 +24,7 @@ function period_specific_string = dopSaveSpecificLabel(period_string,period_limi
 % Created: 15-Sep-2015 NAB
 % Edits:
 % 09-Aug-2016 NAB floating point numbers
+% 10-Oct-2015 NAB updated for smaller floating point numbers
 
 % check float/decimal places
 float_check = mod(period_limits,floor(period_limits));
@@ -32,8 +33,15 @@ if sum(float_check)
     period_text = {'','to'};
     for i = 1 : numel(period_limits)
         if float_check(i)
-            period_specific_string = sprintf('%s%s%ip%i',...
-                period_specific_string,period_text{i},floor(period_limits(i)),float_check(i)*10);
+            
+            [~,point_num] = strtok(num2str(float_check(i)),'.');
+            just_num = strrep(point_num,'.','');
+            
+            period_specific_string = sprintf('%s%s%ip%s',...
+                period_specific_string,period_text{i},floor(period_limits(i)),just_num);
+%             period_specific_string = sprintf('%s%s%ip%i',...
+%                 period_specific_string,period_text{i},floor(period_limits(i)),float_check(i)*10);
+           
         else
             period_specific_string = sprintf('%s%s%i',...
                 period_specific_string,period_text{i},period_limits(i));
@@ -45,3 +53,4 @@ end
 % replace minus signs with 'n'
 period_specific_string = strrep(period_specific_string,'-','n');
 
+end

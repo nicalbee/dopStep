@@ -133,6 +133,7 @@ function [dop,okay,msg] = dopEpoch(dop_input,varargin)
 %   event channels that aren't used for the epoching per se
 % 07-Oct-2016 NAB various summaries related to the additional event
 %   channels
+% 10-Oct-2016 NAB updated multiple event epoching for missing data
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -207,7 +208,7 @@ try
                 dop.tmp.events2epoch(dop.tmp.epoch_event) = []; % clear the one in use but keep the others
                 for i = 1 : numel(dop.tmp.events2epoch)
                     dop.event(dop.tmp.events2epoch(i)).epoched = zeros(numel(dop.epoch.times),numel(dop.event(dop.tmp.epoch_event).samples));
-                    dop.event(dop.tmp.events2epoch(i)).ep_samples = cell(1,numel(dop.event(dop.tmp.epoch_event).samples));
+%                     dop.event(dop.tmp.events2epoch(i)).ep_samples = cell(1,numel(dop.event(dop.tmp.epoch_event).samples));
                     % there might not be the same number in each epoch...
                 end
             end
@@ -238,8 +239,14 @@ try
                         for j = 1 : numel(dop.tmp.events2epoch)
                             dop.event(dop.tmp.events2epoch(j)).epoched(:,i) = dop.event(dop.tmp.events2epoch(j)).data(dop.tmp.i_epoch(1):dop.tmp.i_epoch(2));
                             dop.event(dop.tmp.events2epoch(j)).ev_diff{i} = diff(dop.event(dop.tmp.events2epoch(j)).epoched(:,i) > dop.tmp.event_height) > 0; %- [0 dop.event(dop.tmp.events2epoch(j)).epoched(1:end-1,i)']';
-                            dop.event(dop.tmp.events2epoch(j)).ev_samples{i} = find(dop.event(dop.tmp.events2epoch(j)).ev_diff{i}, sum(dop.event(dop.tmp.events2epoch(j)).ev_diff{i}));
-                            dop.event(dop.tmp.events2epoch(j)).ev_times{i} = dop.event(dop.tmp.events2epoch(j)).ev_samples{i}*(1/dop.tmp.sample_rate);
+                            if sum(dop.event(dop.tmp.events2epoch(j)).ev_diff{i})
+                                dop.event(dop.tmp.events2epoch(j)).ev_samples{i} = find(dop.event(dop.tmp.events2epoch(j)).ev_diff{i}, sum(dop.event(dop.tmp.events2epoch(j)).ev_diff{i}));
+                                dop.event(dop.tmp.events2epoch(j)).ev_times{i} = dop.event(dop.tmp.events2epoch(j)).ev_samples{i}*(1/dop.tmp.sample_rate);
+                            else
+                                dop.epoch.notes{end+1} = sprintf('No events found for event marker %i in epoch %i\n',dop.tmp.events2epoch(j),i);
+                                msg{end+1} = dop.epoch.notes{end};
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            end
                         end
                     end
                 end
