@@ -242,6 +242,7 @@ try
             'epoch',[],...
             'num_events',[],... % required for epoch by epoch labelling etc.
             'delim','\t', ...
+            'custom',[],... 'event2pois' something to modify what's saved
             'msg',[],... % 30-Sep-2015 not sure about adding this
             'file',[],...
             'showmsg',1,...
@@ -323,69 +324,95 @@ try
             for i = 1 : numel(dop.tmp.extras)
                 dop.save.labels{end+1} = dop.tmp.extras{i};
             end
-            for i = 1 : numel(dop.tmp.summary)
-                dop.tmp.sum = dop.save.abb.(dop.tmp.summary{i});
-                
-                for ii = 1 : numel(dop.tmp.channels)
-                    dop.tmp.ch = dop.save.abb.(dop.tmp.channels{ii});
-                    
-                    for iii = 1 : numel(dop.tmp.periods)
-                        dop.tmp.prd = dop.save.abb.(dop.tmp.periods{iii});
-                        dop.tmp.prd_spec = dop.tmp.prd;
-                        for jjj = 1 : size(dop.tmp.(dop.tmp.prd),1)
-                            if size(dop.tmp.(dop.tmp.prd),1) > 1 || dop.tmp.label_specs
-                                dop.tmp.prd_spec = dopSaveSpecificLabel(dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
-                            end
-                            for iiii = 1 : numel(dop.tmp.epochs)
-                                dop.tmp.eps = dop.save.abb.(dop.tmp.epochs{iiii});
-                                
-                                for iiiii = 1 : numel(dop.tmp.variables)
-                                    dop.tmp.var = dop.save.abb.(dop.tmp.variables{iiiii});
-                                    switch dop.tmp.summary{i}
-                                        case 'overall'
-                                            % overall data
-                                            dop.save.labels{end+1} = sprintf('%s%s_%s_%s',...
-                                                dop.tmp.var,dop.tmp.ch,dop.tmp.eps,...
+            switch dop.tmp.custom
+                case 'event2pois'
+                    if numel(dop.tmp.summary) == 1 && strcmp(dop.tmp.summary,'epoch')
+                        dop.tmp.pois = fields(dop.sum.epoch.(dop.tmp.channels{1}));
+                        for i = 1 : numel(dop.tmp.summary)
+                            dop.tmp.sum = dop.save.abb.(dop.tmp.summary{i});
+                            for ii = 1 : numel(dop.tmp.channels)
+                                dop.tmp.ch = dop.save.abb.(dop.tmp.channels{ii});
+                                for iii = 1 : numel(dop.tmp.variables)
+                                    dop.tmp.var = dop.save.abb.(dop.tmp.variables{iii});
+                                    for j = 1 : dop.tmp.num_events
+                                        for iiii = 1 : numel(dop.tmp.pois)
+                                            dop.tmp.prd_spec = dop.tmp.pois{iiii};
+                                            % dop.event(dop.tmp.save_event).n % for the moment
+                                            dop.save.labels{end+1} = sprintf('%s_%s%u%s_%s',... % '%s_%s%u%s_%s_%s'
+                                                dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,...dop.tmp.eps,...
                                                 dop.tmp.prd_spec);
-                                        case 'epoch'
-                                            if iiii == 1 && ~strcmp(dop.tmp.var,'n')
-                                                % n is redundant when it's just the one epoch, so exclude it
-                                                
-                                                % only need to do this once and
-                                                % epoch screen
-                                                % ('screen','odd','even') isn't
-                                                % relevant to label
-                                                if isempty(dop.tmp.num_events)
-                                                    dop.tmp.num_events = dop.event(dop.tmp.save_event).n;
-                                                    msg{end+1} = sprintf(['''num_events'' variable is empty. ',...
-                                                        'Using current number of events (%i) instead. ',...
-                                                        'May result in variable labelling issues if this isn''t the maximum for all files.'],...
-                                                        dop.event(dop.tmp.save_event).n);
-                                                    % set okay to zero here so
-                                                    % there's a warning message
-                                                    % as this is important
-                                                    okay = 0;
-                                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                                                    okay = 1;
-                                                    % not necessary to have the
-                                                    % variable defined here but
-                                                    % I think it helps to see
-                                                    % what goes into the
-                                                    % dopMessage function
-                                                end
-                                                for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
-                                                    dop.save.labels{end+1} = sprintf('%s_%s%u%s_%s',... % '%s_%s%u%s_%s_%s'
-                                                        dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,...dop.tmp.eps,...
-                                                        dop.tmp.prd_spec);
-                                                end
-                                            end
-                                            
+                                        end
                                     end
                                 end
                             end
                         end
                     end
-                end
+                otherwise
+                    
+                    for i = 1 : numel(dop.tmp.summary)
+                        dop.tmp.sum = dop.save.abb.(dop.tmp.summary{i});
+                        
+                        for ii = 1 : numel(dop.tmp.channels)
+                            dop.tmp.ch = dop.save.abb.(dop.tmp.channels{ii});
+                            
+                            for iii = 1 : numel(dop.tmp.periods)
+                                dop.tmp.prd = dop.save.abb.(dop.tmp.periods{iii});
+                                dop.tmp.prd_spec = dop.tmp.prd;
+                                for jjj = 1 : size(dop.tmp.(dop.tmp.prd),1)
+                                    if size(dop.tmp.(dop.tmp.prd),1) > 1 || dop.tmp.label_specs
+                                        dop.tmp.prd_spec = dopSaveSpecificLabel(dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
+                                    end
+                                    for iiii = 1 : numel(dop.tmp.epochs)
+                                        dop.tmp.eps = dop.save.abb.(dop.tmp.epochs{iiii});
+                                        
+                                        for iiiii = 1 : numel(dop.tmp.variables)
+                                            dop.tmp.var = dop.save.abb.(dop.tmp.variables{iiiii});
+                                            switch dop.tmp.summary{i}
+                                                case 'overall'
+                                                    % overall data
+                                                    dop.save.labels{end+1} = sprintf('%s%s_%s_%s',...
+                                                        dop.tmp.var,dop.tmp.ch,dop.tmp.eps,...
+                                                        dop.tmp.prd_spec);
+                                                case 'epoch'
+                                                    if iiii == 1 && ~strcmp(dop.tmp.var,'n')
+                                                        % n is redundant when it's just the one epoch, so exclude it
+                                                        
+                                                        % only need to do this once and
+                                                        % epoch screen
+                                                        % ('screen','odd','even') isn't
+                                                        % relevant to label
+                                                        if isempty(dop.tmp.num_events)
+                                                            dop.tmp.num_events = dop.event(dop.tmp.save_event).n;
+                                                            msg{end+1} = sprintf(['''num_events'' variable is empty. ',...
+                                                                'Using current number of events (%i) instead. ',...
+                                                                'May result in variable labelling issues if this isn''t the maximum for all files.'],...
+                                                                dop.event(dop.tmp.save_event).n);
+                                                            % set okay to zero here so
+                                                            % there's a warning message
+                                                            % as this is important
+                                                            okay = 0;
+                                                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                                            okay = 1;
+                                                            % not necessary to have the
+                                                            % variable defined here but
+                                                            % I think it helps to see
+                                                            % what goes into the
+                                                            % dopMessage function
+                                                        end
+                                                        for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
+                                                            dop.save.labels{end+1} = sprintf('%s_%s%u%s_%s',... % '%s_%s%u%s_%s_%s'
+                                                                dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,...dop.tmp.eps,...
+                                                                dop.tmp.prd_spec);
+                                                        end
+                                                    end
+                                                    
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
             end
         end
         %% > write labels
@@ -436,6 +463,43 @@ try
                     end
                 end
             end
+            switch dop.tmp.custom
+                case 'event2pois'
+                    if numel(dop.tmp.summary) == 1 && strcmp(dop.tmp.summary,'epoch')
+                         dop.tmp.epoch_eps = 'all';
+                        dop.tmp.pois = fields(dop.sum.epoch.(dop.tmp.channels{1}));
+                        for i = 1 : numel(dop.tmp.summary)
+                            dop.tmp.sum = dop.tmp.summary{i};
+                            for ii = 1 : numel(dop.tmp.channels)
+                                dop.tmp.ch = dop.tmp.channels{ii};
+                                for iii = 1 : numel(dop.tmp.variables)
+                                    dop.tmp.var = dop.save.abb.(dop.tmp.variables{iii});
+                                    for j = 1 : dop.tmp.num_events
+                                        for iiii = 1 : numel(dop.tmp.pois)
+                                            dop.tmp.prd_spec = dop.tmp.pois{iiii};
+                                            % dop.event(dop.tmp.save_event).n % for the moment
+%                                             dop.save.labels{end+1} = sprintf('%s_%s%u%s_%s',... % '%s_%s%u%s_%s_%s'
+%                                                 dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,...dop.tmp.eps,...
+%                                                 dop.tmp.p);
+                                            
+                                             k = k + 1;
+                                                    if k == numel(dop.save.labels)
+                                                        dop.tmp.delims{3} = 2; % new line
+                                                        dop.tmp.epoch_saved = 1;
+                                                    end
+                                                    dop.tmp.value = 999;
+                                                    if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= j %dop.tmp.num_events
+                                                        dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)(j);
+                                                    end
+                                                    fprintf(dop.save.fid,...
+                                                        [dopVarType(dop.tmp.value),...
+                                                        dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
             for i = 1 : numel(dop.tmp.summary)
                 dop.tmp.sum = dop.tmp.summary{i};
                 
@@ -515,6 +579,7 @@ try
                         end
                     end
                 end
+            end
             end
             fclose(dop.save.fid);
         end

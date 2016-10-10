@@ -146,6 +146,7 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 % 09-Nov-2015 NAB adjusted for act_separation_index
 % 30-Aug-2016 NAB added 'gui' option
 % 21-Sep-2016 NAB added 'save_dir' to the 'def' structure
+% 11-Oct-2016 NAB fixed auto save dir directory level
 
 if ~exist('dop_input','var')
     dop_input = [];
@@ -192,7 +193,7 @@ try
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         elseif exist('dopOSCCI','file')
             dop_fullfile = which('dopOSCCI');
-            dop.tmp.base_save_dir = fullfile(fileparts(dop_fullfile),'Data');
+            dop.tmp.base_save_dir = [fileparts(dop_fullfile),'Data'];
             msg{end+1} = sprintf(['Using ''dopOSCCI'' function location'...
                 ' as base for directory: %s'],dop.tmp.base_save_dir);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
@@ -202,7 +203,7 @@ try
 %             current_dir = pwd;
 %             cd(fullfile(mfile_dir,'..','..'));
             %             cd(getHigherDir
-            dop.tmp.base_save_dir = fullfile(etHigherDir(2),'Data');
+            dop.tmp.base_save_dir = fullfile(getHigherDir(2),'Data');
 %             cd(current_dir); % change back to where the path was set
             msg{end+1} = sprintf(['Setting base directory 2 levels up'...
                 ' from mfile location: %s'],dop.tmp.base_save_dir);

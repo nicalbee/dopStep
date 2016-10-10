@@ -49,6 +49,7 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 %   wanted to be run as inputs, rather than looking for dop.def variables
 % 27-Sep-2016 NAB added t_p & t_sig to default and adjusted below for
 %   single epoch processing (I think).
+% 11-Oct-2016 NAB added a round for multiple poi floating point intergers
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -175,7 +176,7 @@ try
             end
             
             %% > period calculations
-            dop_output.data = dop.tmp.data(dop.tmp.period_filt(1):dop.tmp.period_filt(2),:); % keep a copy
+            dop_output.data = dop.tmp.data(round(dop.tmp.period_filt(1)):round(dop.tmp.period_filt(2)),:); % keep a copy - 11-Oct-2016 added round for multiple pois
             [dop_output.period_samples,dop_output.period_epochs] = size(dop_output.data);
             
             % for epoch calculations, one number per epoch
@@ -184,6 +185,7 @@ try
             % by default, calculate for epochs, then take the summary (ie
             % mean or std) of these for overall
             
+             
             dop_output.period_mean = mean(dop_output.data);
             % standard deviation is always related to the mean, doesn't
             % make any sense if there's a single epoch
@@ -299,7 +301,9 @@ try
             else
                 dop.tmp.window_data = zeros(length(dop.tmp.window(1,1):dop.tmp.window(1,2)),size(dop.tmp.data,2));
                 for j = 1 : size(dop.tmp.window_data,2)
-                    dop.tmp.window_data(:,j) = dop.tmp.data(dop.tmp.window(j,1):dop.tmp.window(j,2),j);
+                    % 11-Oct-2016 NAB added a round here for floating
+                    % numbers arising from the multiple poi update
+                    dop.tmp.window_data(:,j) = dop.tmp.data(round(dop.tmp.window(j,1)):round(dop.tmp.window(j,2)),j);
                 end
             end
             

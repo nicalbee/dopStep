@@ -260,6 +260,7 @@ try
                                 % vs even makes no difference, defaults to
                                 % selection of all epochs so single
                                 % calculation will do it
+                                keyboard;
                                 break
                             end
                         end
