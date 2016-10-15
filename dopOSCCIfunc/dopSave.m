@@ -221,6 +221,11 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   multiple periods of interest with manual selection.
 % 22-Sep-2016 added 'gui' option and output
 % 28-Sep-2016 NAB updating for multiple events... 'base_event' variable
+% 15-Oct-2016 NAB fixed custom default - thought I'd added more to these
+%   update notes. There's now a 'custom' input for specific save options -
+%   e.g. save multiple pois related to second event marker in every epoch.
+%   Just didn't want to have to setup everything around that (dir, extras,
+%   labels etc.) in another function.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -242,7 +247,7 @@ try
             'epoch',[],...
             'num_events',[],... % required for epoch by epoch labelling etc.
             'delim','\t', ...
-            'custom',[],... 'event2pois' something to modify what's saved
+            'custom','off',... 'event2pois' something to modify what's saved
             'msg',[],... % 30-Sep-2015 not sure about adding this
             'file',[],...
             'showmsg',1,...
