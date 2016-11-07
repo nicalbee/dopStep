@@ -120,6 +120,8 @@ function [dop,okay,msg] = dopPeriodChecks(dop_input,varargin)
 % 15-Sep-2015 NAB adjusted for multiple rows for periods
 % 14-Oct-2015 NAB add okay check to first loop = required
 % 29-Sep-2016 NAB updated for multiple events
+% 13-Oct-2016 NAB adjusted to remove eror report for too few event
+%   separation items in variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -153,6 +155,7 @@ try
             );
         if isfield(dop,'event')
             dop.length.event_sep = numel(dop.event);
+            % not calculating the other as yet.
         end
         dop.length.fields = fields(dop.length);
         if okay
@@ -168,7 +171,9 @@ try
                             dop.length.fields{i},dop.tmp.(dop.length.fields{i}),...
                             dop.length.(dop.length.fields{i}),...
                             mfilename,dop.tmp.file);
-                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        if ~strcmp(dop.length.fields{i},'event_sep')
+                            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        end
                     end
                 end
             end
