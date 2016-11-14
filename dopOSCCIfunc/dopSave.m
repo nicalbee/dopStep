@@ -226,6 +226,7 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   e.g. save multiple pois related to second event marker in every epoch.
 %   Just didn't want to have to setup everything around that (dir, extras,
 %   labels etc.) in another function.
+% 24-Nov-2016 left out an otherwise after the cutom bit
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -457,7 +458,7 @@ try
                         % dummy value
                         dop.tmp.value = 999;
                         
-                         fprintf(dop.save.fid,...
+                        fprintf(dop.save.fid,...
                             [dopVarType(dop.tmp.value),...
                             dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
                         
@@ -471,7 +472,7 @@ try
             switch dop.tmp.custom
                 case 'event2pois'
                     if numel(dop.tmp.summary) == 1 && strcmp(dop.tmp.summary,'epoch')
-                         dop.tmp.epoch_eps = 'all';
+                        dop.tmp.epoch_eps = 'all';
                         dop.tmp.pois = fields(dop.sum.epoch.(dop.tmp.channels{1}));
                         for i = 1 : numel(dop.tmp.summary)
                             dop.tmp.sum = dop.tmp.summary{i};
@@ -483,108 +484,109 @@ try
                                         for iiii = 1 : numel(dop.tmp.pois)
                                             dop.tmp.prd_spec = dop.tmp.pois{iiii};
                                             % dop.event(dop.tmp.save_event).n % for the moment
-%                                             dop.save.labels{end+1} = sprintf('%s_%s%u%s_%s',... % '%s_%s%u%s_%s_%s'
-%                                                 dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,...dop.tmp.eps,...
-%                                                 dop.tmp.p);
+                                            %                                             dop.save.labels{end+1} = sprintf('%s_%s%u%s_%s',... % '%s_%s%u%s_%s_%s'
+                                            %                                                 dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,...dop.tmp.eps,...
+                                            %                                                 dop.tmp.p);
                                             
-                                             k = k + 1;
-                                                    if k == numel(dop.save.labels)
-                                                        dop.tmp.delims{3} = 2; % new line
-                                                        dop.tmp.epoch_saved = 1;
-                                                    end
-                                                    dop.tmp.value = 999;
-                                                    if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= j %dop.tmp.num_events
-                                                        dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)(j);
-                                                    end
-                                                    fprintf(dop.save.fid,...
-                                                        [dopVarType(dop.tmp.value),...
-                                                        dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                            k = k + 1;
+                                            if k == numel(dop.save.labels)
+                                                dop.tmp.delims{3} = 2; % new line
+                                                dop.tmp.epoch_saved = 1;
+                                            end
+                                            dop.tmp.value = 999;
+                                            if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= j %dop.tmp.num_events
+                                                dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)(j);
+                                            end
+                                            fprintf(dop.save.fid,...
+                                                [dopVarType(dop.tmp.value),...
+                                                dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
                                         end
                                     end
                                 end
                             end
                         end
                     end
-            for i = 1 : numel(dop.tmp.summary)
-                dop.tmp.sum = dop.tmp.summary{i};
-                
-                for ii = 1 : numel(dop.tmp.channels)
-                    dop.tmp.ch = dop.tmp.channels{ii};
-                    
-                    for iii = 1 : numel(dop.tmp.periods)
-                        dop.tmp.prd = dop.tmp.periods{iii};
-                        dop.tmp.prd_spec = dop.tmp.prd;
-                        for jjj = 1 : size(dop.tmp.(dop.tmp.prd),1)
-                            dop.tmp.prd_spec = dopSaveSpecificLabel(dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
-                            % 05-Jan-2016 NAB with the 'poi_select' (manual
-                            % poi selection) this can't always find what
-                            % it's looking for so need to 'search' for it.
-                            % Will be difficult when there are multiple
-                            % POIs...dop
-                            if ~isfield(dop.sum.(dop.tmp.sum).(dop.tmp.ch),dop.tmp.prd_spec)
-                                dop.tmp.fields = fields(dop.sum.(dop.tmp.sum).(dop.tmp.ch));
-                                if numel(dop.tmp.fields) == 1
-                                    dop.tmp.prd_spec = dop.tmp.fields{1};
-                                else
-                                    dop.tmp.prd_spec = dop.tmp.fields{jjj};
-                                    msg{end+1} = sprintf(['Multiple period of interests may be problematic ',...
-                                        'when saving variables. Suggest just using a single period of interest.\n',...
-                                        '(%s: %s)'],...
-                                        mfilename,dop.tmp.file);
-                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                                end
-                            end
-                            for iiii = 1 : numel(dop.tmp.epochs)
-                                dop.tmp.eps = dop.tmp.epochs{iiii};
-                                
-                                for iiiii = 1 : numel(dop.tmp.variables)
-                                    dop.tmp.var = dop.tmp.variables{iiiii};
-                                    switch dop.tmp.summary{i}
-                                        case 'overall'
-                                            k = k + 1;
-                                            if k == numel(dop.save.labels)
-                                                dop.tmp.delims{3} = 2; % new line
-                                            end
-                                            % overall data
-                                            dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).(dop.tmp.var);
-                                            fprintf(dop.save.fid,...
-                                                [dopVarType(dop.tmp.value),...
-                                                dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
-                                            
-                                        case 'epoch'
-                                            if ~dop.tmp.epoch_saved && ~strcmp(dop.tmp.var,'peak_n')
-                                                % n is redundant when it's just the one epoch, so exclude it
-                                                
-                                                if ~strcmp(dop.tmp.eps,'all') && iiii == 1
-                                                    % only loop through the
-                                                    % epochs (e.g.,
-                                                    % 'overall','odd','even')
-                                                    % once: 01-Dec-2015 NAB
-                                                    dop.tmp.epoch_eps = 'all';
-                                                
-                                                for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
+                otherwise
+                    for i = 1 : numel(dop.tmp.summary)
+                        dop.tmp.sum = dop.tmp.summary{i};
+                        
+                        for ii = 1 : numel(dop.tmp.channels)
+                            dop.tmp.ch = dop.tmp.channels{ii};
+                            
+                            for iii = 1 : numel(dop.tmp.periods)
+                                dop.tmp.prd = dop.tmp.periods{iii};
+                                dop.tmp.prd_spec = dop.tmp.prd;
+                                for jjj = 1 : size(dop.tmp.(dop.tmp.prd),1)
+                                    dop.tmp.prd_spec = dopSaveSpecificLabel(dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
+                                    % 05-Jan-2016 NAB with the 'poi_select' (manual
+                                    % poi selection) this can't always find what
+                                    % it's looking for so need to 'search' for it.
+                                    % Will be difficult when there are multiple
+                                    % POIs...dop
+                                    if ~isfield(dop.sum.(dop.tmp.sum).(dop.tmp.ch),dop.tmp.prd_spec)
+                                        dop.tmp.fields = fields(dop.sum.(dop.tmp.sum).(dop.tmp.ch));
+                                        if numel(dop.tmp.fields) == 1
+                                            dop.tmp.prd_spec = dop.tmp.fields{1};
+                                        else
+                                            dop.tmp.prd_spec = dop.tmp.fields{jjj};
+                                            msg{end+1} = sprintf(['Multiple period of interests may be problematic ',...
+                                                'when saving variables. Suggest just using a single period of interest.\n',...
+                                                '(%s: %s)'],...
+                                                mfilename,dop.tmp.file);
+                                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                        end
+                                    end
+                                    for iiii = 1 : numel(dop.tmp.epochs)
+                                        dop.tmp.eps = dop.tmp.epochs{iiii};
+                                        
+                                        for iiiii = 1 : numel(dop.tmp.variables)
+                                            dop.tmp.var = dop.tmp.variables{iiiii};
+                                            switch dop.tmp.summary{i}
+                                                case 'overall'
                                                     k = k + 1;
                                                     if k == numel(dop.save.labels)
                                                         dop.tmp.delims{3} = 2; % new line
-                                                        dop.tmp.epoch_saved = 1;
                                                     end
-                                                    dop.tmp.value = 999;
-                                                    if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= j %dop.tmp.num_events
-                                                        dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)(j);
-                                                    end
+                                                    % overall data
+                                                    dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).(dop.tmp.var);
                                                     fprintf(dop.save.fid,...
                                                         [dopVarType(dop.tmp.value),...
                                                         dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
-                                                end
-                                                end
+                                                    
+                                                case 'epoch'
+                                                    if ~dop.tmp.epoch_saved && ~strcmp(dop.tmp.var,'peak_n')
+                                                        % n is redundant when it's just the one epoch, so exclude it
+                                                        
+                                                        if ~strcmp(dop.tmp.eps,'all') && iiii == 1
+                                                            % only loop through the
+                                                            % epochs (e.g.,
+                                                            % 'overall','odd','even')
+                                                            % once: 01-Dec-2015 NAB
+                                                            dop.tmp.epoch_eps = 'all';
+                                                            
+                                                            for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
+                                                                k = k + 1;
+                                                                if k == numel(dop.save.labels)
+                                                                    dop.tmp.delims{3} = 2; % new line
+                                                                    dop.tmp.epoch_saved = 1;
+                                                                end
+                                                                dop.tmp.value = 999;
+                                                                if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= j %dop.tmp.num_events
+                                                                    dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)(j);
+                                                                end
+                                                                fprintf(dop.save.fid,...
+                                                                    [dopVarType(dop.tmp.value),...
+                                                                    dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                                            end
+                                                        end
+                                                    end
                                             end
+                                        end
                                     end
                                 end
                             end
                         end
                     end
-                end
-            end
             end
             fclose(dop.save.fid);
         end
