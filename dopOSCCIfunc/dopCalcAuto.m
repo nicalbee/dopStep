@@ -35,6 +35,7 @@ function [dop,okay,msg] = dopCalcAuto(dop_input,varargin)
 %   here over-rides that. Clues about this below if I ever need them.
 %   Please email me if you're unsure!
 % 09-Aug-2016 NAB added 'ttest' input to flow through into dopCalcSummary
+% 17-Feb-2017 NAB working in behavioural epoch selection
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -73,40 +74,40 @@ try
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
         if okay
-        if isfield(dop.tmp,'data') && size(dop.tmp.data,3) == 1
-            okay = 0;
-            msg{end+1} = sprintf(['''dop.tmp.data'' doesn''t looked like' ...
-                ' it''s been epoched yet. Do that first\n(%s: %s)'],...
-                mfilename,dop.tmp.file);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-            
-        elseif isfield(dop.tmp,'data') && isempty(dop.tmp.data)
-            okay = 0;
-            msg{end+1} = sprintf('''dop.tmp.data'' is empty\n(%s: %s)',...
-                mfilename,dop.tmp.file);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        elseif ~isfield(dop.tmp,'data')
-            okay = 0;
-            msg{end+1} = sprintf(['''dop.tmp.data'' doesn''t exist:'...
-                ' i.e., no data inputted\n(%s: %s)'],...
-                mfilename,dop.tmp.file);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-        end
+            if isfield(dop.tmp,'data') && size(dop.tmp.data,3) == 1
+                okay = 0;
+                msg{end+1} = sprintf(['''dop.tmp.data'' doesn''t looked like' ...
+                    ' it''s been epoched yet. Do that first\n(%s: %s)'],...
+                    mfilename,dop.tmp.file);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                
+            elseif isfield(dop.tmp,'data') && isempty(dop.tmp.data)
+                okay = 0;
+                msg{end+1} = sprintf('''dop.tmp.data'' is empty\n(%s: %s)',...
+                    mfilename,dop.tmp.file);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            elseif ~isfield(dop.tmp,'data')
+                okay = 0;
+                msg{end+1} = sprintf(['''dop.tmp.data'' doesn''t exist:'...
+                    ' i.e., no data inputted\n(%s: %s)'],...
+                    mfilename,dop.tmp.file);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
         end
         %% tmp check
-%         if okay && isfield(dop,mfilename)
-%             make sure the dop.tmp variable is correct: with multiple
-%             functions within functions this is required.
-%             msg{end+1} = ['Multiple functions running with setGetInputs,'...
-%                 ' updating ''dop.tmp'' variable'];
-%             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-%             dop.tmp = dop.(mfilename);
-%             dop = rmfield(dop,mfilename);
-%             current data set may have been updated also...
-%             dop.tmp.data = dop.data.use;
-%         end
-% 21-Jan-2016 NAB added dopMultiFuncTmpCheck instead of above code
-%         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+        %         if okay && isfield(dop,mfilename)
+        %             make sure the dop.tmp variable is correct: with multiple
+        %             functions within functions this is required.
+        %             msg{end+1} = ['Multiple functions running with setGetInputs,'...
+        %                 ' updating ''dop.tmp'' variable'];
+        %             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+        %             dop.tmp = dop.(mfilename);
+        %             dop = rmfield(dop,mfilename);
+        %             current data set may have been updated also...
+        %             dop.tmp.data = dop.data.use;
+        %         end
+        % 21-Jan-2016 NAB added dopMultiFuncTmpCheck instead of above code
+        %         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         % don't think that it's needed here... 03-Aug-2016
         %% clear previous data
         if okay && isfield(dop,'sum') && isfield(dop.tmp,'clear') && dop.tmp.clear
@@ -119,7 +120,7 @@ try
         if okay && dop.tmp.poi_select
             [dop,okay,msg] = dopManualPOI(dop,okay,msg,...
                 'poi_select',dop.tmp.poi_select,...
-                'poi_fullfile',dop.tmp.poi_fullfile, ... 
+                'poi_fullfile',dop.tmp.poi_fullfile, ...
                 'poi_dir',dop.tmp.poi_dir,...
                 'poi_file',dop.tmp.poi_file);
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
@@ -147,128 +148,132 @@ try
                         dop.tmp.prd_spec = dop.tmp.prd;
                         for jjj = 1 : size(dop.tmp.(dop.tmp.prd),1)
                             dop.tmp.prd_spec = dopSaveSpecificLabel(dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
-%                             dop.tmp.prd_spec = sprintf('%s%ito%i',dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
-%                             dop.tmp.prd_spec = strrep(dop.tmp.prd_spec,'-','n');
-                        for iiii = 1 : numel(dop.tmp.epochs)
-                            dop.tmp.eps = dop.tmp.epochs{iiii};
-                            if strcmp(dop.tmp.sum,'epoch')
-                                dop.tmp.eps = 'all';
-                            end
-                            
-                            msg{end+1} = sprintf([...
-                                'Summary = ''%s'': Channel = ''%s'': '...
-                                'Period =  ''%s'': Epochs = ''%s'''],...
-                                dop.tmp.summary{i},...
-                                dop.tmp.channels{ii},dop.tmp.periods{iii},...
-                                dop.tmp.epochs{iiii});
-                            % don't want this popping up as warn dialog
-                            dopMessage(msg,dop.tmp.msg,1);%,sokay,dop.tmp.wait_warn);
-                            
-                            % 'all'
-                            dop.tmp.ep_select = ones(1,size(dop.tmp.data,2));
-                            switch dop.tmp.eps
-                                case 'screen'
-                                    dop.tmp.ep_select = dop.epoch.screen;
-                                case {'odd','even'} % split half
-                                    dop.tmp.epoch_n = 1 : size(dop.tmp.data,2); % number of epochs
-                                    % odd + regular screen
-                                    dop.tmp.ep_odd = and(dop.epoch.screen,mod(dop.tmp.epoch_n,2));
-                                    dop.tmp.ep_even = and(dop.epoch.screen,~mod(dop.tmp.epoch_n,2));
-                                    
-                                    if dop.tmp.half_balance && sum(dop.tmp.ep_odd) ~= sum(dop.tmp.ep_even)
-                                        dop.tmp.half_dif = sum(dop.tmp.ep_odd) - sum(dop.tmp.ep_even);
-                                        if dop.tmp.half_dif < 0 % more in even
-                                            dop.tmp.ep_even(find(dop.tmp.ep_even == 1,...
-                                                abs(dop.tmp.half_dif),'first')) = 0;
-                                            % %                         msg{end+1} = sprintf('Balancing for odd-even epoch numbers\n\t'
-                                        else % more in odd
-                                            dop.tmp.ep_odd(find(dop.tmp.ep_odd == 1,...
-                                                abs(dop.tmp.half_dif),'first')) = 0;
+                            %                             dop.tmp.prd_spec = sprintf('%s%ito%i',dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
+                            %                             dop.tmp.prd_spec = strrep(dop.tmp.prd_spec,'-','n');
+                            for iiii = 1 : numel(dop.tmp.epochs)
+                                dop.tmp.eps = dop.tmp.epochs{iiii};
+                                if strcmp(dop.tmp.sum,'epoch')
+                                    dop.tmp.eps = 'all';
+                                end
+                                
+                                msg{end+1} = sprintf([...
+                                    'Summary = ''%s'': Channel = ''%s'': '...
+                                    'Period =  ''%s'': Epochs = ''%s'''],...
+                                    dop.tmp.summary{i},...
+                                    dop.tmp.channels{ii},dop.tmp.periods{iii},...
+                                    dop.tmp.epochs{iiii});
+                                % don't want this popping up as warn dialog
+                                dopMessage(msg,dop.tmp.msg,1);%,sokay,dop.tmp.wait_warn);
+                                
+                                % 'all'
+                                dop.tmp.ep_select = ones(1,size(dop.tmp.data,2));
+                                switch dop.tmp.eps
+                                    case 'screen'
+                                        dop.tmp.ep_select = dop.epoch.screen;
+                                    case {'odd','even'} % split half
+                                        dop.tmp.epoch_n = 1 : size(dop.tmp.data,2); % number of epochs
+                                        % odd + regular screen
+                                        dop.tmp.ep_odd = and(dop.epoch.screen,mod(dop.tmp.epoch_n,2));
+                                        dop.tmp.ep_even = and(dop.epoch.screen,~mod(dop.tmp.epoch_n,2));
+                                        
+                                        if dop.tmp.half_balance && sum(dop.tmp.ep_odd) ~= sum(dop.tmp.ep_even)
+                                            dop.tmp.half_dif = sum(dop.tmp.ep_odd) - sum(dop.tmp.ep_even);
+                                            if dop.tmp.half_dif < 0 % more in even
+                                                dop.tmp.ep_even(find(dop.tmp.ep_even == 1,...
+                                                    abs(dop.tmp.half_dif),'first')) = 0;
+                                                % %                         msg{end+1} = sprintf('Balancing for odd-even epoch numbers\n\t'
+                                            else % more in odd
+                                                dop.tmp.ep_odd(find(dop.tmp.ep_odd == 1,...
+                                                    abs(dop.tmp.half_dif),'first')) = 0;
+                                            end
                                         end
-                                    end
-                                    dop.tmp.ep_select = dop.tmp.ep_odd;
-                                    if strcmp(dop.tmp.eps,'even')
-                                        dop.tmp.ep_select = dop.tmp.ep_even;
-                                    end
-                                case 'all'
-                                otherwise
-                                    msg{end+1} = sprintf([...
-                                        'Epochs selection ''%s'' not recognised.'...
-                                        ' Default will be used'],dop.tmp.eps);
-                                    dop.tmp.eps = 'screen';
-                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                        dop.tmp.ep_select = dop.tmp.ep_odd;
+                                        if strcmp(dop.tmp.eps,'even')
+                                            dop.tmp.ep_select = dop.tmp.ep_even;
+                                        end
+                                    case 'all'
                                     
+                                    otherwise
+                                        if  strcmp(dop.tmp.eps(1:3),'beh') % assume we'll have beh# for the number of conditions
+                                            % now need to select
+                                            % need to be setup ealier
+                                        else
+                                            msg{end+1} = sprintf([...
+                                                'Epochs selection ''%s'' not recognised.'...
+                                                ' Default will be used'],dop.tmp.eps);
+                                            dop.tmp.eps = 'screen';
+                                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                        end
+                                end
+                                dop.tmp.ep_select = logical(dop.tmp.ep_select);
+                                msg{end+1} = sprintf('Epoch select (%s): %u epochs',...
+                                    dop.tmp.eps, sum(dop.tmp.ep_select));
+                                if dop.tmp.comment; fprintf('\t%s\n\n',msg{end}); end
+                                % make sure it's logical
+                                
+                                
+                                % create a bunch of empty arrays
+                                %         for i = 1 : numel(dop.calc.list)
+                                %             dop.epoch.(dop.calc.list{i}) = zeros(1,size(dop.tmp.data,2));
+                                %         end
+                                % specify the 'Difference' channel (# 3 of the z dimension)
+                                dop.tmp.channel_filt = strcmp(dop.data.epoch_labels,dop.tmp.ch);
+                                %                             dop.tmp.prd_filt = (-dop.tmp.epoch(1) + dop.tmp.(dop.tmp.prd))/(1/dop.tmp.sample_rate);
+                                %                             if dop.tmp.prd_filt(1) < 1
+                                %                                 dop.tmp.prd_filt = dop.tmp.prd_filt+1;
+                                %                             end
+                                %        for i = 1 : size(dop.tmp.data,2) % number of epochs
+                                %            % define the epoch data to examine
+                                %            dop.tmp.ep = squeeze(dop.tmp.data(:,i,dop.tmp.channel_filt));
+                                %            dop.tmp.dat = dop.tmp.ep(dop.tmp.prd_filt(1):dop.tmp.prd_filt(2));
+                                
+                                % peak_n = number of epochs
+                                switch dop.tmp.sum
+                                    case 'overall'
+                                        %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
+                                        %                                         size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2);
+                                        dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data = squeeze(...
+                                            dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
+                                        %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data_epochs = squeeze(...
+                                        %                                         dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
+                                    case 'epoch'
+                                        %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
+                                        %                                         ones(1,size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2));
+                                        dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data = squeeze(...
+                                            dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
+                                end
+                                
+                                %% > summary statistics
+                                [dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps),...
+                                    okay,msg_sum] = dopCalcSummary(...
+                                    dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data,...
+                                    'summary',dop.tmp.sum,... % 'overall' or epoch'
+                                    'period',dop.tmp.prd,...
+                                    'epoch',dop.tmp.epoch,...
+                                    'act_window',dop.tmp.act_window,...
+                                    'sample_rate',dop.tmp.sample_rate,...
+                                    'poi',dop.tmp.poi(jjj,:),...
+                                    'baseline',dop.tmp.baseline,...
+                                    'file',dop.tmp.file,...
+                                    'ttest',dop.tmp.ttest,...
+                                    'poi_select',dop.tmp.poi_select);% manual selection of poi
+                                msg = [msg,msg_sum];
+                                % possibly don't need this here... 1-Aug-2016
+                                %                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                                if strcmp(dop.tmp.sum,'epoch')
+                                    % only need to do this once - overall vs odd
+                                    % vs even makes no difference, defaults to
+                                    % selection of all epochs so single
+                                    % calculation will do it
+                                    %                                 keyboard;
+                                    break
+                                end
                             end
-                            dop.tmp.ep_select = logical(dop.tmp.ep_select);
-                            msg{end+1} = sprintf('Epoch select (%s): %u epochs',...
-                                dop.tmp.eps, sum(dop.tmp.ep_select));
-                            if dop.tmp.comment; fprintf('\t%s\n\n',msg{end}); end
-                            % make sure it's logical
-                            
-                            
-                            % create a bunch of empty arrays
-                            %         for i = 1 : numel(dop.calc.list)
-                            %             dop.epoch.(dop.calc.list{i}) = zeros(1,size(dop.tmp.data,2));
-                            %         end
-                            % specify the 'Difference' channel (# 3 of the z dimension)
-                            dop.tmp.channel_filt = strcmp(dop.data.epoch_labels,dop.tmp.ch);
-                            %                             dop.tmp.prd_filt = (-dop.tmp.epoch(1) + dop.tmp.(dop.tmp.prd))/(1/dop.tmp.sample_rate);
-                            %                             if dop.tmp.prd_filt(1) < 1
-                            %                                 dop.tmp.prd_filt = dop.tmp.prd_filt+1;
-                            %                             end
-                            %        for i = 1 : size(dop.tmp.data,2) % number of epochs
-                            %            % define the epoch data to examine
-                            %            dop.tmp.ep = squeeze(dop.tmp.data(:,i,dop.tmp.channel_filt));
-                            %            dop.tmp.dat = dop.tmp.ep(dop.tmp.prd_filt(1):dop.tmp.prd_filt(2));
-                            
-                            % peak_n = number of epochs
-                            switch dop.tmp.sum
-                                case 'overall'
-                                    %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
-                                    %                                         size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2);
-                                    dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data = squeeze(...
-                                        dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
-                                    %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data_epochs = squeeze(...
-                                    %                                         dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
-                                    
-                                case 'epoch'
-                                    %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
-                                    %                                         ones(1,size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2));
-                                    dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data = squeeze(...
-                                        dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
-                            end
-
-                            %% > summary statistics
-                            [dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps),...
-                                okay,msg_sum] = dopCalcSummary(...
-                                dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data,...
-                                'summary',dop.tmp.sum,... % 'overall' or epoch'
-                                'period',dop.tmp.prd,...
-                                'epoch',dop.tmp.epoch,...
-                                'act_window',dop.tmp.act_window,...
-                                'sample_rate',dop.tmp.sample_rate,...
-                                'poi',dop.tmp.poi(jjj,:),...
-                                'baseline',dop.tmp.baseline,...
-                                'file',dop.tmp.file,...
-                                'ttest',dop.tmp.ttest,...
-                                'poi_select',dop.tmp.poi_select);% manual selection of poi
-                            msg = [msg,msg_sum];
-                            % possibly don't need this here... 1-Aug-2016
-%                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-                            if strcmp(dop.tmp.sum,'epoch')
-                                % only need to do this once - overall vs odd
-                                % vs even makes no difference, defaults to
-                                % selection of all epochs so single
-                                % calculation will do it
-%                                 keyboard;
-                                break
-                            end
-                        end
                         end
                     end
-%                     if or(strcmp(dop.tmp.eps,'screen'),strcmp(dop.tmp.eps,'all')) && strcmp(dop.tmp.sum,'epoch')
-%                         break; % don't need to keep doing this loop
-%                     end
+                    %                     if or(strcmp(dop.tmp.eps,'screen'),strcmp(dop.tmp.eps,'all')) && strcmp(dop.tmp.sum,'epoch')
+                    %                         break; % don't need to keep doing this loop
+                    %                     end
                 end
             end
         end

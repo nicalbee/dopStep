@@ -96,6 +96,9 @@ function [dop,okay,msg] = dopImport(dop_input,varargin)
 %   09-Sep-2014 NAB updated documentation
 %   03-Nov-2015 NAB updated to keep file_info within dop.data structure
 %   18-Aug-2016 NAB - added a remove of the dop.use structure - refresh it
+%   17-Feb-2017 NAB issue with dop.step variable resetting so wans't
+%       downsampling. Now is but other steps aren't being recorded yet - I
+%       think this was mostly setup for the gui (dopStep)... messy :(
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -219,6 +222,11 @@ try
             end
             %% ready for channel extraction
             % reset this variable when data is imported
+            if isfield(dop,'step')
+                % actually, need to reset everything, this is a bit
+                % messy... NAB 17-Feb-2017
+                dop = rmfield(dop,'step');
+            end
             dop.step.dopChannelExtract = 0;
         end
         
