@@ -106,6 +106,7 @@ function [dop,okay,msg] = dopBehCreate(dop_input,varargin)
 %
 % Created: 17-Feb-2017 (from dopEpochScreenManualCreate.m 14-Sep-2014 NAB)
 % Edits:
+% 07-Marh-2017 updated/finished
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -128,7 +129,7 @@ try
             'msg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
             );
-        inputs.defaults.column_labels = {'file_name','exclude_string'};
+        inputs.defaults.column_labels = {'file_name','beh1'};
         inputs.required = ...
             {'file_list'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
@@ -185,7 +186,7 @@ try
             end
             fclose(dop.tmp.fid);
             %% report
-            msg{end+1} = sprintf(['Manual screening template saved to:'...
+            msg{end+1} = sprintf(['Behavioural template saved to:'...
                 '\n\tFile: %s\n\tDir: %s\n\tFullfile: %s'],...
                 dop.tmp.beh_file,dop.tmp.beh_dir,dop.tmp.beh_fullfile);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);

@@ -106,7 +106,7 @@ function [dop,okay,msg] = dopBehRead(dop_input,varargin)
 %
 % Created: 17-Feb-2017 (from dopEpochScreenManualRead.m 15-Sep-2014 NAB)
 % Edits:
-% 07-Marh-2017 updated/finished
+
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -116,7 +116,7 @@ try
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %% inputs
         inputs.turnOn = {'overwrite'};
-        inputs.turnOff = {'update_save'};
+                inputs.turnOff = {'update_save'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'beh_file',[], ... %
@@ -204,42 +204,35 @@ try
                     
                     
                     % from manual screening function
-                    %                     dop.tmp.beh_exclude = table2cell(dop.tmp.import_data(:,2));
-                    %                     % check for ~ or [] type of entries
-                    %                     for i = 1 : numel(dop.tmp.beh_exclude)
-                    %                         dop.tmp.beh_exclude{i} = checkManualString(dop.tmp.beh_exclude{i});
-                    %                     end
+%                     dop.tmp.beh_exclude = table2cell(dop.tmp.import_data(:,2));
+%                     % check for ~ or [] type of entries
+%                     for i = 1 : numel(dop.tmp.beh_exclude)
+%                         dop.tmp.beh_exclude{i} = checkManualString(dop.tmp.beh_exclude{i});
+%                     end
                 else
                     % check this later
-                    %                     dop.tmp.beh_list = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
-                    %                     dop.tmp.beh_exclude = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
-                    %                     for i = 2 : size(dop.tmp.import_data,1)
-                    %                         dop.tmp.row = textscan(dop.tmp.import_data{i},'%s%s','delimiter',dop.tmp.delim);
-                    %                         dop.tmp.beh_list{i-1} = char(dop.tmp.row{1});
-                    %                         dop.tmp.beh_exclude{i-1} = char(dop.tmp.row{2});
-                    %
-                    %
-                    %                     end
+%                     dop.tmp.beh_list = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
+%                     dop.tmp.beh_exclude = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
+%                     for i = 2 : size(dop.tmp.import_data,1)
+%                         dop.tmp.row = textscan(dop.tmp.import_data{i},'%s%s','delimiter',dop.tmp.delim);
+%                         dop.tmp.beh_list{i-1} = char(dop.tmp.row{1});
+%                         dop.tmp.beh_exclude{i-1} = char(dop.tmp.row{2});
+%                         
+%                         
+%                     end
                     
                     
                 end
                 dop.epoch.beh_list = dop.tmp.beh_list;
-                dop.epoch.beh_select = dop.tmp.beh_data;
-                if dop.tmp.update_save
-                    dop.save.epochs(end:end+size(dop.epoch.beh_select,2)-1) = dop.epoch.beh_select.Properties.VariableNames;
-                    msg{end+1} = sprintf(['dop.save.epochs ',...
-                        'variable update for behavioural epoch ',...
-                        'selection based on\n\t%s (%s)\n\t',...
-                        'Now includes: ',dopVarType(dop.save.epochs)],...
-                        dop.tmp.beh_file,dop.tmp.beh_dir,dop.save.epochs{:});
-                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                    
-                end
+                    dop.epoch.beh_select = dop.tmp.beh_data;
+                    if dop.tmp.update_save
+                        dop.save.epochs(end-1:end+size(dop.epoch.beh_select,2)) = dop.epoch.beh_select.Properties.VariableNames;
+                    end
             else
                 okay = 0;
-                msg{end+1} = sprintf('Behavioural epoch selection file is empty\n\t(%s: %s)',...
+                msg{end+1} = sprintf('Manual screen file is empty\n\t(%s: %s)',...
                     mfilename,dop.tmp.file);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);                
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
         end
         switch dopInputCheck(dop_input)

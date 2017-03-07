@@ -227,6 +227,8 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   Just didn't want to have to setup everything around that (dir, extras,
 %   labels etc.) in another function.
 % 24-Nov-2016 left out an otherwise after the cutom bit
+% 07-Marh-2017 updated to check for abbreviation - especially for 'beh'
+%   epoch selection
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -335,11 +337,23 @@ try
                     if numel(dop.tmp.summary) == 1 && strcmp(dop.tmp.summary,'epoch')
                         dop.tmp.pois = fields(dop.sum.epoch.(dop.tmp.channels{1}));
                         for i = 1 : numel(dop.tmp.summary)
-                            dop.tmp.sum = dop.save.abb.(dop.tmp.summary{i});
+                            if ~isfield(dop.save.abb,dop.tmp.summary{i})
+                                dop.tmp.sum = dop.tmp.summary{i};
+                            else
+                                dop.tmp.sum = dop.save.abb.(dop.tmp.summary{i});
+                            end
                             for ii = 1 : numel(dop.tmp.channels)
-                                dop.tmp.ch = dop.save.abb.(dop.tmp.channels{ii});
+                                if ~isfield(dop.save.abb,dop.tmp.channels{ii})
+                                    dop.tmp.ch = dop.tmp.channels{ii};
+                                else
+                                    dop.tmp.ch = dop.save.abb.(dop.tmp.channels{ii});
+                                end
                                 for iii = 1 : numel(dop.tmp.variables)
-                                    dop.tmp.var = dop.save.abb.(dop.tmp.variables{iii});
+                                    if ~isfield(dop.save.abb,dop.tmp.variables{iii})
+                                        dop.tmp.var = dop.tmp.variables{iii};
+                                    else
+                                        dop.tmp.var = dop.save.abb.(dop.tmp.variables{iii});
+                                    end
                                     for j = 1 : dop.tmp.num_events
                                         for iiii = 1 : numel(dop.tmp.pois)
                                             dop.tmp.prd_spec = dop.tmp.pois{iiii};
@@ -356,23 +370,40 @@ try
                 otherwise
                     
                     for i = 1 : numel(dop.tmp.summary)
-                        dop.tmp.sum = dop.save.abb.(dop.tmp.summary{i});
-                        
+                        if ~isfield(dop.save.abb,dop.tmp.summary{i})
+                            dop.tmp.sum = dop.tmp.summary{i};
+                        else
+                            dop.tmp.sum = dop.save.abb.(dop.tmp.summary{i});
+                        end
                         for ii = 1 : numel(dop.tmp.channels)
-                            dop.tmp.ch = dop.save.abb.(dop.tmp.channels{ii});
-                            
+                            if ~isfield(dop.save.abb,dop.tmp.channels{ii})
+                                dop.tmp.ch = dop.tmp.channels{ii};
+                            else
+                                dop.tmp.ch = dop.save.abb.(dop.tmp.channels{ii});
+                            end
                             for iii = 1 : numel(dop.tmp.periods)
-                                dop.tmp.prd = dop.save.abb.(dop.tmp.periods{iii});
+                                if ~isfield(dop.save.abb,dop.tmp.periods{iii})
+                                    dop.tmp.prd = dop.tmp.periods{iii};
+                                else
+                                    dop.tmp.prd = dop.save.abb.(dop.tmp.periods{iii});
+                                end
                                 dop.tmp.prd_spec = dop.tmp.prd;
                                 for jjj = 1 : size(dop.tmp.(dop.tmp.prd),1)
                                     if size(dop.tmp.(dop.tmp.prd),1) > 1 || dop.tmp.label_specs
                                         dop.tmp.prd_spec = dopSaveSpecificLabel(dop.tmp.prd,dop.tmp.(dop.tmp.prd)(jjj,:));
                                     end
                                     for iiii = 1 : numel(dop.tmp.epochs)
-                                        dop.tmp.eps = dop.save.abb.(dop.tmp.epochs{iiii});
-                                        
+                                        if ~isfield(dop.save.abb,dop.tmp.epochs{iiii})
+                                            dop.tmp.eps = dop.tmp.epochs{iiii};
+                                        else
+                                            dop.tmp.eps = dop.save.abb.(dop.tmp.epochs{iiii});
+                                        end
                                         for iiiii = 1 : numel(dop.tmp.variables)
-                                            dop.tmp.var = dop.save.abb.(dop.tmp.variables{iiiii});
+                                            if ~isfield(dop.save.abb,dop.tmp.variables{iiiii})
+                                                dop.tmp.var = dop.tmp.variables{iiiii};
+                                            else
+                                                dop.tmp.var = dop.save.abb.(dop.tmp.variables{iiiii});
+                                            end
                                             switch dop.tmp.summary{i}
                                                 case 'overall'
                                                     % overall data
@@ -479,7 +510,11 @@ try
                             for ii = 1 : numel(dop.tmp.channels)
                                 dop.tmp.ch = dop.tmp.channels{ii};
                                 for iii = 1 : numel(dop.tmp.variables)
-                                    dop.tmp.var = dop.save.abb.(dop.tmp.variables{iii});
+                                    if ~isfield(dop.save.abb,dop.tmp.variables{iii})
+                                        dop.tmp.var = dop.tmp.variables{iii};
+                                    else
+                                        dop.tmp.var = dop.save.abb.(dop.tmp.variables{iii});
+                                    end
                                     for j = 1 : dop.tmp.num_events
                                         for iiii = 1 : numel(dop.tmp.pois)
                                             dop.tmp.prd_spec = dop.tmp.pois{iiii};
