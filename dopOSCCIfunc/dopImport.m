@@ -225,7 +225,9 @@ try
             if isfield(dop,'step')
                 % actually, need to reset everything, this is a bit
                 % messy... NAB 17-Feb-2017
-                dop = rmfield(dop,'step');
+                %                 dop = rmfield(dop,'step');
+                % yeah - can't actually do this - 13-Mar-2017 as we loose important info
+                % for the gui think about it...
             end
             dop.step.dopChannelExtract = 0;
         end
