@@ -106,7 +106,8 @@ function [dop,okay,msg] = dopBehRead(dop_input,varargin)
 %
 % Created: 17-Feb-2017 (from dopEpochScreenManualRead.m 15-Sep-2014 NAB)
 % Edits:
-% 07-Marh-2017 updated/finished
+% 07-Mar-2017 updated/finished
+% 14-Mar-2017 updated for [] cell input file
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -200,6 +201,11 @@ try
                         dop.tmp.conds = 1 : size(dop.tmp.beh_data,2);
                         % might need to make sure the column labels are
                         % correct
+                        dop.tmp.var_nums = 1:numel(dop.tmp.conds);
+                        dop.tmp.var_names = cellstr([repmat('beh',numel(dop.tmp.conds),1),num2str(dop.tmp.var_nums')]);
+                        dop.tmp.beh_data = cell2table(dop.tmp.beh_data,...
+                            'VariableNames',dop.tmp.var_names); %
+                        dop.tmp.cond_names = dop.tmp.import_data.Properties.VariableNames(2:end);
                     end
                     
                     
@@ -225,6 +231,7 @@ try
                 end
                 dop.epoch.beh_list = dop.tmp.beh_list;
                 dop.epoch.beh_select = dop.tmp.beh_data;
+                dop.epoch.beh_names = dop.epoch.beh_select.Properties.VariableNames;
                 if dop.tmp.update_save
                     dop.save.epochs(end:end+size(dop.epoch.beh_select,2)-1) = dop.epoch.beh_select.Properties.VariableNames;
                     msg{end+1} = sprintf(['dop.save.epochs ',...
@@ -263,9 +270,9 @@ number_out = []; % empty
 if iscell(string_in)
     string_in = string_in{1};
 end
-if ~isempty(strfind(string_in,'['));
+if ~isempty(strfind(string_in,'['))
     number_out = eval(char(string_in));
-elseif ~isempty(sum(strfind(string_in,'~')));
+elseif ~isempty(sum(strfind(string_in,'~')))
     dop.tmp.tilda = strfind(string_in,'~');
     dop.tmp.epochs = zeros(1,numel(dop.tmp.tilda));
     dop.tmp.row2 = char(string_in);

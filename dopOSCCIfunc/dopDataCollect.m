@@ -26,6 +26,7 @@ function [dop,okay,msg] = dopDataCollect(dop_input,varargin)
 % 01-Sep-2014 NAB fixed collection when data variables aren't saved
 %   see dop.def.keep_data_steps
 % 04-Sep-2014 NAB msg & wait_warn updates
+% 14-Mar-2017 added a behavioural collection loop
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -109,6 +110,18 @@ try
                     dop.collect.(dop.tmp.type).n = 0;
                     dop.collect.(dop.tmp.type).files = [];
                     dop.collect.(dop.tmp.type).data = [];
+                    if sum(ismember(dop.save.epochs,'beh1'))
+                        dop.tmp.k_beh = 1;
+                        while 1
+                            dop.tmp.beh_num = ['beh',num2str(dop.tmp.k_beh)];
+                            if sum(ismember(dop.save.epochs,dop.tmp.beh_num))
+                                dop.collect.(dop.tmp.type).(dop.tmp.beh_num) = [];
+                            else
+                                break
+                            end
+                            dop.tmp.k_beh = dop.tmp.k_beh + 1;
+                        end
+                    end
                 end
                 % count the columns & collect file names/identifiers
                 dop.collect.(dop.tmp.type).n = dop.collect.(dop.tmp.type).n + 1;
@@ -142,6 +155,28 @@ try
 %                     for i = 1 : numel(dop.data.epoch_labels) % number of columns
                         dop.collect.(dop.tmp.type).data(:,end+1,:) = ...
                             mean(dop.tmp.data(:,dop.epoch.screen,:),2);
+                        
+                        % 14-Mar-2017 added a behavioural collection loop
+                        % needs to be converted to separate output files
+                        % as well as plotting
+                        if isfield(dop.collect.(dop.tmp.type),'beh1')
+                            dop.tmp.k_beh = 1;
+                        while 1
+                            dop.tmp.beh_num = ['beh',num2str(dop.tmp.k_beh)];
+                            if sum(ismember(dop.save.epochs,dop.tmp.beh_num))
+                                dop.tmp.filt.scrn = dop.epoch.screen;
+                                dop.tmp.beh_file = ismember(dop.epoch.beh_list,dop.def.file);
+                                dop.tmp.filt.beh = zeros(size(dop.tmp.filt.scrn));
+                                dop.tmp.filt.beh(eval(dop.epoch.beh_select.(dop.tmp.beh_num){dop.tmp.beh_file})) = 1;
+                                dop.tmp.filt.filt = dop.tmp.filt.scrn & dop.tmp.filt.beh;
+                                dop.collect.(dop.tmp.type).(dop.tmp.beh_num)(:,end+1,:) = ...
+                                    mean(dop.tmp.data(:,dop.tmp.filt.filt,:),2);
+                            else
+                                break
+                            end
+                            dop.tmp.k_beh = dop.tmp.k_beh + 1;
+                        end
+                        end
 %                     end
                 end
             else
