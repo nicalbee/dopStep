@@ -92,14 +92,15 @@ function [dop,okay,msg] = dopImport(dop_input,varargin)
 %
 % Created 22-Apr-2013
 % Edits:
-%   19-Aug-2014 NAB
-%   09-Sep-2014 NAB updated documentation
-%   03-Nov-2015 NAB updated to keep file_info within dop.data structure
-%   18-Aug-2016 NAB - added a remove of the dop.use structure - refresh it
-%   17-Feb-2017 NAB issue with dop.step variable resetting so wans't
-%       downsampling. Now is but other steps aren't being recorded yet - I
-%       think this was mostly setup for the gui (dopStep)... messy :(
-
+% 19-Aug-2014 NAB
+% 09-Sep-2014 NAB updated documentation
+% 03-Nov-2015 NAB updated to keep file_info within dop.data structure
+% 18-Aug-2016 NAB - added a remove of the dop.use structure - refresh it
+% 17-Feb-2017 NAB issue with dop.step variable resetting so wans't
+%   downsampling. Now is but other steps aren't being recorded yet - I
+%   think this was mostly setup for the gui (dopStep)... messy :(
+% 15-Mar-2017 NAB reset dop.step.dopDownsample - need to address this
+%   better
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -229,7 +230,10 @@ try
                 % yeah - can't actually do this - 13-Mar-2017 as we loose important info
                 % for the gui think about it...
             end
+            % might be away of just renewing the specifc function names -
+            % perhaps they begin with 'dop'... test with gui 15-Mar-2017
             dop.step.dopChannelExtract = 0;
+            dop.step.dopDownsample = 0;
         end
         
         dop.msg = msg;

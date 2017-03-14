@@ -11,6 +11,7 @@ function [plot_name,okay,msg] = dopPlotName(dop_input,varargin)
 %   when working with directly inputted data - ie not dop structure
 % 28-Sep-2016 NAB updating for multiple events... - just works with the
 %   first
+% 15-Mar-2017 NAB added behavioural info
 
 [dop,okay,msg] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -35,8 +36,13 @@ switch dopInputCheck(dop)
                 sprintf('%i events',dop.event(1).n));
         end
         if dop.tmp.collect
-            plot_name = sprintf('Collected (n = %u) %s data',...
-                dop.collect.(dop.tmp.type).n,dop.tmp.type);
+            if ~isempty(dop.tmp.beh)
+                plot_name = sprintf('Collected (n = %u) %s data: %s',...
+                    dop.collect.(dop.tmp.type).n,dop.tmp.type,dop.tmp.beh);
+            else
+                plot_name = sprintf('Collected (n = %u) %s data',...
+                    dop.collect.(dop.tmp.type).n,dop.tmp.type);
+            end
         end
     otherwise
         okay = 0;

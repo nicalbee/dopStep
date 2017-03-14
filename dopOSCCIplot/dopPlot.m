@@ -130,6 +130,8 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 % 28-Aug-2016 NAB added dopPlotSave
 % 30-Aug-2016 NAB scaling 'raw' plots a little for visibility
 % 30-Aug-2016 NAB various documentation added
+% 15-Mar-2017 NAB updated for beh1 etc. collect
+
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -159,6 +161,7 @@ try
             'plot_dir',[],... % location for plot image
             'plot_fullfile',[],...
             'plot_file_type','png',... 'fig'
+            'beh',[],...
             'position',[.1 .3 .8 .3] ... % figure position
             );
         inputs.defaults.ep_vis = {'left','right','difference'};
@@ -169,7 +172,20 @@ try
         %% which type
         if dop.tmp.plot
             if dop.tmp.collect
-                if ~isfield(dop,'collect') || ~isfield(dop.collect,dop.tmp.type)
+                if ~isempty(dop.tmp.beh)
+                    if ~isfield(dop,'collect') || ~isfield(dop.collect,dop.tmp.type) || ~isfield(dop.collect.(dop.tmp.type),dop.tmp.beh)
+                        okay = 0;
+                        msg{end+1} = sprintf(['Can''t find ''dop.collect'' ',...
+                            'or ''dop.collect.%s'' variable ',...
+                            'or ''dop.collect.%s.%s'' variable'],dop.tmp.type,dop.tmp.beh);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    else
+                        dop.tmp.data = dop.collect.(dop.tmp.type).(dop.tmp.beh);
+                        msg{end+1} = sprintf('Plotting collected data, type ''%s'' && behavioural ''%s'' set',...
+                            dop.tmp.type,dop.tmp.beh);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    end
+                elseif ~isfield(dop,'collect') || ~isfield(dop.collect,dop.tmp.type)
                     okay = 0;
                     msg{end+1} = sprintf('Can''t find ''dop.collect'' or ''dop.collect.%s variable',dop.tmp.type);
                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
@@ -337,7 +353,7 @@ try
                         
                         if dop.tmp.plot_wait; uiwait(dop.fig.h); end
                         %% Epoched Plot
-                    case {'epoch','base','epoch_norm'};
+                    case {'epoch','base','epoch_norm'}
                         
                         dopPlotComponents(dop.fig.h,'epoch','poi_select',dop.tmp.poi_select,'plot_save',dop.tmp.plot_save); % needs more work
                         dop.fig.ax = get(dop.fig.h,'CurrentAxes');
@@ -371,13 +387,13 @@ try
                             dop.plot.screen = logical(dop.plot.screen);
                             
                             % don't need to mean when it's just a single lot of data
-                            dop.tmp.data = dop.collect.(dop.tmp.type).data;
+%                             dop.tmp.data = dop.collect.(dop.tmp.type).data;
                             set(dop.fig.h,'UserData',dop); % update the tmp data - amongst other things
-                            dop.tmp.plot_data = squeeze(dop.collect.(dop.tmp.type).data(:,dop.plot.screen,:));
+                            dop.tmp.plot_data = squeeze(dop.tmp.data(:,dop.plot.screen,:));
                             if numel(dop.plot.screen) > 1
-                                dop.plot.screen = ~isnan(dop.collect.(dop.tmp.type).data(1,:,1));
+                                dop.plot.screen = ~isnan(dop.tmp.data(1,:,1));
                                 fprintf('Missing data for %i people of %s\n',sum(~dop.plot.screen),numel(dop.plot.screen));
-                                dop.tmp.plot_data = mean(squeeze(dop.collect.(dop.tmp.type).data(:,dop.plot.screen,:)),2);
+                                dop.tmp.plot_data = mean(squeeze(dop.tmp.data(:,dop.plot.screen,:)),2);
                             end
                         end
                         

@@ -134,6 +134,8 @@ try
                 if dop.collect.(dop.tmp.type).n > 1
                     if size(dop.collect.(dop.tmp.type).data,1) ~= ...
                             size(dop.tmp.data,1)
+                        dop.collect.(dop.tmp.type).files(end) = [];
+                        dop.collect.(dop.tmp.type).n = dop.collect.(dop.tmp.type).n - 1;
                         okay = 0;
                         msg{end+1} = sprintf(['Mismatch between data'...
                             ' rows: %u vs %u, can''t combine into a data matrix',...
@@ -171,6 +173,7 @@ try
                                 dop.tmp.filt.filt = dop.tmp.filt.scrn & dop.tmp.filt.beh;
                                 dop.collect.(dop.tmp.type).(dop.tmp.beh_num)(:,end+1,:) = ...
                                     mean(dop.tmp.data(:,dop.tmp.filt.filt,:),2);
+                                fprintf('\tBehavioural data: %s, n = %i epochs\n',dop.tmp.beh_num,sum(dop.tmp.filt.filt));
                             else
                                 break
                             end

@@ -129,6 +129,7 @@ function [dop,okay,msg] = dopSaveCollect(dop_input,varargin)
 %   dop.epoch.times if it exists.
 % 26-June-2015 NAB 'sprintf' mistype
 % 18-Aug-2016 NAB - fixed up check for 'collect' data in elseif
+% 15-Mar-2017 NAB updated for beh1 etc.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -156,9 +157,12 @@ try
         %             {'epoch'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
+        dop.tmp.data_fields = [];
         if isfield(dop,'collect')
             if isfield(dop.collect,dop.tmp.type) && isfield(dop.collect.(dop.tmp.type),'data')
                 dop.tmp.data = dop.collect.(dop.tmp.type).data;
+                % check for beh1 etc.
+                dop.tmp.data_fields = fields(dop.collect.(dop.tmp.type));
             elseif strcmp(dop.tmp.type,'use') && isfield(dop,'data') ...
                     && isfield(dop.data,'use_type') && ~isempty(dop.data.use_type) && ...
                     isfield(dop,'collect') && isfield(dop.collect,dop.data.use_type) && ...
@@ -166,6 +170,8 @@ try
                     ~isempty(dop.collect.(dop.data.use_type).data)
                 dop.tmp.type = dop.data.use_type;
                 dop.tmp.data = dop.collect.(dop.tmp.type).data;
+                % check for beh1 etc.
+                dop.tmp.data_fields = fields(dop.collect.(dop.tmp.type));
             elseif strcmp(dop.tmp.type,'use')
                 okay = 0;
                 msg{end+1} = sprintf(['Default data type (dop.data.use)'...
@@ -232,39 +238,68 @@ try
                     dop.tmp.collect_fullfile = fullfile(tmp_dir,dop.tmp.collect_file);
                 end
             end
+            % check for behavioural data
+             dop.tmp.collect_fullfiles{1} = dop.tmp.collect_fullfile;
+            if sum(ismember(dop.tmp.data_fields,'beh1'))
+                dop.tmp.beh_fields = dop.epoch.beh_select.Properties.VariableNames;
+%                 dop.tmp.collect_fullfiles{1} = dop.tmp.collect_fullfile;
+                [~,~,tmp_ext] = fileparts(dop.tmp.collect_fullfile);
+                for i = 1 : numel(dop.tmp.beh_fields)
+                    dop.tmp.collect_fullfiles{1+i} = strrep(...
+                        dop.tmp.collect_fullfile,...
+                        tmp_ext,['_',dop.tmp.beh_fields{i},tmp_ext]);
+                end
+            end
         end
         %% main code
         if okay
             %% > labels
             dop.tmp.delims = {dop.tmp.delim,'\n',1};
             % open the file for writing
-            dop.tmp.fid = fopen(dop.tmp.collect_fullfile,'w+');
-            fprintf(dop.tmp.fid,['%s',dop.tmp.delims{dop.tmp.delims{3}}],'time');
-            k = 0;
-            for i = 1 : size(dop.tmp.data,3)
-                dop.tmp.var = sprintf('var%u',i);
-                if isfield(dop,'data')  && isfield(dop.data,'epoch_labels') ...
-                        && size(dop.tmp.data,3) == numel(dop.data.epoch_labels)
-                    dop.tmp.var = dop.data.epoch_labels{i};
-                end
-                for j = 1 : numel(dop.collect.(dop.tmp.type).files)
-                    k = k + 1;
-                    if k == numel(dop.collect.(dop.tmp.type).files) * size(dop.tmp.data,3)
-                        dop.tmp.delims{3} = 2;
+            
+            for ii = 1 : numel(dop.tmp.collect_fullfiles)
+                dop.tmp.delims{3} = 1;
+                dop.tmp.fid = fopen(dop.tmp.collect_fullfiles{ii},'w+');
+                fprintf(dop.tmp.fid,['%s',dop.tmp.delims{dop.tmp.delims{3}}],'time');
+                k = 0;
+                for i = 1 : size(dop.tmp.data,3)
+                    dop.tmp.var = sprintf('var%u',i);
+                    if isfield(dop,'data')  && isfield(dop.data,'epoch_labels') ...
+                            && size(dop.tmp.data,3) == numel(dop.data.epoch_labels)
+                        dop.tmp.var = dop.data.epoch_labels{i};
                     end
-                    fprintf(dop.tmp.fid,['%s',dop.tmp.delims{dop.tmp.delims{3}}],...
-                        [dop.tmp.var,dop.collect.(dop.tmp.type).files{j}]);
+                    for j = 1 : numel(dop.collect.(dop.tmp.type).files)
+                        k = k + 1;
+                        if k == numel(dop.collect.(dop.tmp.type).files) * size(dop.tmp.data,3)
+                            dop.tmp.delims{3} = 2;
+                        end
+                        fprintf(dop.tmp.fid,['%s',dop.tmp.delims{dop.tmp.delims{3}}],...
+                            [dop.tmp.var,dop.collect.(dop.tmp.type).files{j}]);
+                    end
                 end
+                fclose(dop.tmp.fid); % close the file
             end
-            fclose(dop.tmp.fid); % close the file
             %% > and the data
-            dlmwrite(dop.tmp.collect_fullfile,...
-                [dop.tmp.times' reshape(dop.tmp.data,size(dop.tmp.data,1),size(dop.tmp.data,2)*size(dop.tmp.data,3))],...
-                'delimiter',dop.tmp.delim,'-append');
-            msg{end+1} = sprintf(['''dop.collect'' data saved to:'...
-                '\n\tFile: %s\n\tDir: %s'],...
-                dop.tmp.collect_file,dop.tmp.collect_dir);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            for ii = 1 : numel(dop.tmp.collect_fullfiles)
+                switch ii
+                    case 1
+                        dop.tmp.save_data = dop.tmp.data;
+                    otherwise % set up for behavioural at the moment
+                        [~,tmp_file,~] = fileparts(dop.tmp.collect_fullfiles{ii});
+                        dop.tmp.beh = tmp_file(end-3:end);
+                        dop.tmp.save_data = dop.collect.(dop.tmp.type).(dop.tmp.beh);
+                end
+                dlmwrite(dop.tmp.collect_fullfiles{ii},...
+                    [dop.tmp.times' reshape(dop.tmp.save_data,size(dop.tmp.save_data,1),size(dop.tmp.save_data,2)*size(dop.tmp.save_data,3))],...
+                    'delimiter',dop.tmp.delim,'-append');
+                
+                [tmp_dir,tmp_file,tmp_ext] = fileparts(dop.tmp.collect_fullfiles{ii});
+                tmp_filename = [tmp_file,tmp_ext];
+                msg{end+1} = sprintf(['''dop.collect'' data saved to:'...
+                    '\n\tFile: %s\n\tDir: %s'],...
+                    tmp_filename,tmp_dir);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
         end
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
