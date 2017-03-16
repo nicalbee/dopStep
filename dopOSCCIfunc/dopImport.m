@@ -101,6 +101,7 @@ function [dop,okay,msg] = dopImport(dop_input,varargin)
 %   think this was mostly setup for the gui (dopStep)... messy :(
 % 15-Mar-2017 NAB reset dop.step.dopDownsample - need to address this
 %   better
+% 17-Mar-2017 NAB adjusted for Delica TXT files
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -193,6 +194,9 @@ try
                     %                         [dop,okay,msg] = dopImport(dop,'nomat');
                     %                     end
                 end
+            elseif isTXT(dop.fullfile)
+                [dop.data.raw,dop.data.file_info] = dopTXTread(dop.fullfile);
+                dop.file_info = dop.data.file_info;
             elseif isTX(dop.fullfile)
                 [dop.data.raw,dop.file_info] = readTWfromTX(dop.fullfile);
             elseif isEXP(dop.fullfile)
