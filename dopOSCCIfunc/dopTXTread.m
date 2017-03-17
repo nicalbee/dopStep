@@ -42,7 +42,7 @@ function varargout = dopTXTread(fileNameLoc)
 %% Edits
 % 17-Mar-2017 adjusted for Delica txt files
 try
-    headers = []; % create structure for output
+%     headers = []; % create structure for output
 %     dopplerColumns = [2 3];
 %     eventColumn = 4;
 %     columnLabels = [];
@@ -53,11 +53,13 @@ try
     % tic;
     if exist('table','file')
         in_data = readtable(fileNameLoc,'delimiter',',');
-        headers.list = in_data.Properties.VariableNames;
+        headers = dir(fileNameLoc);
         headers.sampleRate = 125; % Delica default
         % need to peel off the first column as it's text
         text_data = in_data(:,[1 end]);
-        headers.list([1 end]) = [];
+        headers.columnLabels = in_data.Properties.VariableNames;
+        headers.dataLabels = headers.columnLabels;
+        headers.dataLabels([1 end]) = [];
         in_data(:,1) = []; % remove from the data
         in_data(:,end) = []; % remove the mark channel - it's a different class
         in_data = table2array(in_data);

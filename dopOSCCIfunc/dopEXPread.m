@@ -38,16 +38,20 @@ function varargout = dopEXPread(fileNameLoc)
 %
 %     Type 'dopOSCCIlicense' for license details or see dopOSCCIlicense.txt
 %
+
+% Edits:
+% 17-March-2017 NAB added dir information for file into 'headers' variable
 try
-    headers=[]; % create structure for output
-    dopplerColumns=[2 3];
-    eventColumn=8;
+%     headers=[]; % create structure for output
+%     dopplerColumns=[2 3];
+%     eventColumn=8;
     columnLabels=[];
     
     
     %% import the data
     fprintf('%s\n\t%s\n','Importing data:',fileNameLoc);
     % tic;
+    headers = dir(fileNameLoc);
     [inData, txtdata, numHeaderLines] = importdata(fileNameLoc);%,'\t',numHeaderLines);
     % toc;
     % don't use the txtdata but matlab 2008 doesn't like ~

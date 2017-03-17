@@ -35,7 +35,7 @@ try
     if okay
         dopOSCCIindent;%fprintf('\nRunning %s:\n',mfilename);
         %         %% inputs
-%         inputs.turnOff = {'comment'};
+        %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'file',[],...
@@ -50,7 +50,7 @@ try
         
         %% main code
         if isfield(dop,'data') && isfield(dop.data,dop.tmp.type)
-           dop.tmp.data = dop.data.(dop.tmp.type);
+            dop.tmp.data = dop.data.(dop.tmp.type);
             if strcmp(dop.tmp.type,'use')
                 dop.tmp.type = dop.data.use_type;
             end
@@ -66,10 +66,10 @@ try
                 if ~isfield(dop,'collect') || ~isfield(dop.collect,dop.tmp.type)
                     dop.collect.(dop.tmp.type).n = 0;
                     dop.collect.(dop.tmp.type).files = [];
-%                     dop.collect.(dop.tmp.type).times = [];
-%                     if size(dop.tmp.data,3) > 1 && isfield(dop,'epoch') && isfield(dop.epoch,'times')
-%                         dop.collect.(dop.tmp.type).times = dop.epoch.times;
-%                     end
+                    %                     dop.collect.(dop.tmp.type).times = [];
+                    %                     if size(dop.tmp.data,3) > 1 && isfield(dop,'epoch') && isfield(dop.epoch,'times')
+                    %                         dop.collect.(dop.tmp.type).times = dop.epoch.times;
+                    %                     end
                     for i = 1 : numel(dop.data.channel_labels)
                         dop.collect.(dop.tmp.type).(dop.data.channel_labels{i}) = [];
                     end
@@ -154,15 +154,15 @@ try
                         dop.epoch.screen = ones(1,size(dop.tmp.data,2));
                         dop.epoch.screen = logical(dop.epoch.screen);
                     end
-%                     for i = 1 : numel(dop.data.epoch_labels) % number of columns
-                        dop.collect.(dop.tmp.type).data(:,end+1,:) = ...
-                            mean(dop.tmp.data(:,dop.epoch.screen,:),2);
-                        
-                        % 14-Mar-2017 added a behavioural collection loop
-                        % needs to be converted to separate output files
-                        % as well as plotting
-                        if isfield(dop.collect.(dop.tmp.type),'beh1')
-                            dop.tmp.k_beh = 1;
+                    %                     for i = 1 : numel(dop.data.epoch_labels) % number of columns
+                    dop.collect.(dop.tmp.type).data(:,end+1,:) = ...
+                        mean(dop.tmp.data(:,dop.epoch.screen,:),2);
+                    
+                    % 14-Mar-2017 added a behavioural collection loop
+                    % needs to be converted to separate output files
+                    % as well as plotting
+                    if isfield(dop.collect.(dop.tmp.type),'beh1')
+                        dop.tmp.k_beh = 1;
                         while 1
                             dop.tmp.beh_num = ['beh',num2str(dop.tmp.k_beh)];
                             if sum(ismember(dop.save.epochs,dop.tmp.beh_num))
@@ -170,17 +170,28 @@ try
                                 dop.tmp.beh_file = ismember(dop.epoch.beh_list,dop.def.file);
                                 dop.tmp.filt.beh = zeros(size(dop.tmp.filt.scrn));
                                 dop.tmp.filt.beh(eval(dop.epoch.beh_select.(dop.tmp.beh_num){dop.tmp.beh_file})) = 1;
-                                dop.tmp.filt.filt = dop.tmp.filt.scrn & dop.tmp.filt.beh;
-                                dop.collect.(dop.tmp.type).(dop.tmp.beh_num)(:,end+1,:) = ...
-                                    mean(dop.tmp.data(:,dop.tmp.filt.filt,:),2);
-                                fprintf('\tBehavioural data: %s, n = %i epochs\n',dop.tmp.beh_num,sum(dop.tmp.filt.filt));
+                                if size(dop.tmp.filt.scrn,2) == size(dop.tmp.filt.beh,2)
+                                    dop.tmp.filt.filt = dop.tmp.filt.scrn & dop.tmp.filt.beh;
+                                    dop.collect.(dop.tmp.type).(dop.tmp.beh_num)(:,end+1,:) = ...
+                                        mean(dop.tmp.data(:,dop.tmp.filt.filt,:),2);
+                                    fprintf('\tBehavioural data: %s, n = %i epochs\n',dop.tmp.beh_num,sum(dop.tmp.filt.filt));
+                                else
+                                                                        % mismatch - hard to know what to do
+                                    % with this - perhaps just skip
+                                    msg{end+1} = sprintf(['Mismatch between available epochs',...
+                                        '(%i) and behavioural screening epochs (%i), ',...
+                                        'Skipping this individual: %s'],...
+                                        size(dop.tmp.filt.scrn,2),size(dop.tmp.filt.beh,2),...
+                                        dop.def.file);
+                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                end
                             else
                                 break
                             end
                             dop.tmp.k_beh = dop.tmp.k_beh + 1;
                         end
-                        end
-%                     end
+                    end
+                    %                     end
                 end
             else
                 msg{end+1} = sprintf(['Unrecognised data structure %s:',...

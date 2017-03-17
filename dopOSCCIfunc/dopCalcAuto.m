@@ -36,7 +36,8 @@ function [dop,okay,msg] = dopCalcAuto(dop_input,varargin)
 %   Please email me if you're unsure!
 % 09-Aug-2016 NAB added 'ttest' input to flow through into dopCalcSummary
 % 17-Feb-2017 NAB working in behavioural epoch selection
-% 07-Marh-2017 updated for behavioural epoch selection
+% 07-Mar-2017 updated for behavioural epoch selection
+% 17-Mar-2017 updated behavioural selection for missing files (not in list)
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -199,21 +200,29 @@ try
                                             % now need to select
                                             % need to be setup ealier
                                             dop.tmp.beh_row = ismember(dop.epoch.beh_list,fullfile(dop.def.data_dir,dop.tmp.file));
-                                            dop.tmp.beh_eps = eval(dop.epoch.beh_select.(dop.tmp.eps){dop.tmp.beh_row});
-                                            if sum(dop.tmp.beh_eps > size(dop.tmp.data,2))
-                                                dop.tmp.missing = dop.tmp.beh_eps > size(dop.tmp.data,2);
-                                                msg{end+1} = sprintf([...
-                                                    '!!!! Epoch mismatch between fTCD recording ',...
-                                                    'and specification in the behavioural ',...
-                                                    'file: condition = %s, extra in behavioural: ',dopVarType(find(dop.tmp.missing)),...
-                                                    '\n\tWill remove the behavioural epochs from screening.'],...
-                                                    dop.tmp.eps,find(dop.tmp.missing));
-                                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                            if sum(dop.tmp.beh_row)
+                                                dop.tmp.beh_eps = eval(dop.epoch.beh_select.(dop.tmp.eps){dop.tmp.beh_row});
+                                                if sum(dop.tmp.beh_eps > size(dop.tmp.data,2))
+                                                    dop.tmp.missing = dop.tmp.beh_eps > size(dop.tmp.data,2);
+                                                    msg{end+1} = sprintf([...
+                                                        '!!!! Epoch mismatch between fTCD recording ',...
+                                                        'and specification in the behavioural ',...
+                                                        'file: condition = %s, extra in behavioural: ',dopVarType(find(dop.tmp.missing)),...
+                                                        '\n\tWill remove the behavioural epochs from screening.'],...
+                                                        dop.tmp.eps,find(dop.tmp.missing));
+                                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                                    
+                                                    dop.tmp.beh_eps(dop.tmp.beh_eps > size(dop.tmp.data,2)) = [];
+                                                end
                                                 
-                                                dop.tmp.beh_eps(dop.tmp.beh_eps > size(dop.tmp.data,2)) = [];
+                                                dop.tmp.ep_select = zeros(1,size(dop.tmp.data,2));
+                                                dop.tmp.ep_select(dop.tmp.beh_eps) = 1;
+                                            else
+                                                msg{end+1} = sprintf([...
+                                                        '!!!! Individual not found in behavioural file - skipping: %s'],...
+                                                        dop.def.file);
+                                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                             end
-                                            dop.tmp.ep_select = zeros(1,size(dop.tmp.data,2));
-                                            dop.tmp.ep_select(dop.tmp.beh_eps) = 1;
                                         else
                                             msg{end+1} = sprintf([...
                                                 'Epochs selection ''%s'' not recognised.'...

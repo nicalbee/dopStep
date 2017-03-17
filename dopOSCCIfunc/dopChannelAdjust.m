@@ -28,6 +28,7 @@ function [dop,okay,msg] = dopChannelAdjust(dop_input,okay,msg,varargin)
 % Last edit:
 % 19-Dec-2013 NAB
 % 04-Sep-2014 NAB msg & wait_warn updates + dopSetBasicInputs
+% 17-Mar-2017 NAB adjusted for Delica txt files
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -58,9 +59,17 @@ try
                     % and as column numbers are used to denote where the data is,
                     % these need to be adjusted (typically minus 1)
                     if isfield(dop.file_info,'columnLabels') && isfield(dop.file_info,'dataLabels') %...
-                            if numel(dop.file_info.columnLabels) > numel(dop.file_info.dataLabels)
+                        if numel(dop.file_info.columnLabels) > numel(dop.file_info.dataLabels)
                             dop.use.signal_channels = dop.tmp.signal_channels - ...
                                 (numel(dop.file_info.columnLabels) - numel(dop.file_info.dataLabels));
+                            
+                            % there's an extra text marker at the end of
+                            % the Delica txt file that needs to be
+                            % accounted for
+                            [~,~,file_ext] = fileparts(dop.def.file);
+                            if strcmpi(file_ext,'.txt')
+                                dop.use.signal_channels = dop.use.signal_channels + 1;
+                            end
                             msg{end+1} = ...
                                 sprintf(['Adjusting the signal channel columns from: ' ...
                                 repmat('%u ',1,numel(dop.tmp.signal_channels)) ...
@@ -69,20 +78,28 @@ try
                             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             %                 dop.def.use_signal_channels = dop.use.signal_channels;
                             
-                            end
+                        end
+                        
+                        if numel(dop.file_info.columnLabels) > numel(dop.file_info.dataLabels)
+                            dop.use.event_channels = dop.tmp.event_channels - ...
+                                (numel(dop.file_info.columnLabels) - numel(dop.file_info.dataLabels));
                             
-                            if numel(dop.file_info.columnLabels) > numel(dop.file_info.dataLabels)
-                                dop.use.event_channels = dop.tmp.event_channels - ...
-                                    (numel(dop.file_info.columnLabels) - numel(dop.file_info.dataLabels));
-                                msg{end+1} = ...
-                                    sprintf(['Adjusting the event channel columns from: ' ...
-                                    repmat('%u ',1,numel(dop.tmp.event_channels)) ...
-                                    'to: ',repmat('%u ',1,numel(dop.use.event_channels))],...
-                                    dop.tmp.event_channels,dop.use.event_channels);
-                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                                okay = 1;
-                                %                 dop.def.use_event_channels = dop.use.event_channels;
+                            % there's an extra text marker at the end of
+                            % the Delica txt file that needs to be
+                            % accounted for
+                            [~,~,file_ext] = fileparts(dop.def.file);
+                            if strcmpi(file_ext,'.txt')
+                                dop.use.event_channels = dop.use.event_channels + 1;
                             end
+                            msg{end+1} = ...
+                                sprintf(['Adjusting the event channel columns from: ' ...
+                                repmat('%u ',1,numel(dop.tmp.event_channels)) ...
+                                'to: ',repmat('%u ',1,numel(dop.use.event_channels))],...
+                                dop.tmp.event_channels,dop.use.event_channels);
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            okay = 1;
+                            %                 dop.def.use_event_channels = dop.use.event_channels;
+                        end
                     end
                 otherwise
                     msg{end+1} = 'Function not yet programmed for that input...';
