@@ -12,6 +12,7 @@ function [plot_name,okay,msg] = dopPlotName(dop_input,varargin)
 % 28-Sep-2016 NAB updating for multiple events... - just works with the
 %   first
 % 15-Mar-2017 NAB added behavioural info
+% 18-Mar-2017 NAB added collected file names as figure name 
 
 [dop,okay,msg] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -36,12 +37,23 @@ switch dopInputCheck(dop)
                 sprintf('%i events',dop.event(1).n));
         end
         if dop.tmp.collect
-            if ~isempty(dop.tmp.beh)
-                plot_name = sprintf('Collected (n = %u) %s data: %s',...
-                    dop.collect.(dop.tmp.type).n,dop.tmp.type,dop.tmp.beh);
-            else
-                plot_name = sprintf('Collected (n = %u) %s data',...
-                    dop.collect.(dop.tmp.type).n,dop.tmp.type);
+            
+            fig_ch = get(gcf,'children');
+            disp_h = fig_ch(ismember(get(fig_ch,'tag'),'display'));
+            disp_str = get(disp_h,'String');
+            plot_name = sprintf('Collected (n = %u) %s data',...
+                            dop.collect.(dop.tmp.type).n,dop.tmp.type);
+            switch disp_str
+                case {'mean','median','all'}
+                    plot_name = sprintf('%s: %s',plot_name,disp_str);
+                    if ~isempty(dop.tmp.beh)
+                        plot_name = sprintf('%s %s',plot_name,dop.tmp.beh);
+                    end
+                otherwise
+                    if isnumeric(str2double(disp_str))
+                        plot_name = sprintf('File: %s',...
+                            dop.collect.(dop.tmp.type).files{str2double(disp_str)});
+                    end
             end
         end
     otherwise

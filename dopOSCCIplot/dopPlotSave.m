@@ -81,6 +81,9 @@ function [dop,okay,msg] = dopPlotSave(dop_input,varargin)
 % 28-Aug-2016 NAB playing around with save directories - not quite sure of
 %   the best way to be automated about this
 % 30-Aug-2016 NAB various documentation added
+% 18-Mar-2017 NAB added collected file names + individual files
+% 18-Mar-2017 NAB playing with legend as well = better but it's not ideal
+%   as it's hard to control under these circumstances.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -142,14 +145,34 @@ try
                 if isempty(dop.tmp.file) && isfield(dop,'file') && ~isempty(dop.file)
                     dop.tmp.file = dop.file;
                 end
-                if ~isempty(dop.tmp.file) && strcmp(dop.tmp.plot_file,dop.tmp.defaults.plot_file) || ~isempty(dop.tmp.file) && isempty(dop.tmp.plot_file)
-                    [~,dop.tmp.plot_file,~] = fileparts(dop.tmp.file);
+                dop.tmp.plot_file = dop.tmp.defaults.plot_file;
+                if dop.tmp.collect
+                    fig_ch = get(gcf,'children');
+                    disp_h = fig_ch(ismember(get(fig_ch,'tag'),'display'));
+                    disp_str = get(disp_h,'String');
+                    dop.tmp.plot_file = sprintf('%s_%s_n%i_%s',...
+                        dop.def.task_name,dop.tmp.type,dop.collect.(dop.tmp.type).n,disp_str);
+                    switch disp_str
+                        case {'mean','median','all'}
+                            
+                        otherwise
+                            if isnumeric(str2double(disp_str))
+                                [~,dop_file,~] = fileparts(dop.collect.(dop.tmp.type).files{str2double(disp_str)});
+                                dop.tmp.plot_file = sprintf('%s_%s_%s',...
+                                    dop_file,dop.def.task_name,dop.tmp.type);
+                            end
+                    end
+                    if ~isempty(dop.tmp.beh)
+                        dop.tmp.plot_file = sprintf('%s_%s',dop.tmp.plot_file,dop.tmp.beh);
+                    end
+                elseif ~isempty(dop.tmp.file) && strcmp(dop.tmp.plot_file,dop.tmp.defaults.plot_file) || ~isempty(dop.tmp.file) && isempty(dop.tmp.plot_file)
+                    [~,dop_file,~] = fileparts(dop.tmp.file);
+                    dop.tmp.plot_file = sprintf('%s_%s_%s',...
+                                    dop_file,dop.def.task_name,dop.tmp.type);
                     %                     dop.tmp.plot_file = strrep(dop.tmp.file,dop.tmp.ext,'');
-                elseif isempty(dop.tmp.plot_file)
-                    dop.tmp.plot_file = dop.tmp.defaults.plot_file;
                 end
                 if ~isempty(dop.tmp.plot_fullfile)
-                    [dop.tmp.plot_dir,dop.tmp.plot_file,top.tmp.plot_file_type] = fileparts(dop.tmp.plot_fullfile);
+                    [dop.tmp.plot_dir,dop.tmp.plot_file,dop.tmp.plot_file_type] = fileparts(dop.tmp.plot_fullfile);
                 end
                 dop.tmp.file_num = 0;
                 while 1
@@ -218,11 +241,18 @@ try
             dop.tmp.axes_new = get(dop.tmp.axes_only,'children');
             set(dop.tmp.axes_new,'Position',[.1 .1 .8 .8],...
                 'Box','off');
+            set(get(dop.tmp.axes_new,'XLabel'),'String','Time in seconds (zero = event)');
+            set(get(dop.tmp.axes_new,'YLabel'),'String','Blood Flow Velocity cm/sec');
             dop.tmp.legend = legend;
             legend show;
             
-            set(dop.tmp.legend,'EdgeColor',[1 1 1],'Location','Best');
-            drawnow;
+            % below legend code doesn't work...
+            %             dop.tmp.legend = findobj(gcf,'Type','axes','Tag','legend');
+            %             set(dop.tmp.legend,'EdgeColor',[1 1 1],'Location','Best');%'NorthWest');
+            
+            legend Location best % this does work but can't alter the EdgeColor...
+
+%             drawnow;
             dop.tmp.save_h = dop.tmp.axes_only; % dop.tmp.plot_h
             dop.tmp.pos = get(dop.tmp.plot_h,'Position');
             set(dop.tmp.save_h,'PaperPos',[0 0 dop.tmp.pos([3 4])*20]);

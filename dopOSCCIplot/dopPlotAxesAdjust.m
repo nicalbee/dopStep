@@ -189,7 +189,7 @@ set(upper_yh,'string',ylim(2));
 tmp_labels = {'epoch','baseline','poi'};
 %         tmp_vis = cell(1,numel(tmp_labels));%size(dop.tmp.data,2));
         check_h = zeros(1,numel(tmp_labels));%size(dop.tmp.data,2));
-        for i = 1 : numel(tmp_labels); % numel(dop.data.epoch_labels)
+        for i = 1 : numel(tmp_labels) % numel(dop.data.epoch_labels)
             if sum(strcmpi(get(legend_ch,'Tag'),[tmp_labels{i},'_check']))
             check_h(i) = legend_ch(strcmpi(get(legend_ch,'Tag'),[tmp_labels{i},'_check']));%dop.data.epoch_labels{i}));
             if ~isempty(check_h(i)) && check_h(i) && strcmp(get(get(check_h(i),'UserData'),'Type'),'patch')

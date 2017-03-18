@@ -19,6 +19,8 @@ function dopPlotEpochAxesAdjust(handle,~)
 % 27-Jul-2016 NAB copes without poi
 % 03-Aug-2016 NAB adjusted for y-hold option for epoch scrolling
 % 21-Aug-2016 NAB fixed 'all' option for n = 4, check for this first
+% 18-Mar-2017 NAB added collected file names as figure name - see
+%   dopPlotName function
 
 disp_options = {'all','median','mean'};
 % if ~isnan(str2double(get(handle,'string')))
@@ -109,7 +111,7 @@ switch get(handle,'tag')
         tmp_labels = [dop.data.epoch_labels,{'baseline','poi','act_window','peak'}];%,'yzero','xzero'}];
         tmp_vis = cell(1,numel(tmp_labels));%size(dop.tmp.data,2));
         check_h = zeros(1,numel(tmp_labels));%size(dop.tmp.data,2));
-        for i = 1 : numel(tmp_labels); % numel(dop.data.epoch_labels)
+        for i = 1 : numel(tmp_labels) % numel(dop.data.epoch_labels)
             tmp_filt = strcmpi(get(legend_ch,'Tag'),[tmp_labels{i},'_check']);
             if sum(tmp_filt)
                 check_h(i) = legend_ch(tmp_filt);%dop.data.epoch_labels{i}));
@@ -240,7 +242,7 @@ switch get(handle,'tag')
         tmp_labels = {'baseline','poi','act_window','peak'};
         %         tmp_vis = cell(1,numel(tmp_labels));%size(dop.tmp.data,2));
         check_h = zeros(1,numel(tmp_labels));%size(dop.tmp.data,2));
-        for i = 1 : numel(tmp_labels); % numel(dop.data.epoch_labels)
+        for i = 1 : numel(tmp_labels) % numel(dop.data.epoch_labels)
             check_h(i) = legend_ch(strcmpi(get(legend_ch,'Tag'),[tmp_labels{i},'_check']));%dop.data.epoch_labels{i}));
             switch tmp_labels{i}
                 case {'baseline','poi','act_window'}
@@ -281,7 +283,7 @@ end
 if exist('yhold_value','var') && yhold_value
     ylim = y_hold_lim;
 end
-
+set(fig_h,'Name',dopPlotName(dop));
 set(axes_h,'Xlim',xlim,'Ylim',ylim);
 set(lower_yh,'string',ylim(1));
 set(upper_yh,'string',ylim(2));
