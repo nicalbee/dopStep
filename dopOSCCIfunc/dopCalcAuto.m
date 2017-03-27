@@ -38,6 +38,7 @@ function [dop,okay,msg] = dopCalcAuto(dop_input,varargin)
 % 17-Feb-2017 NAB working in behavioural epoch selection
 % 07-Mar-2017 updated for behavioural epoch selection
 % 17-Mar-2017 updated behavioural selection for missing files (not in list)
+% 27-Mar-2016 fixed the selection of epochs for behavioural conditions
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -216,7 +217,9 @@ try
                                                 end
                                                 
                                                 dop.tmp.ep_select = zeros(1,size(dop.tmp.data,2));
-                                                dop.tmp.ep_select(dop.tmp.beh_eps) = 1;
+                                                dop.tmp.ep_select_beh = dop.tmp.ep_select;
+                                                dop.tmp.ep_select_beh(dop.tmp.beh_eps) = 1;
+                                                dop.tmp.ep_select(and(dop.epoch.screen,dop.tmp.ep_select_beh)) = 1;
                                             else
                                                 msg{end+1} = sprintf([...
                                                         '!!!! Individual not found in behavioural file - skipping: %s'],...

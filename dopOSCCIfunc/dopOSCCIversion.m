@@ -19,6 +19,8 @@ function varargout = dopOSCCIversion%(output)
 % 3.3.0 28-Sep-2016 added multiple event marker capacity
 % 3.3.1 15-Oct-2016 custom save swith option in dopSave
 % 3.4.0 18-Mar-2017 behavioural data handling/epoch selection
+% 3.4.1 27-Mar-2017 added remove_start & remove_end options from
+%   dopEventMarkers
 
 %
 % -------------------------------------------------------------------------
@@ -54,8 +56,8 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.4.0';
-    dop_date = 'Saturday 18th of March 2017';
+    dop_version = '3.4.1';
+    dop_date = 'Monday 27th of March 2017';
     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...

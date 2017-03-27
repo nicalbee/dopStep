@@ -116,6 +116,8 @@ try
                             dop.tmp.beh_num = ['beh',num2str(dop.tmp.k_beh)];
                             if sum(ismember(dop.save.epochs,dop.tmp.beh_num))
                                 dop.collect.(dop.tmp.type).(dop.tmp.beh_num) = [];
+                                dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_n']) = 0;
+                                dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_files']) = [];
                             else
                                 break
                             end
@@ -175,6 +177,8 @@ try
                                     dop.collect.(dop.tmp.type).(dop.tmp.beh_num)(:,end+1,:) = ...
                                         mean(dop.tmp.data(:,dop.tmp.filt.filt,:),2);
                                     fprintf('\tBehavioural data: %s, n = %i epochs\n',dop.tmp.beh_num,sum(dop.tmp.filt.filt));
+                                     dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_n']) = dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_n']) + 1;
+                                    dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_files']){dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_n'])} = dop.file;
                                 else
                                                                         % mismatch - hard to know what to do
                                     % with this - perhaps just skip

@@ -382,14 +382,21 @@ try
                                 isfield(dop.collect,dop.tmp.type) && ...
                                 isfield(dop.collect.(dop.tmp.type),'data') && ...
                                 ~isempty(dop.collect.(dop.tmp.type).data)
-                            
-                            dop.plot.screen = ones(1,size(dop.collect.(dop.tmp.type).data,2));
+%                             dop.tmp.data = dop.collect.(dop.tmp.type).data;
+                            dop.plot.screen = ones(1,size(dop.tmp.data,2));
                             dop.plot.screen = logical(dop.plot.screen);
                             
                             % don't need to mean when it's just a single lot of data
 %                             dop.tmp.data = dop.collect.(dop.tmp.type).data;
                             set(dop.fig.h,'UserData',dop); % update the tmp data - amongst other things
-                            dop.tmp.plot_data = squeeze(dop.tmp.data(:,dop.plot.screen,:));
+%                             dop.tmp.plot_data = squeeze(dop.tmp.data(:,1:size(dop.tmp.data,2),:));
+%                             if size(dop.collect.(dop.tmp.type).data,2) == sum(dop.plot.screen)
+                                dop.tmp.plot_data = squeeze(dop.tmp.data(:,dop.plot.screen,:));
+%                             else
+%                                 fprintf('Something strange went on here:\n');
+%                                 fprintf('\tScreening needed %i people but only %i available in the data\n',...
+%                                     numel(dop.plot.screen),size(dop.tmp.data,2));
+%                             end
                             if numel(dop.plot.screen) > 1
                                 dop.plot.screen = ~isnan(dop.tmp.data(1,:,1));
                                 fprintf('Missing data for %i people of %s\n',sum(~dop.plot.screen),numel(dop.plot.screen));
@@ -434,7 +441,7 @@ try
                                     'color',dopPlotColours(lower(dop.tmp.name)),...
                                     'DisplayName',dop.tmp.name,'linewidth',2,...
                                     'Visible','off','Tag',dop.tmp.name);
-                                if sum(strcmpi(dop.tmp.ep_vis,dop.tmp.name));
+                                if sum(strcmpi(dop.tmp.ep_vis,dop.tmp.name))
                                     set(dop.tmp.(dop.tmp.name).h,'Visible','on');
                                 end
                                 dop.tmp.data_handles(i) = dop.tmp.(dop.tmp.name).h;

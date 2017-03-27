@@ -186,7 +186,7 @@ end
                 sprintf('Message data to be saved to: %s (dir = %s)',...
                 dop.tmp.message_file,dop.tmp.message_dir);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-            if ~exist(dop.tmp.message_dir,'dir');
+            if ~exist(dop.tmp.message_dir,'dir')
                 mkdir(dop.tmp.message_dir);
                 msg{end+1} = sprintf('Creating directory = %s)',...
                     dop.tmp.message_dir);
