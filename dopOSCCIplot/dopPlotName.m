@@ -14,6 +14,7 @@ function [plot_name,okay,msg] = dopPlotName(dop_input,varargin)
 % 15-Mar-2017 NAB added behavioural info
 % 18-Mar-2017 NAB added collected file names as figure name
 % 27-Mar-2017 NAB updated cases of empty disp_str
+% 28-Mar-2017 NAB fixed beh naming + extra (empty) figure popup
 
 [dop,okay,msg] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -44,6 +45,10 @@ switch dopInputCheck(dop)
             disp_str = get(disp_h,'String');
             plot_name = sprintf('Collected (n = %u) %s data',...
                 dop.collect.(dop.tmp.type).n,dop.tmp.type);
+            if ~isempty(dop.tmp.beh)
+                plot_name = sprintf('Collected (n = %u) %s data',...
+                dop.collect.(dop.tmp.type).([dop.tmp.beh,'_n']),dop.tmp.type);
+            end
             if isempty(disp_str)
                 disp_str = 'empty';
             elseif iscell(disp_str)
@@ -60,6 +65,10 @@ switch dopInputCheck(dop)
                         if isnumeric(str2double(disp_str)) && ~isnan(str2double(disp_str))
                             plot_name = sprintf('File: %s',...
                                 dop.collect.(dop.tmp.type).files{str2double(disp_str)});
+                             if ~isempty(dop.tmp.beh)
+                                 plot_name = sprintf('File: %s',...
+                                dop.collect.(dop.tmp.type).([dop.tmp.beh,'_files']){str2double(disp_str)});
+                             end
                         end
                 end
             end
