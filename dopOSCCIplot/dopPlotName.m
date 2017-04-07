@@ -15,6 +15,7 @@ function [plot_name,okay,msg] = dopPlotName(dop_input,varargin)
 % 18-Mar-2017 NAB added collected file names as figure name
 % 27-Mar-2017 NAB updated cases of empty disp_str
 % 28-Mar-2017 NAB fixed beh naming + extra (empty) figure popup
+% 07-Apr-2017 NAB fixed beh naming for original plot - wasn't working
 
 [dop,okay,msg] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -46,11 +47,11 @@ switch dopInputCheck(dop)
             plot_name = sprintf('Collected (n = %u) %s data',...
                 dop.collect.(dop.tmp.type).n,dop.tmp.type);
             if ~isempty(dop.tmp.beh)
-                plot_name = sprintf('Collected (n = %u) %s data',...
-                dop.collect.(dop.tmp.type).([dop.tmp.beh,'_n']),dop.tmp.type);
+                plot_name = sprintf('Collected (n = %u) %s data %s',...
+                dop.collect.(dop.tmp.type).([dop.tmp.beh,'_n']),dop.tmp.type,dop.tmp.beh);
             end
             if isempty(disp_str)
-                disp_str = 'empty';
+                disp_str = 'mean'; % default to this, the edit box is empty at the first call to dopPlotName
             elseif iscell(disp_str)
                 disp_str = disp_str{1};
             end
@@ -58,16 +59,17 @@ switch dopInputCheck(dop)
                 switch disp_str
                     case {'mean','median','all'}
                         plot_name = sprintf('%s: %s',plot_name,disp_str);
-                        if ~isempty(dop.tmp.beh)
-                            plot_name = sprintf('%s %s',plot_name,dop.tmp.beh);
-                        end
+%                         if ~isempty(dop.tmp.beh)
+%                             plot_name = sprintf('%s %s',plot_name,dop.tmp.beh);
+%                         end
                     otherwise
                         if isnumeric(str2double(disp_str)) && ~isnan(str2double(disp_str))
                             plot_name = sprintf('File: %s',...
                                 dop.collect.(dop.tmp.type).files{str2double(disp_str)});
                              if ~isempty(dop.tmp.beh)
-                                 plot_name = sprintf('File: %s',...
-                                dop.collect.(dop.tmp.type).([dop.tmp.beh,'_files']){str2double(disp_str)});
+                                 plot_name = sprintf('File: %s (%s)',...
+                                dop.collect.(dop.tmp.type).([dop.tmp.beh,'_files']){str2double(disp_str)},...
+                                dop.tmp.beh);
                              end
                         end
                 end
