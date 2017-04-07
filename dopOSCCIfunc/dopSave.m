@@ -227,8 +227,10 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   Just didn't want to have to setup everything around that (dir, extras,
 %   labels etc.) in another function.
 % 24-Nov-2016 left out an otherwise after the cutom bit
-% 07-Marh-2017 updated to check for abbreviation - especially for 'beh'
+% 07-Mar-2017 updated to check for abbreviation - especially for 'beh'
 %   epoch selection
+% 07-Apr-2017 - adding 'epoch_screen' option to extras - just need to make
+%   it work for epoch as epoch by epoch (I think)
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -411,7 +413,7 @@ try
                                                         dop.tmp.var,dop.tmp.ch,dop.tmp.eps,...
                                                         dop.tmp.prd_spec);
                                                 case 'epoch'
-                                                    if iiii == 1 && ~strcmp(dop.tmp.var,'n')
+                                                    if iiii == 1 && ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
                                                         % n is redundant when it's just the one epoch, so exclude it
                                                         
                                                         % only need to do this once and
@@ -486,8 +488,29 @@ try
                         break
                     end
                     if j == numel(tmp.check)
+                        [dop.tmp.ep_ch,dop.tmp.ep_extras] = strtok(dop.tmp.data_name,'_');
+                        dop.tmp.ep_extras = strrep(dop.tmp.ep_extras,'_',''); % remove the underscore
                         % dummy value
                         dop.tmp.value = 999;
+                        if isfield(dop,dop.tmp.ep_ch) && isfield(dop.(dop.tmp.ep_ch),dop.tmp.ep_extras) ...
+                                && ~isempty(dop.(dop.tmp.ep_ch).(dop.tmp.ep_extras))
+                            switch dop.tmp.ep_ch
+                                case 'epoch'
+                                    % turn this into a string
+                                    dop.tmp.nums = find(dop.(dop.tmp.ep_ch).(dop.tmp.ep_extras));
+                                    dop.tmp.value = repmat('%i~',1,numel(dop.tmp.nums));
+                                    dop.tmp.value = sprintf(dop.tmp.value,dop.tmp.nums);
+                                    %                                     dop.tmp.value = sprintf('[%s]',num2str(find(dop.(dop.tmp.ep_ch).(dop.tmp.ep_extras))));
+                                    
+                            end
+                            if dop.tmp.value ~= 999
+                                fprintf(dop.save.fid,...
+                                    [dopVarType(dop.tmp.value),...
+                                    dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                break
+                            end
+                        end
+                        
                         
                         fprintf(dop.save.fid,...
                             [dopVarType(dop.tmp.value),...
@@ -589,7 +612,7 @@ try
                                                         dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
                                                     
                                                 case 'epoch'
-                                                    if ~dop.tmp.epoch_saved && ~strcmp(dop.tmp.var,'peak_n')
+                                                    if ~dop.tmp.epoch_saved && ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
                                                         % n is redundant when it's just the one epoch, so exclude it
                                                         
                                                         if ~strcmp(dop.tmp.eps,'all') && iiii == 1

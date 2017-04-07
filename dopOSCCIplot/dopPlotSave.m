@@ -84,6 +84,8 @@ function [dop,okay,msg] = dopPlotSave(dop_input,varargin)
 % 18-Mar-2017 NAB added collected file names + individual files
 % 18-Mar-2017 NAB playing with legend as well = better but it's not ideal
 %   as it's hard to control under these circumstances.
+% 07-Apr-2017 NAB 'disp_str' coming down as cell array - which doesn't
+%   work. Pulled it out as string variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -150,6 +152,9 @@ try
                     fig_ch = get(gcf,'children');
                     disp_h = fig_ch(ismember(get(fig_ch,'tag'),'display'));
                     disp_str = get(disp_h,'String');
+                    if iscell(disp_str)
+                        disp_str = disp_str{1};
+                    end
                     dop.tmp.plot_file = sprintf('%s_%s_n%i_%s',...
                         dop.def.task_name,dop.tmp.type,dop.collect.(dop.tmp.type).n,disp_str);
                     switch disp_str
