@@ -59,6 +59,7 @@ try
             fprintf('\t Input (%s) not recognised.\n',label);
             tmp_file = default_alert;
     end
+    fprintf('\t''%s'' mode, attempting to play: %s (may take some time to load)\n',label,tmp_file);
     if ~isempty(tmp_file)
         load(tmp_file);
         player = audioplayer(y, Fs);

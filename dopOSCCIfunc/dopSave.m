@@ -231,6 +231,9 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   epoch selection
 % 07-Apr-2017 - adding 'epoch_screen' option to extras - just need to make
 %   it work for epoch as epoch by epoch (I think)
+% 10-Apr-2017 - adding epoch_screen extra by epoch - so if 'epoch_screen'
+%   (or 'epoch_xxx') is in dop.save.extras and 'epoch' is in
+%   dop.save.summary you'll get a column for each epoch, yes/no used
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -443,6 +446,27 @@ try
                                                                 dop.tmp.var,dop.tmp.sum,j,dop.tmp.ch,...dop.tmp.eps,...
                                                                 dop.tmp.prd_spec);
                                                         end
+                                                        % add in the
+                                                        % epoch_screen
+                                                        % variable right at
+                                                        % the end
+                                                        if i == numel(dop.tmp.summary) && ...
+                                                                ii == numel(dop.tmp.channels) && ...
+                                                                iii == numel(dop.tmp.periods) && ... iiii = numel(dop.tmp.epochs) && ...
+                                                                jjj == size(dop.tmp.(dop.tmp.prd),1)   && ...
+                                                                iiiii == numel(dop.tmp.variables) && ...
+                                                                isfield(dop.save,'extras') && ~isempty(dop.save.extras)
+                                                            for kkkkk = 1 : numel(dop.save.extras)
+                                                                [dop.tmp.extra_ep, dop.tmp.extra_remain] = strtok(dop.save.extras{kkkkk},'_');
+                                                                dop.tmp.extra_ep_type = strtok(dop.tmp.extra_remain,'_');
+                                                                if strcmp(dop.tmp.extra_ep,'epoch') && isfield(dop.epoch,dop.tmp.extra_ep_type)
+                                                                    for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
+                                                                        dop.save.labels{end+1} = sprintf('%s%i',... % '%s_%s%u%s_%s_%s'
+                                                                            dop.save.extras{kkkkk},j);
+                                                                    end
+                                                                end
+                                                            end
+                                                        end
                                                     end
                                                     
                                             end
@@ -635,6 +659,43 @@ try
                                                                 fprintf(dop.save.fid,...
                                                                     [dopVarType(dop.tmp.value),...
                                                                     dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                                            end
+                                                            % add in the
+                                                            % epoch_screen
+                                                            % variable right at
+                                                            % the end
+                                                            if i == numel(dop.tmp.summary) && ...
+                                                                    ii == numel(dop.tmp.channels) && ...
+                                                                    iii == numel(dop.tmp.periods) && ... iiii = numel(dop.tmp.epochs) && ...
+                                                                    jjj == size(dop.tmp.(dop.tmp.prd),1)   && ...
+                                                                    iiiii == numel(dop.tmp.variables) && ...
+                                                                    isfield(dop.save,'extras') && ~isempty(dop.save.extras)
+                                                                for kkkkk = 1 : numel(dop.save.extras)
+                                                                    [dop.tmp.extra_ep, dop.tmp.extra_remain] = strtok(dop.save.extras{kkkkk},'_');
+                                                                    dop.tmp.extra_ep_type = strtok(dop.tmp.extra_remain,'_');
+                                                                    if strcmp(dop.tmp.extra_ep,'epoch') && isfield(dop.epoch,dop.tmp.extra_ep_type)
+                                                                        for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
+                                                                            k = k + 1;
+                                                                            if k == numel(dop.save.labels)
+                                                                                dop.tmp.delims{3} = 2; % new line
+                                                                                dop.tmp.epoch_saved = 1;
+                                                                            end
+                                                                            dop.tmp.value = 999;
+                                                                            if numel(dop.epoch.(dop.tmp.extra_ep_type)) >= j
+                                                                                dop.tmp.value = 0;
+                                                                                if dop.epoch.(dop.tmp.extra_ep_type)(j)
+                                                                                    dop.tmp.value = 1;
+                                                                                end
+                                                                            end
+                                                                            fprintf(dop.save.fid,...
+                                                                                [dopVarType(dop.tmp.value),...
+                                                                                dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
+                                                                            
+%                                                                             dop.save.labels{end+1} = sprintf('%s%i',... % '%s_%s%u%s_%s_%s'
+%                                                                                 dop.save.extras{kkkkk},dop.tmp.sum,j);
+                                                                        end
+                                                                    end
+                                                                end
                                                             end
                                                         end
                                                     end
