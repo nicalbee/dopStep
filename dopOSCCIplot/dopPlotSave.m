@@ -48,7 +48,7 @@ function [dop,okay,msg] = dopPlotSave(dop_input,varargin)
 %   added to the end of this:
 %	e.g., ...,'save_dir','/Users/me/doppler',... > '/Users/me/doppler/plots'
 %       or ...,'save_dir','D:\MyDocuments\doppler',... > 'D:\MyDocuments\doppler\plots'
-%   > default is based on dop.def.task_name + settings
+%   > default is based on dop.tmp.task_name + settings
 %   Recommend leaving blank. See 'dopSaveDir' for further information.
 %
 % - 'plot_file' =  file name for plot image
@@ -59,7 +59,7 @@ function [dop,okay,msg] = dopPlotSave(dop_input,varargin)
 % - 'plot_dir' =  location for plot image
 %	e.g., ...,'plot_dir','/Users/me/Documents/doppler/plots',...
 %       or ...,'plot_dir','D:\MyDocuments\doppler\plots',...
-%   > default is based on dop.def.task_name + settings
+%   > default is based on dop.tmp.task_name + settings
 %   Recommend leaving blank. See 'dopSaveDir' for further information.
 %
 % - 'plot_fullfile' = location and filename of the to-be-save plot image
@@ -86,6 +86,8 @@ function [dop,okay,msg] = dopPlotSave(dop_input,varargin)
 %   as it's hard to control under these circumstances.
 % 07-Apr-2017 NAB 'disp_str' coming down as cell array - which doesn't
 %   work. Pulled it out as string variable
+% 20-Apr-2017 NAB added 'task_name' input and removed reference to dop.def
+%   variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -99,6 +101,7 @@ try
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'save_dir',[],...
+            'task_name',[],...
             'plot_file','dopOSCCIplot',... % file name for plot image
             'plot_dir',[],... % location for plot image
             'plot_fullfile',[],...
@@ -156,7 +159,7 @@ try
                         disp_str = disp_str{1};
                     end
                     dop.tmp.plot_file = sprintf('%s_%s_n%i_%s',...
-                        dop.def.task_name,dop.tmp.type,dop.collect.(dop.tmp.type).n,disp_str);
+                        dop.tmp.task_name,dop.tmp.type,dop.collect.(dop.tmp.type).n,disp_str);
                     switch disp_str
                         case {'mean','median','all'}
                             
@@ -164,7 +167,7 @@ try
                             if isnumeric(str2double(disp_str))
                                 [~,dop_file,~] = fileparts(dop.collect.(dop.tmp.type).files{str2double(disp_str)});
                                 dop.tmp.plot_file = sprintf('%s_%s_%s',...
-                                    dop_file,dop.def.task_name,dop.tmp.type);
+                                    dop_file,dop.tmp.task_name,dop.tmp.type);
                             end
                     end
                     if ~isempty(dop.tmp.beh)
@@ -173,7 +176,7 @@ try
                 elseif ~isempty(dop.tmp.file) && strcmp(dop.tmp.plot_file,dop.tmp.defaults.plot_file) || ~isempty(dop.tmp.file) && isempty(dop.tmp.plot_file)
                     [~,dop_file,~] = fileparts(dop.tmp.file);
                     dop.tmp.plot_file = sprintf('%s_%s_%s',...
-                                    dop_file,dop.def.task_name,dop.tmp.type);
+                                    dop_file,dop.tmp.task_name,dop.tmp.type);
                     %                     dop.tmp.plot_file = strrep(dop.tmp.file,dop.tmp.ext,'');
                 end
                 if ~isempty(dop.tmp.plot_fullfile)
