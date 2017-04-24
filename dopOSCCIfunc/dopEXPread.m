@@ -17,19 +17,19 @@ function varargout = dopEXPread(fileNameLoc)
 %
 %     Copyright (C) 2011 the Chancellor, Masters and Scholars of the
 %     University of Oxford.
-% 
+%
 %     This program is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
 %     the Free Software Foundation, either version 3 of the License, or
 %     (at your option) any later version.
-% 
+%
 %     This program is distributed in the hope that it will be useful,
 %     but WITHOUT ANY WARRANTY; without even the implied warranty of
 %     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %     GNU General Public License for more details.
-% 
+%
 %     You should have received a copy of the GNU General Public License
-%     along with this program.  If not, see <http://www.gnu.org/licenses/> 
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>
 %     or write to the Free Software Foundation, Inc., 51 Franklin Street,
 %     Fifth Floor, Boston, MA 02110-1301, USA.
 %
@@ -42,9 +42,9 @@ function varargout = dopEXPread(fileNameLoc)
 % Edits:
 % 17-March-2017 NAB added dir information for file into 'headers' variable
 try
-%     headers=[]; % create structure for output
-%     dopplerColumns=[2 3];
-%     eventColumn=8;
+    %     headers=[]; % create structure for output
+    %     dopplerColumns=[2 3];
+    %     eventColumn=8;
     columnLabels=[];
     
     
@@ -90,8 +90,11 @@ try
                 end
                 headers.columnLabels=columnLabels;
             else
-                columnMeasures=textscan(inData.textdata{i},'%s\t','delimiter','\t');
-                headers.columnMeasures=cellstr(columnMeasures{1});
+                %                 columnMeasures=textscan(inData.textdata{i},'%s\t','delimiter','\t');
+                % headers.columnMeasures=cellstr(columnMeasures{1});
+                
+                headers.columnMeasures = inData.textdata(i,:);
+                
             end
         end
         if isfield(headers,'columnLabels')
@@ -107,14 +110,14 @@ try
     if isfield(inData,'data')
         varargout{1} = inData.data;
     end
-
+    
     varargout{2} = headers;
     
     if isfield(inData,'textdata')
         varargout{3} = inData.textdata(numHeaderLines+1 : end);
     end
-        
+    
 catch err
     %% catch dopOSCCI error
-    save(dopOSCCIdebug(mfilename)); rethrow(err); 
+    save(dopOSCCIdebug(mfilename)); rethrow(err);
 end

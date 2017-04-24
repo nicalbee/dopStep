@@ -108,6 +108,8 @@ function [dop,okay,msg] = dopBehRead(dop_input,varargin)
 % Edits:
 % 07-Mar-2017 updated/finished
 % 14-Mar-2017 updated for [] cell input file
+% 24-Apr-2017 remove rows with NaN if they exist
+% note: current labelling of columns only copes with up to 9 conditions
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -182,6 +184,8 @@ try
                     
                     dop.tmp.beh_data = table2array(dop.tmp.import_data(:,2:end));
                     if isnumeric(dop.tmp.beh_data(1,1))
+                        % remove NaN, if they're there - these bugger it up
+                        dop.tmp.beh_data(any(isnan(dop.tmp.beh_data),2),:) = [];
                         dop.tmp.tmp_data = dop.tmp.beh_data;
                         dop.tmp.conds = unique(dop.tmp.beh_data);
                         dop.tmp.var_nums = 1:numel(dop.tmp.conds);
