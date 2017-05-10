@@ -35,6 +35,8 @@ function [dop,okay,msg] = dopEpochScreen(dop_input,varargin)
 % 16-Sep-2014 NAB added dopEpochScreenManual
 % 20-May-2015 NAB added 'showmsg'
 % 03-Aug-2016 NAB added gui message
+% 10-May-2017 NAB code adjust to fix the variables when after the data has
+%   been normalised and the screening is redone.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -97,12 +99,14 @@ try
             [dop,okay,msg] = dopEpochScreenCombine(dop,okay,msg,...
                 'screen',dop.tmp.screen);
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+        else
+            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         end
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;
         
-        if dop.tmp.gui
+        if isfield(dop.tmp,'gui') && dop.tmp.gui
             msg = sprintf(['''%s'' function run successfully:\n\n%i epochs ',...
                 'screened with:'],mfilename,numel(dop.epoch.screen));
             for i = 1 : numel(dop.tmp.screen)
