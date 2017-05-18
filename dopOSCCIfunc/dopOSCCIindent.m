@@ -22,6 +22,11 @@ function dopOSCCIindent(option,varargin)
 % where:
 %
 % Created: 18-Dec-2013 NAB
+% Updates:
+% 04-May-2017 NAB removed call to dopOSCCIdebug - this gets circular if
+%   there's a problem and there has been for a least one person so we can
+%   probably do away with it. Really just there for initial development -
+%   this is a pretty straight forward script.
 
 try
     comment = 1;
@@ -53,6 +58,7 @@ try
         fprintf('\n');
     end
 catch err
-    save(dopOSCCIdebug);rethrow(err);
+    rethrow(err);
+%     save(dopOSCCIdebug);rethrow(err);
 end
 end

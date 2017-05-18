@@ -30,6 +30,7 @@ function [dop,okay,msg] = dopEventMarkers(dop_input,varargin) % ,downsample_rate
 %   multiple event processing/periods of interest
 % 27-Mar-2017 NAB added input to remove from start or end if extra event
 %   markers are found, more then dop.def.num_events
+% 28-Apr-2017 NAB okay okay check to initial check
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -59,7 +60,7 @@ try
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
         %% remove start vs end
-        if dop.tmp.remove_start && dop.tmp.remove_end
+        if okay && dop.tmp.remove_start && dop.tmp.remove_end
             % this can't be true - can't have it both ways!
             dop.tmp.remove_end = 0;
             msg{end+1} = sprintf('\t!!! Remove start & end turned on/set to 1: this can''t happen. Defaulting to removing events from start.');

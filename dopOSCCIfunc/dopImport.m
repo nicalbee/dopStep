@@ -195,12 +195,12 @@ try
                     %                     end
                 end
             elseif isTXT(dop.fullfile)
-                [dop.data.raw,dop.data.file_info] = dopTXTread(dop.fullfile);
+                [dop.data.raw,dop.data.file_info,dop.data.file_txt] = dopTXTread(dop.fullfile);
                 dop.file_info = dop.data.file_info;
             elseif isTX(dop.fullfile)
                 [dop.data.raw,dop.file_info] = readTWfromTX(dop.fullfile);
             elseif isEXP(dop.fullfile)
-                [dop.data.raw,dop.data.file_info] = dopEXPread(dop.fullfile);
+                [dop.data.raw,dop.data.file_info,dop.data.file_txt] = dopEXPread(dop.fullfile);
                 dop.file_info = dop.data.file_info;
             else
                 msg{end+1} = sprintf(['> File type not recognised:'...
