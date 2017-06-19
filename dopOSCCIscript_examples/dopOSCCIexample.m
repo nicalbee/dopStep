@@ -83,7 +83,12 @@ dop.def.correct_pct = 5; % correct if <= x% data outside range, otherwise no cor
 % than a certain value are likely due to error.
 dop.def.act_separation = 20; % acceptable activation difference
 dop.def.act_separation_pct = 1; % reject epoch if <= x% data outside range, otherwise keep
-
+dop.def.act_separation_index = 'pct'; % units for the act_separation variable
+% 'iqr' is the other option for the separation_index. If set to 'iqr' this
+% calculates the inter-quartile range for each individual person an
+% excludes epochs if the separation is dop.def.act_separation * the IQR
+% away from the median activiation separation. We've found this to be more
+% sensitive to true variation than absolute percentages (ie 'pct')
 %% > epoch screening
 % reject epoch/s if there's:
 % - 'length' = not enough data (ie first or last is short)
@@ -102,7 +107,7 @@ dop.def.keep_data_steps = 1;
 dop.save.save_file = []; % this will be auto completed based upon the dop.def.task_name variable
 [dop,okay,msg] = dopSaveDir(dop);
 % or
-% dop.save.save_dir = dopSaveDir(dop,'dir_only',1);
+% dop.save.save_dir = dopSaveDir(dop,'dir_out',1);
 % or
 % dop.save.save_dir = '/Users/mq20111600/Documents/nData/tmpData';
 
@@ -157,7 +162,10 @@ if okay
         
         [dop,okay,msg] = dopNorm(dop,okay,msg);%,'norm_method',dop.test.norm{j});
         % [dop,okay,msg] = dopEpoch(dop,okay,msg); % automatically in dopNorm(dop,[],[],'norm_method','epoch') or dopNorm(dop,[],[],'norm_method','deppe_epoch')
-        [dop,okay,msg] = dopEpoch(dop,okay,msg);
+        if strcmp(dop.def.norm_method,'overall')
+            % only need to do this if the data hasn't been epoched already
+            [dop,okay,msg] = dopEpoch(dop,okay,msg);
+        end
         
         [dop,okay,msg] = dopEpochScreen(dop,okay,msg);
         
@@ -195,4 +203,5 @@ if okay
     dopCloseMsg;
 end
 
+% this is optional... feel free to delete or comment
 dopOSCCIalert('finish'); % plays a sound!

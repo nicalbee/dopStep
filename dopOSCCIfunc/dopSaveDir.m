@@ -10,10 +10,10 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 %
 % if the dop structure is inputted, the dop output will include
 % dop.save.save_dir.
-% if a ...,'dir_only',1,... input is included after the dop strucutre as
+% if a ...,'dir_out',1,... input is included after the dop strucutre as
 % inputs, then the output will just be the directory. Need to be careful
 % with this, you dop structure will be overwritten if you ouput is in the
-% standard form: [dop,okay,msg] = dopSaveDir(dop,'dir_only',1).
+% standard form: [dop,okay,msg] = dopSaveDir(dop,'dir_out',1).
 % > this is because the first output will be the save directory string.
 %
 % An alternative to these is to not include any inputs. In this instance,
@@ -147,6 +147,7 @@ function [dop,okay,msg] = dopSaveDir(dop_input,varargin)
 % 30-Aug-2016 NAB added 'gui' option
 % 21-Sep-2016 NAB added 'save_dir' to the 'def' structure
 % 11-Oct-2016 NAB fixed auto save dir directory level
+% 19-Jun-2017 NAB fixed dir_out notation (was dir_only in some cases)
 
 if ~exist('dop_input','var')
     dop_input = [];
