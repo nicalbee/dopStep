@@ -93,6 +93,8 @@ function [dop,okay,msg] = dopProgress(dop_input,varargin)
 % 29-Jun-2015 NAB changed the 'dim' = dimension input/default to be in
 %   pixels as the waitbar seems better suited to absolute values rather
 %   than portions of the screen
+% 07-July-2017 NAB adding a 'extra' input for customisation - e.g., when running
+%   across multiple folders
 
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -108,6 +110,8 @@ try
         inputs.defaults = struct(...
             'pos',[.1 .9],... % top left x & y portion of screen
             'dim',[360 70],...[.15 .07],... % x and y dimensions as portion of screen or pixels
+            'label','DOPOSCCI Progress',...
+            'extra',[],...
             'file',[],... % for error reporting mostly
             'showmsg',1,... % show messages
             'wait_warn',0 ... % wait to close warning dialogs
@@ -155,8 +159,11 @@ try
                     dop.progress.pos = [dop.tmp.pos.*dop.progress.screen_size([3 4])...
                         dop.tmp.dim];
                 end
+                if ~isempty(dop.tmp.extra)
+                    dop.tmp.label = sprintf('%s: %s',dop.tmp.label,dop.tmp.extra);
+                end
                 dop.progress.h = waitbar(0,dop.progress.msg,...
-                    'Position',dop.progress.pos,'Name','dopOSCCI Progress');
+                    'Position',dop.progress.pos,'Name',dop.tmp.label);
                 % seems to need this done every time...
                 dop.progress.h_axes = get(dop.progress.h,'CurrentAxes');
                 dop.progress.h_title = get(dop.progress.h_axes,'Title');

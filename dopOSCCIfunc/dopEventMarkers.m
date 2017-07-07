@@ -31,6 +31,7 @@ function [dop,okay,msg] = dopEventMarkers(dop_input,varargin) % ,downsample_rate
 % 27-Mar-2017 NAB added input to remove from start or end if extra event
 %   markers are found, more then dop.def.num_events
 % 28-Apr-2017 NAB okay okay check to initial check
+% 07-July-2017 NAB fixed remove_end option
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -158,16 +159,17 @@ try
                     if dop.event(j).n ~= dop.tmp.num_events
                         msg{end+1} = sprintf('\tFound %i events: expected %i',dop.event(j).n,dop.tmp.num_events);
                         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                        if dop.event(j).n > dop.tmp.num_events && or(dop.tmp.remove_start,dop.tmp.remove_end)
+                        if dop.event(j).n > dop.tmp.num_events(j) && or(dop.tmp.remove_start,dop.tmp.remove_end)
                             dop.tmp.remove = [];
                             if dop.tmp.remove_start
-                                msg{end+1} = sprintf('\tRemove start turned on: extra events will be removed from the earliest event makers');
+                                msg{end+1} = sprintf('\t''Remove start'' turned on: extra events (> %i) will be removed earlist event makers',dop.tmp.num_events(j));
                                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                 dop.tmp.remove = 1 : diff([dop.tmp.num_events dop.event(j).n]);
+                                
                             elseif dop.tmp.remove_end
-                                msg{end+1} = sprintf('\tRemoved start turned on: extra events will be removed from the latest event makers');
+                                msg{end+1} = sprintf('\t''Remove end'' turned on: extra events (> %i) will be removed from the later event makers',dop.tmp.num_events(j));
                                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                                dop.tmp.remove = (dop.event(j).n-diff([dop.tmp.num_events dop.event(j).n])): dop.event(j).n;
+                                dop.tmp.remove = (1+dop.event(j).n-diff([dop.tmp.num_events(j) dop.event(j).n])): dop.event(j).n;
                             end
                             if ~isempty(dop.tmp.remove)
                                 dop.event(j).samples(dop.tmp.remove) = [];

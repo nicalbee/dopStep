@@ -29,6 +29,8 @@ function [dop,okay,msg] = dopDataTrim(dop_input,varargin)
 % 28-Sep-2016 NAB added trim event option so you can specify to trim the
 %   data based on a specific event channel, if there are more than 1.
 %   Defaults to the first.
+% 27-July-2017 NAB adjusted to make sure we keep the first event marker
+%   when the lower epoch value is >= 0
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -102,6 +104,10 @@ try
                     '\tAvailable data: %5.2f seconds\n'],...
                     dop.tmp.epoch(1),dop.tmp.events(1)/dop.use.sample_rate);
                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                if dop.tmp.epoch(1) >= 0
+                    dop.tmp.samples(1) = 1;
+                    % 07-July-2017 we need to keep the first event marker!
+                end
             end
             
             % check to make sure there's enough data at the end to
