@@ -16,11 +16,11 @@ function [dop,okay,msg] = dopActCorrect(dop_input,varargin)
 % Samples are corrected if they constitute less than 'correct_pct' (default
 % is 5) percent of the data.
 %
-% 'act_replace' variable:
+% 'correct_replace' variable:
 % The default method, 'linspace' corrects the extreme samples by creating a
 % linear sequence of values from samples either side of the extreme value.
 % By default the samples either 'side' of the extreme value are 1.5 seconds
-% before and after the extreme point ('linspace_seconds' variable). I have
+% before and after the extreme point ('correct_linspace_seconds' variable). I have
 % found these to be suitable for sensibly removing spikes and dropouts.
 %
 % The alternate methods are 'mean' or 'median'. These simply replace the
@@ -33,6 +33,8 @@ function [dop,okay,msg] = dopActCorrect(dop_input,varargin)
 % function but 'dopEventMarkers' will only be run if it has not previously
 % been run. If the 'dop.event' variable is found, the existing event
 % markers and therefore earlier specified epoch settings will be used.
+% (not sure this is neccessary but I guess seemed like a good idea once
+% upon a time... NAB 13-Nov-2017)
 %
 % Use:
 %
@@ -82,7 +84,8 @@ function [dop,okay,msg] = dopActCorrect(dop_input,varargin)
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 22-May-2015 NAB summary statistics
 % 28-Sep-2016 NAB updating for multiple events... - added act_correct_event
-
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 13-Nov-2017 NAB adjusting variable names for definition settings
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -102,8 +105,8 @@ try
             'correct_range',[-3 4],...
             'correct_pct',5,...
             'by_epoch',1,...
-            'act_replace','linspace',...'mean',... % 'median'
-            'linspace_seconds',1.5,... +/- X seconds either side
+            'correct_replace','linspace',...'mean',... % 'median'
+            'correct_linspace_seconds',1.5,... +/- X seconds either side
             'signal_channels',[],...
             'event_channels',[], ...
             'epoch',[], ...
@@ -235,28 +238,28 @@ try
                     if dop.tmp.adjust(i) && dop.tmp.pct(i) % can't be zero
                         dop.epoch.act_correct(j) = 1;
                         % check if the method is okay
-                        if isempty(strcmp({'mean','median','linspace'},dop.tmp.act_replace))
+                        if isempty(strcmp({'mean','median','linspace'},dop.tmp.correct_replace))
                             % adjusted from ~sum to isempty 22-May-2015 NAB
                             msg{end+1} = sprintf(['Activation' ...
                                 ' correction method ''%s'' not'...
                                 ' recognised: defaulting to ''%s'''],...
-                                dop.defaults.act_replace);
+                                dop.defaults.correct_replace);
 %                             okay = 0;
                             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                            dop.tmp.act_replace = dop.defaults.act_replace;
+                            dop.tmp.correct_replace = dop.defaults.correct_replace;
                         end
 %                         if okay % added 22-May-2015 NAB
                             msg{end+1} = sprintf(['Correcting %u samples',...
                                 ' (%3.2f%%) in %s channel with ''%s'':',...
                                 ' values < %3.2f or > %3.2f'],...
                                 sum(dop.tmp.all(:,i)),dop.tmp.pct(i),...
-                                dop.tmp.ch_labels{i},dop.tmp.act_replace,...
+                                dop.tmp.ch_labels{i},dop.tmp.correct_replace,...
                                 dop.tmp.correct_range_values(:,i));
                             
-                            if ~strcmp(dop.tmp.act_replace,'linspace')
-                                dop.tmp.replace_value = eval([dop.tmp.act_replace,'(dop.tmp.filt_data(:,i))']);
-                                msg{end} = strrep(msg{end},sprintf('''%s''',dop.tmp.act_replace),...
-                                    sprintf('''%s'' = %3.2f',dop.tmp.act_replace,...
+                            if ~strcmp(dop.tmp.correct_replace,'linspace')
+                                dop.tmp.replace_value = eval([dop.tmp.correct_replace,'(dop.tmp.filt_data(:,i))']);
+                                msg{end} = strrep(msg{end},sprintf('''%s''',dop.tmp.correct_replace),...
+                                    sprintf('''%s'' = %3.2f',dop.tmp.correct_replace,...
                                     dop.tmp.replace_value));
                             end
                             % change the message to be appropriate for epoch
@@ -278,10 +281,10 @@ try
                             %                                 'DisplayName','original');
                             %                             hold;
                             %                         end
-                            switch dop.tmp.act_replace
+                            switch dop.tmp.correct_replace
                                 case {'mean','median'}
                                     dop.tmp.filt_data(logical(dop.tmp.all(:,i)),i) = ...
-                                        eval([dop.tmp.act_replace,'(dop.tmp.filt_data(:,i))']);
+                                        eval([dop.tmp.correct_replace,'(dop.tmp.filt_data(:,i))']);
                                     
                                 case 'linspace'
                                     % need to look at sections of continuous
@@ -293,8 +296,8 @@ try
                                     while okay && k < numel(dop.tmp.pts)
                                         k = k + 1; % count up
                                         % single sample
-                                        k1 = dop.tmp.pts(k) - ceil(dop.tmp.linspace_seconds/(1/dop.tmp.sample_rate)); % previous point
-                                        k2 = dop.tmp.pts(k) + floor(dop.tmp.linspace_seconds/(1/dop.tmp.sample_rate)); % next point
+                                        k1 = dop.tmp.pts(k) - ceil(dop.tmp.correct_linspace_seconds/(1/dop.tmp.sample_rate)); % previous point
+                                        k2 = dop.tmp.pts(k) + floor(dop.tmp.correct_linspace_seconds/(1/dop.tmp.sample_rate)); % next point
                                         % check to see if there are consecutive
                                         % points
                                         if sum(dop.tmp.consecutive == k)
@@ -399,6 +402,7 @@ try
             end
             
         end
+        dop.step.(mfilename) = 1;
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;

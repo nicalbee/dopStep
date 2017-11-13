@@ -28,6 +28,8 @@ function [dop,okay,msg] = dopHeartCycle(dop_input,varargin)
 % 25-july-2016 NAB changed 'correct' to 'step' for 'type' of correct
 % 30-July-2016 NAB updated 'linspace' setting to be 'linear' makes more
 %   sense and fits with dopStep gui explanation more transparently
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 13-Nov-2017 NAB added 'heart_cycle_type' variable - better for definition
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -43,6 +45,7 @@ try
             'sample_rate',[], ...
             'signal_channels',[2 3],...
             'event_channels',[],... % really need to keep event data somewhere
+            'heart_cycle_type',[],...
             'type','linear',... % 'step'
             'window',3, ... % number of samples to look for peak of
             'plot_range',[500 700] ... % 2 numbers and plot will be created
@@ -143,6 +146,9 @@ try
             dop.data.hc_events(dop.tmp.systolic) = 1;
             
             %% correct?
+            if ~isempty(dop.tmp.heart_cycle_type)
+                dop.tmp.type = dop.tmp.heart_cycle_type;
+            end
             switch dop.tmp.type % if dop.tmp.correct || dop.tmp.smooth
                 case {'step','linear'}
                     if strcmp(dop.tmp.type,'step')
@@ -290,6 +296,7 @@ try
             % maybe one day... but then again, perhaps better for the machine to
             % record this 10-Aug-2014
         end
+        dop.step.(mfilename) = 1;
         %% outputs
         dop.okay = okay;
         dop.msg = msg;

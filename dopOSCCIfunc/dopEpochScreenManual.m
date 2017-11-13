@@ -113,6 +113,7 @@ function [dop,okay,msg] = dopEpochScreenManual(dop_input,varargin)
 % 06-Jul-2015 NAB playing with this before I've got data - the function
 %   doesn't expect this...
 % 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -303,6 +304,7 @@ try
             dop.epoch.manual_removed = sum(dop.epoch.manual == 0);
         end
         
+        dop.step.(mfilename) = 1;
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

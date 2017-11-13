@@ -31,6 +31,7 @@ function [dop,okay,msg] = dopDataTrim(dop_input,varargin)
 %   Defaults to the first.
 % 27-July-2017 NAB adjusted to make sure we keep the first event marker
 %   when the lower epoch value is >= 0
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -141,6 +142,8 @@ try
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
             
         end
+        
+        dop.step.(mfilename) = 1;
         
         dop.okay = okay;
         dop.msg = msg;

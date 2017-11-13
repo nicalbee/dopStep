@@ -95,6 +95,7 @@ function [dop,okay,msg] = dopProgress(dop_input,varargin)
 %   than portions of the screen
 % 07-July-2017 NAB adding a 'extra' input for customisation - e.g., when running
 %   across multiple folders
+% 2017-Nov-13 NAB don't need this for n = 1 list
 
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -122,7 +123,7 @@ try
         
         %% main code
         if okay
-            if ~isfield(dop,'file_list') && isempty(dop.file_list)
+            if ~isfield(dop,'file_list') && isempty(dop.file_list) || numel(dop.file_list) == 1
                 okay = 0;
                 msg{end+1} = 'A progress bar isn''t necessary if you aren''t processing a list of files';
                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);

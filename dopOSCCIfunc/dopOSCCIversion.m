@@ -23,6 +23,8 @@ function varargout = dopOSCCIversion%(output)
 %   dopEventMarkers
 % 3.4.2 07-July-2017 fixed dopEventMarkers and dopDataTrim, updated
 %   dopProgress
+% 3.4.3 13-Nov-2017 mostly working on dopMethodText function to help report
+%   the DOPOSCCI steps that were run
 
 %
 % -------------------------------------------------------------------------
@@ -58,16 +60,16 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.4.2';
-    dop_date = 'Friday 7th of July 2017';
-    dop_out = [dop_version,': ',dop_date];
+    dop_version = '3.4.3';
+    dop_date = 'Monday 13th of November 2017';
+%     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...
         dop_version,dop_date);
     
 %     switch output
 %         case 1
-            varargout{1} = dop_out;            
+            varargout{1} = dop_version;            
 %     end
 catch err
     save(dopOSCCIdebug);rethrow(err);

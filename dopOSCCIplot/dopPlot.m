@@ -131,6 +131,8 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 % 30-Aug-2016 NAB scaling 'raw' plots a little for visibility
 % 30-Aug-2016 NAB various documentation added
 % 15-Mar-2017 NAB updated for beh1 etc. collect
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 13-Nov-2017 NAB fixed variable loop for single subject collected data
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -433,7 +435,8 @@ try
                             if ~isfield(dop,'epoch') || ~isfield(dop.epoch,'times')
                                 dop.epoch.times = dop.tmp.epoch(1)+((0:size(dop.tmp.data,1)-1)*(1/dop.tmp.sample_rate));
                             end
-                            for i = 1 : size(dop.tmp.plot_data,3) % numel(dop.data.epoch_labels) %
+                                
+                            for i = 1 : size(dop.tmp.plot_data,length(size(dop.tmp.plot_data)))  % numel(dop.data.epoch_labels) %
                                 if i == 1 && ishold(dop.fig.h); hold; end
                                 dop.tmp.name = dop.data.epoch_labels{i};
                                 dop.tmp.(dop.tmp.name).h = plot(dop.epoch.times,...
@@ -602,6 +605,7 @@ try
             msg{end+1} = '''plot'' variable turned off, therefore not plotting.';
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
+        dop.step.(mfilename) = 1;
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
     end
 catch err

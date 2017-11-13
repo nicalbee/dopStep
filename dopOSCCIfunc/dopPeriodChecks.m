@@ -122,6 +122,7 @@ function [dop,okay,msg] = dopPeriodChecks(dop_input,varargin)
 % 29-Sep-2016 NAB updated for multiple events
 % 13-Oct-2016 NAB adjusted to remove eror report for too few event
 %   separation items in variable
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -271,10 +272,10 @@ try
             end
         end
         
+        dop.step.(mfilename) = 1;
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;
-        
         dopOSCCIindent('done');%fprintf('\nRunning %s:\n',mfilename);
     end
 catch err

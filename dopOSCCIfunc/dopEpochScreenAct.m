@@ -28,6 +28,7 @@ function [dop,okay,msg] = dopEpochScreenAct(dop_input,varargin)
 % 20-May-2015 NAB added 'showmsg' & act_remove output variable
 % 21-May-2015 NAB added descriptives
 % 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -278,6 +279,9 @@ try
                 '\t- * alternatives are: mean, sd, median, iqr, min, max'],...
                 dop.tmp.act_range);
         end
+        
+        dop.step.(mfilename) = 1;
+        
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;

@@ -50,6 +50,7 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 % 27-Sep-2016 NAB added t_p & t_sig to default and adjusted below for
 %   single epoch processing (I think).
 % 11-Oct-2016 NAB added a round for multiple poi floating point intergers
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -391,6 +392,9 @@ try
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
         end
+        
+        dop.step.(mfilename) = 1;
+        
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;

@@ -32,6 +32,7 @@ function [dop,okay,msg] = dopEventMarkers(dop_input,varargin) % ,downsample_rate
 %   markers are found, more then dop.def.num_events
 % 28-Apr-2017 NAB okay okay check to initial check
 % 07-July-2017 NAB fixed remove_end option
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -333,6 +334,8 @@ try
                 
                 %                 msg = [];% has it's own warning sprintf('Problem with channels: %s\n',dop.tmp.file);
             end
+        else
+            dop.step.(mfilename) = 1;
         end
     end
 catch err

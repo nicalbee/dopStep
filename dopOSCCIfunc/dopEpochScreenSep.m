@@ -32,6 +32,7 @@ function [dop,okay,msg] = dopEpochScreenSep(dop_input,varargin)
 % 22-May-2015 NAB fixed descriptive calculation
 % 09-Nov-2015 NAB wondering about individually sensitive cut-offs
 % 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -222,6 +223,9 @@ try
                 '\t- * alternatives are: mean, sd, median, iqr, min, max'],...
                 dop.tmp.act_separation);
         end
+        
+        dop.step.(mfilename) = 1;
+        
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;

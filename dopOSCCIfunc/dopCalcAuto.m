@@ -39,6 +39,7 @@ function [dop,okay,msg] = dopCalcAuto(dop_input,varargin)
 % 07-Mar-2017 updated for behavioural epoch selection
 % 17-Mar-2017 updated behavioural selection for missing files (not in list)
 % 27-Mar-2016 fixed the selection of epochs for behavioural conditions
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -307,7 +308,7 @@ try
             end
         end
         
-        
+        dop.step.(mfilename) = 1;
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

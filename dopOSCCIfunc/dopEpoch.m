@@ -134,6 +134,7 @@ function [dop,okay,msg] = dopEpoch(dop_input,varargin)
 % 07-Oct-2016 NAB various summaries related to the additional event
 %   channels
 % 10-Oct-2016 NAB updated multiple event epoching for missing data
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -274,6 +275,8 @@ try
             %     end
             %         end
         end
+        
+        dop.step.(mfilename) = 1;
         dop.okay = okay;
         dop.msg = msg;
         

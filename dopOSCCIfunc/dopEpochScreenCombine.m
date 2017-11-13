@@ -26,6 +26,7 @@ function [dop,okay,msg] = dopEpochScreenCombine(dop_input,varargin)
 % 21-Nov-2014 NAB include step by step epoch exclusion reporting so you can
 %   easily see what you're losing for each screen type
 % 20-May-2015 NAB added 'showmsg' & screen_remove output variable
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -117,6 +118,8 @@ try
         end
         dop.epoch.screen = logical(dop.epoch.screen);
         dop.epoch.screen_removed = sum(dop.epoch.screen == 0);
+        
+        dop.step.(mfilename) = 1;
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

@@ -130,6 +130,7 @@ function [dop,okay,msg] = dopSaveCollect(dop_input,varargin)
 % 26-June-2015 NAB 'sprintf' mistype
 % 18-Aug-2016 NAB - fixed up check for 'collect' data in elseif
 % 15-Mar-2017 NAB updated for beh1 etc.
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -301,6 +302,9 @@ try
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
         end
+        
+        dop.step.(mfilename) = 1;
+        
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
         dop.msg = msg;

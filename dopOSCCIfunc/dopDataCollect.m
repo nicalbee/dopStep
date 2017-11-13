@@ -27,6 +27,7 @@ function [dop,okay,msg] = dopDataCollect(dop_input,varargin)
 %   see dop.def.keep_data_steps
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 14-Mar-2017 added a behavioural collection loop
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -209,6 +210,8 @@ try
                 mfilename,dop.tmp.file);
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
+        
+        dop.step.(mfilename) = 1;
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

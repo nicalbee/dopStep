@@ -130,6 +130,7 @@ function [dop,okay,msg] = dopMessageSave(dop_input,varargin)
 % 19-Nov-2014 NAB - continuing
 % 19-May-2015 NAB - added some help information on finding msgbox handles
 % 18-Aug-2016 NAB - back to this...
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -270,6 +271,7 @@ end
             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         end
 
+        dop.step.(mfilename) = 1;
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

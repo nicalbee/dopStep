@@ -234,6 +234,7 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 10-Apr-2017 - adding epoch_screen extra by epoch - so if 'epoch_screen'
 %   (or 'epoch_xxx') is in dop.save.extras and 'epoch' is in
 %   dop.save.summary you'll get a column for each epoch, yes/no used
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -729,6 +730,8 @@ try
                 msg = sprintf('Problem with data saving... (function: %s)',mfilename);
             end
         end
+        
+        dop.step.(mfilename) = 1;
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

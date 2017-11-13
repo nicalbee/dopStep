@@ -29,6 +29,7 @@ function [dop,okay,msg] = dopNorm(dop_input,varargin)
 %   seems to be doing the same thing - perhaps mrdivide is quicker
 %   note: version = 7.11.1.866 (R2010b) Service Pack 1
 % 28-Sep-2016 NAB updating for multiple events... 'norm_event' variable
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -133,6 +134,7 @@ try
             [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'norm');
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         end
+        dop.step.(mfilename) = 1;
         dop.okay = okay;
         dop.msg = msg;
                 %% specific output for gui (dopStep)

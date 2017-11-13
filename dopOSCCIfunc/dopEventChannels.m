@@ -49,6 +49,7 @@ function [dop,okay,msg] = dopEventChannels(dop_input,varargin)
 %   well, fixed
 % 15-Sep-2015 NAB updating for periods with multiple rows
 % 28-Sep-2016 NAB updating for multiple events...
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -226,6 +227,8 @@ try
                 [dop,okay,msg] = dopUseDataOperations(dop,'event');
             end
         end
+        
+        dop.step.(mfilename) = 1;
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;

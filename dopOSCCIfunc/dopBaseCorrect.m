@@ -28,6 +28,7 @@ function [dop,okay,msg] = dopBaseCorrect(dop_input,varargin)
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 03-Aug-2016 NAB added gui comment
 % 28-Sep-2016 NAB updating for multiple events... 'base_event' variable
+% 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -132,6 +133,8 @@ try
             [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'base');
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         end
+        
+        dop.step.(mfilename) = 1;
         
         %% save okay & msg to 'dop' structure
         dop.okay = okay;
