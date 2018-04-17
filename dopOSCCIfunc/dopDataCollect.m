@@ -171,9 +171,11 @@ try
                             if sum(ismember(dop.save.epochs,dop.tmp.beh_num))
                                 dop.tmp.filt.scrn = dop.epoch.screen;
                                 dop.tmp.beh_file = ismember(dop.epoch.beh_list,dop.def.file);
-                                dop.tmp.filt.beh = zeros(size(dop.tmp.filt.scrn));
-                                dop.tmp.filt.beh(eval(dop.epoch.beh_select.(dop.tmp.beh_num){dop.tmp.beh_file})) = 1;
-                                if size(dop.tmp.filt.scrn,2) == size(dop.tmp.filt.beh,2)
+                                if sum(dop.tmp.beh_file)
+                                    dop.tmp.filt.beh = zeros(size(dop.tmp.filt.scrn));
+                                    dop.tmp.filt.beh(eval(dop.epoch.beh_select.(dop.tmp.beh_num){dop.tmp.beh_file})) = 1;
+                                end
+                                if sum(dop.tmp.beh_file) && size(dop.tmp.filt.scrn,2) == size(dop.tmp.filt.beh,2)
                                     dop.tmp.filt.filt = dop.tmp.filt.scrn & dop.tmp.filt.beh;
                                     dop.collect.(dop.tmp.type).(dop.tmp.beh_num)(:,end+1,:) = ...
                                         mean(dop.tmp.data(:,dop.tmp.filt.filt,:),2);
@@ -181,13 +183,21 @@ try
                                      dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_n']) = dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_n']) + 1;
                                     dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_files']){dop.collect.(dop.tmp.type).([dop.tmp.beh_num,'_n'])} = dop.file;
                                 else
-                                                                        % mismatch - hard to know what to do
-                                    % with this - perhaps just skip
-                                    msg{end+1} = sprintf(['Mismatch between available epochs',...
-                                        '(%i) and behavioural screening epochs (%i), ',...
-                                        'Skipping this individual: %s'],...
-                                        size(dop.tmp.filt.scrn,2),size(dop.tmp.filt.beh,2),...
-                                        dop.def.file);
+                                    if ~sum(dop.tmp.beh_file)
+                                        msg{end+1} = sprintf(['Behavioural file (%s)',...
+                                            'not found in list. ',...
+                                            'Skipping this individual: %s'],...
+                                            size(dop.tmp.filt.scrn,2),size(dop.tmp.filt.beh,2),...
+                                            dop.def.file);
+                                    else
+                                        % mismatch - hard to know what to do
+                                        % with this - perhaps just skip
+                                        msg{end+1} = sprintf(['Mismatch between available epochs',...
+                                            '(%i) and behavioural screening epochs (%i), ',...
+                                            'Skipping this individual: %s'],...
+                                            size(dop.tmp.filt.scrn,2),size(dop.tmp.filt.beh,2),...
+                                            dop.def.file);
+                                    end
                                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                 end
                             else

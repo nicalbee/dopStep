@@ -110,6 +110,7 @@ function [dop,okay,msg] = dopBehRead(dop_input,varargin)
 % 14-Mar-2017 updated for [] cell input file
 % 24-Apr-2017 remove rows with NaN if they exist
 % note: current labelling of columns only copes with up to 9 conditions
+% 17-Apr-2018 having trouble with the import
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -180,12 +181,21 @@ try
             %% get the data
             if okay && ~isempty(dop.tmp.import_data)
                 if exist('istable','file') && istable(dop.tmp.import_data)
+                    % remove rows and columns with in NaN or empty values -
+                    % sometimes happens with conversion from excel
+                    dop.tmp.import_data = dop.tmp.import_data(~ismissing(dop.tmp.import_data(:,1)),:);
+                    dop.tmp.import_data = dop.tmp.import_data(:,~any(ismissing(dop.tmp.import_data),1));
                     dop.tmp.beh_list = table2cell(dop.tmp.import_data(:,1));
                     
                     dop.tmp.beh_data = table2array(dop.tmp.import_data(:,2:end));
                     if isnumeric(dop.tmp.beh_data(1,1))
-                        % remove NaN, if they're there - these bugger it up
-                        dop.tmp.beh_data(any(isnan(dop.tmp.beh_data),2),:) = [];
+                        % have to be careful here, if there's a row that's
+                        % fine but if it's a column, we lose everything
+%                         dop.tmp.beh_list(any(isnan(dop.tmp.beh_data),2),:) = [];
+%                         % need to do the same for the list surely - above
+%                         % remove NaN, if they're there - these bugger it up
+%                         dop.tmp.beh_data(any(isnan(dop.tmp.beh_data),2),:) = [];
+                        
                         dop.tmp.tmp_data = dop.tmp.beh_data;
                         dop.tmp.conds = unique(dop.tmp.beh_data);
                         dop.tmp.var_nums = 1:numel(dop.tmp.conds);
