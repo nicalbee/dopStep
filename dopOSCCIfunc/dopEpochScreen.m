@@ -37,6 +37,7 @@ function [dop,okay,msg] = dopEpochScreen(dop_input,varargin)
 % 03-Aug-2016 NAB added gui message
 % 10-May-2017 NAB code adjust to fix the variables when after the data has
 %   been normalised and the screening is redone.
+% 29-Jun-2018 NAB adding the single channel change in activation screening
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -92,6 +93,13 @@ try
             [dop,okay,msg] = dopEpochScreenSep(dop,okay,msg,...
                 'act_separation',dop.tmp.act_separation,...
                 'act_separation_pct',dop.tmp.act_separation_pct);
+            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+        end
+        %% > dopEpochScreenChange
+        if okay  && sum(ismember(dop.tmp.screen,'change'))
+            [dop,okay,msg] = dopEpochScreenChange(dop,okay,msg,...
+                'act_change',dop.tmp.act_change,...
+                'act_change_pct',dop.tmp.act_change_pct);
             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
         end
         %% > combine the different options
