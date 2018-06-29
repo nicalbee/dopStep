@@ -20,8 +20,9 @@ function [dop,okay,msg] = dopEpochScreenChange(dop_input,varargin)
 % - okay = logical (0 or 1) for problem, 0 = no problem, 1 = problem
 % - msg = message about progress/events within function
 %
-% Created: 29-June-2018 NAB
+% Created: 29-Jun-2018 NAB
 % Last edit:
+%   29-Jun-2018 NAB made sure the windows are whole numbers
 
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -109,8 +110,8 @@ try
             % these could be side by side of have an overlap of x samples/seconds. I
             % don't think it's necessary to have the sample by sample check but perhaps
             % half of the window size would do it
-            dop.tmp.window = dop.tmp.act_change_window*dop.tmp.sample_rate; % in samples
-            dop.tmp.window_starts = 1:dop.tmp.act_change_window*dop.tmp.sample_rate*.5:size(dop.tmp.data,1)-dop.tmp.act_change_window*dop.tmp.sample_rate;
+            dop.tmp.window = round(dop.tmp.act_change_window*dop.tmp.sample_rate); % in samples
+            dop.tmp.window_starts = 1:round(dop.tmp.act_change_window*dop.tmp.sample_rate*.5):round(size(dop.tmp.data,1)-dop.tmp.act_change_window*dop.tmp.sample_rate);
             
             for jj = 1 : numel(dop.tmp.loop)
                 for j = 1 : dop.tmp.n_epochs
@@ -146,7 +147,7 @@ try
                     dop.tmp.window_diffs = dop.tmp.window_data;
                     for i = 1 : numel(dop.tmp.window_starts)
                         
-                        dop.tmp.window_data = dop.tmp.filt_data(dop.tmp.window_starts(i):dop.tmp.window_starts(i)+dop.tmp.window-1,1,1:2);
+                        dop.tmp.window_data = dop.tmp.filt_data(dop.tmp.window_starts(i):(dop.tmp.window_starts(i)+dop.tmp.window-1),1,1:2);
                         % get the maximum difference for each little window
                         dop.tmp.window_diffs(i,:) = max(dop.tmp.window_data) - min(dop.tmp.window_data);
                         % then if any of these changes are greater than we want, reject
@@ -207,7 +208,9 @@ try
                                     %                                     dop.tmp.value = median(dop.tmp.abs_diffs) + iqr(dop.tmp.abs_diffs) * dop.tmp.act_change;
                                     dop.tmp.value = dop.epoch.act_change_median + dop.epoch.act_change_iqr * dop.tmp.act_change;
                             end
-                            dop.save.act_change_use = dop.tmp.value;
+                            dop.save.act_change_useL = dop.tmp.value(1);
+                            dop.save.act_change_useR = dop.tmp.value(2);
+                            dop.save.act_change_use = mean(dop.tmp.value);
                             
                             
                             % check if the windows are greater than a critical value
@@ -249,7 +252,7 @@ try
             
             
             %%  msg
-            msg{end+1} = sprintf(['%u epochs with change greater than %3.2f\n',...
+            msg{end+1} = sprintf(['%i epochs with change greater than L = %3.2f, R = %3.2f\n',...
                 'Descriptives of absolute differences, averaged across epochs:\n',...
                 '- mean (SD) = Left %3.2f, Right %3.2f (%3.2f, %3.2f)\n',...
                 '- median (IQR) = Left %3.2f, Right %3.2f (%3.2f, %3.2f)\n',...
@@ -259,7 +262,18 @@ try
                 dop.epoch.act_change_median,dop.epoch.act_change_iqr,...
                 dop.epoch.act_change_min,dop.epoch.act_change_max);
             dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-            
+            %% L and R variables + average
+            for i = 1 : numel(dop.epoch.act_change_descriptives)
+                dop.tmp.LR_labels = {'L','R'};
+                for j = 1 : numel(dop.tmp.LR_labels)
+                    dop.epoch.(['act_change_',dop.epoch.act_change_descriptives{i},dop.tmp.LR_labels{j}]) = ...
+                    eval(sprintf('dop.epoch.act_change_%s(%i)',...
+                    dop.epoch.act_change_descriptives{i},j));
+                end
+                dop.epoch.(['act_change_',dop.epoch.act_change_descriptives{i}]) = ...
+                    eval(sprintf('%s(dop.epoch.act_change_%s)',...
+                    dop.epoch.act_change_descriptives{i},dop.epoch.act_change_descriptives{i}));
+            end
             
             msg{end+1} = sprintf(['To include this information in data file add the following '...
                 'to the dop.save.extras variable:\n',...
