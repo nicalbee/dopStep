@@ -52,6 +52,7 @@ function [dop,okay,msg]  =  dopSetGetInputs(dop_input,inputs,msg,report)
 %    - might only be relevant for dopEpochScreen - could be made specific
 % 28-Sep-2016 NAB adjusted for setting variable with missing value - use
 %   default
+% 29-Jun-2018 NAB updated for multiple cell output from dopFileParts
 
 % set default outputs
 dop = [];
@@ -120,7 +121,15 @@ try
                 dopMessage(msg,report,1,okay)
                 dop.tmp.file = dop_input;
                 [tmp_dop,okay,tmp_msg] = dopFileParts(dop.tmp.file);
-                msg{end+1} = tmp_msg;
+                % 29-Jun-2018 updated as this produced a 2 item cell array
+                % which crashed the saving file
+                if iscell(tmp_msg) && numel(tmp_msg) > 1
+                    for i = 1 : numel(tmp_msg)
+                        msg{end+1} = tmp_msg{i};
+                    end
+                else
+                    msg{end+1} = tmp_msg;
+                end
                 if okay && exist(dop.tmp.file,'file')
                     msg{end+1} = 'file exists or is on MATLAB path';
                     dopMessage(msg,report,1,okay)
