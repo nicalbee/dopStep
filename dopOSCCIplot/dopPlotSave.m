@@ -88,6 +88,8 @@ function [dop,okay,msg] = dopPlotSave(dop_input,varargin)
 %   work. Pulled it out as string variable
 % 20-Apr-2017 NAB added 'task_name' input and removed reference to dop.def
 %   variable
+% 02-Jul-2018 NAB little update for when not dop.tmp.collect (when it
+%   doesn't exist
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -151,7 +153,7 @@ try
                     dop.tmp.file = dop.file;
                 end
                 dop.tmp.plot_file = dop.tmp.defaults.plot_file;
-                if dop.tmp.collect
+                if isfield(dop.tmp,'collect') && dop.tmp.collect
                     fig_ch = get(gcf,'children');
                     disp_h = fig_ch(ismember(get(fig_ch,'tag'),'display'));
                     disp_str = get(disp_h,'String');
@@ -241,6 +243,7 @@ try
                 %                 end
             end
             %% main code
+            if isfield(dop.tmp,'plot_h') && ~isempty(dop.tmp.plot_h)
             dop.tmp.axes_only = figure('visible','off','units','normalized',...
                 'position',get(dop.tmp.plot_h,'Position'));
             dop.tmp.ch = get(dop.tmp.plot_h,'children');
@@ -294,7 +297,12 @@ try
                         msgbox(msg{end},'Saved plot:');
                 end
             end
-            
+        else
+              msg{end+1} = sprintf(['''dop.tmp.plot_h'' variable not found. ',...
+                  '- ''%s'' should be called from within ''dopPlot''.'],mfilename);
+            okay = 0;
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);  
+            end    
         end
         %         %% tmp check
         %         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);

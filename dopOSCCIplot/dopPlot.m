@@ -133,6 +133,9 @@ function [dop,okay,msg] = dopPlot(dop_input,varargin)
 % 15-Mar-2017 NAB updated for beh1 etc. collect
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 % 13-Nov-2017 NAB fixed variable loop for single subject collected data
+% 02-Jul-2018 NAB added a 'plot_close' argument so plot can be close after
+%   it's saved. Though I had a feeling I'd done this differently with
+%   visibility off once upon a time...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -159,6 +162,7 @@ try
             'y_scale',500,...
             'save_dir',[],...
             'plot_save',0,...
+            'plot_close',1,... % if plot save
             'plot_file',[],... % file name for plot image
             'plot_dir',[],... % location for plot image
             'plot_fullfile',[],...
@@ -352,8 +356,11 @@ try
                                 );
                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                         end
-                        
-                        if dop.tmp.plot_wait; uiwait(dop.fig.h); end
+                        if dop.tmp.plot_save && dop.tmp.plot_close
+                            close(dop.fig.h);
+                        elseif dop.tmp.plot_wait
+                            uiwait(dop.fig.h);
+                        end
                         %% Epoched Plot
                     case {'epoch','base','epoch_norm'}
                         
@@ -560,8 +567,12 @@ try
                                 );
                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
                         end
-                        %% wait?
-                        if dop.tmp.plot_wait || and(dop.tmp.poi_select,~dop.tmp.collect); uiwait(dop.fig.h); end
+                        if dop.tmp.plot_save && dop.tmp.plot_close
+                            close(dop.fig.h);
+                            %% wait?
+                        elseif dop.tmp.plot_wait || and(dop.tmp.poi_select,~dop.tmp.collect)
+                            uiwait(dop.fig.h);
+                        end
                         
                     otherwise
                         msg{end+1} = sprintf('''%s'' plot type not yet programmed',...
