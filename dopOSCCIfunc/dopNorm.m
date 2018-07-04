@@ -79,9 +79,27 @@ try
                             switch dop.tmp.norm_method
                                 case 'epoch'
                                     try
-                                    dop.data.norm(:,i,:) = bsxfun(@mrdivide,dop.tmp.data(:,i,:)*100,mean(dop.tmp.data(:,i,:)));
+                                        %                                         fprintf('%i a: %3.2f\t%3.2f\t%3.2f\t%3.2f\n',i,mean(dop.tmp.data(:,i,:)));
+                                        dop.data.norm(:,i,:) = bsxfun(@mrdivide,dop.tmp.data(:,i,:)*100,mean(dop.tmp.data(:,i,:)));
                                     catch
-                                         dop.data.norm(:,i,:) = bsxfun(@rdivide,dop.tmp.data(:,i,:)*100,mean(dop.tmp.data(:,i,:)));
+                                        %                                         fprintf('%i b: %3.2f\t%3.2f\t%3.2f\t%3.2f\n',i,mean(dop.tmp.data(:,i,:)));
+                                        dop.data.norm(:,i,:) = bsxfun(@rdivide,dop.tmp.data(:,i,:)*100,mean(dop.tmp.data(:,i,:)));
+                                    end
+                                    % if this is empty, 0/0 = NaN. Could
+                                    % just turn this into zero and be done
+                                    % with it... 4-july-2018
+                                    dop.tmp.isnan_count = sum(sum(isnan(dop.data.norm(:,i,:))));
+                                    if dop.tmp.isnan_count
+                                        dop.tmp.epoch_data = squeeze(dop.data.norm(:,i,:));
+                                        dop.tmp.epoch_data(isnan(dop.tmp.epoch_data)) = 0;
+                                        dop.data.norm(:,i,:) = dop.tmp.epoch_data;
+                                        msg{end+1} = sprintf(...
+                                            ['Epoch %i: %i NaN values ',...
+                                            'found (across 4* channels) ',...
+                                            '> setting to 0 (*left, ',...
+                                            'right, difference, average)'],...
+                                            i,dop.tmp.isnan_count);
+                                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                     end
                                 case 'deppe_epoch'
                                     % need baseline in samples relative to

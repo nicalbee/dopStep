@@ -21,6 +21,8 @@ function dopPlotEpochAxesAdjust(handle,~)
 % 21-Aug-2016 NAB fixed 'all' option for n = 4, check for this first
 % 18-Mar-2017 NAB added collected file names as figure name - see
 %   dopPlotName function
+% 04-Jul-2018 NAB accounted for multiple periods of interest - only uses
+%   the first one.
 
 disp_options = {'all','median','mean'};
 % if ~isnan(str2double(get(handle,'string')))
@@ -143,8 +145,13 @@ switch get(handle,'tag')
                     end
                 case {'baseline','poi'}
                     if ~isempty(dop.tmp.(tmp_labels{i}))
+                        tmp_x = [dop.tmp.(tmp_labels{i}) fliplr(dop.tmp.(tmp_labels{i}))];
+                        if size(tmp_x,1) > 1
+                            % if multiple poi, this can happen
+                            tmp_x = tmp_x(1,:);
+                        end
                         line_h = ...
-                            patch([dop.tmp.(tmp_labels{i}) fliplr(dop.tmp.(tmp_labels{i}))],...
+                            patch(tmp_x,...[dop.tmp.(tmp_labels{i}) fliplr(dop.tmp.(tmp_labels{i}))],...
                             [ones(1,2)*max(get(axes_h,'Ylim')) ones(1,2)*min(get(axes_h,'Ylim'))],...
                             dopPlotColours(tmp_labels{i}),...
                             'Parent',axes_h,...

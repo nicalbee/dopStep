@@ -31,6 +31,9 @@ function [input_type,okay,msg] = dopInputCheck(dop_input,varargin)
 % 20-May-2015 NAB changed 'folder' to 'dir' as input - more intuitive
 % 16-Jan-2016 NAB added csv to the mix
 % 23-Aug-2016 NAB added 'handle' option
+% 04-Jul-2018 NAB 'handle' option triggered when there's a matrix of zeros
+%   so added two extra checks to ensure this doesn't happen  (only one
+%   needed most likely) - changed to one on next test...
 
 input_type = [];
 okay = 0;
@@ -63,9 +66,11 @@ try
     elseif isstruct(dop_input)
         input_type = 'dop'; % maybe...
         msg{end+1} = 'Might be dopOSCCI structure - not sure';
-        if comment; fprintf('\t%s\n',msg{end}); end;
+        if comment; fprintf('\t%s\n',msg{end}); end
         okay = 1;
-    elseif ishandle(dop_input)
+    elseif ~ismatrix(dop_input) && ishandle(dop_input)
+        % going in here one there's a bunch of zeros in the matrix =
+        % treating as matrix 04-Jul-2018 NAB
         input_type = 'handle';
         okay = 1;
     elseif isnumeric(dop_input)

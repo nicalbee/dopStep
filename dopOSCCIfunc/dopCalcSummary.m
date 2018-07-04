@@ -51,6 +51,8 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 %   single epoch processing (I think).
 % 11-Oct-2016 NAB added a round for multiple poi floating point intergers
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 04-Jul-2018 NAB when plotting with multiple periods of interest there's
+%   some conflict in here - setup to use the first one.
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -177,7 +179,14 @@ try
             end
             
             %% > period calculations
-            dop_output.data = dop.tmp.data(round(dop.tmp.period_filt(1)):round(dop.tmp.period_filt(2)),:); % keep a copy - 11-Oct-2016 added round for multiple pois
+            tmp_filt = round(dop.tmp.period_filt(1)):round(dop.tmp.period_filt(2));
+            if size(dop.tmp.period_filt,1) > 1
+                % can only do one of these for plotting - use the first
+                % 04-Jul-2018 NAB
+                tmp_filt = round(dop.tmp.period_filt(1,1)):round(dop.tmp.period_filt(1,2));
+            end
+%             dop_output.data = dop.tmp.data(round(dop.tmp.period_filt(1)):round(dop.tmp.period_filt(2)),:); % keep a copy - 11-Oct-2016 added round for multiple pois
+             dop_output.data = dop.tmp.data(tmp_filt,:); % keep a copy - 11-Oct-2016 added round for multiple pois
             [dop_output.period_samples,dop_output.period_epochs] = size(dop_output.data);
             
             % for epoch calculations, one number per epoch
@@ -248,7 +257,7 @@ try
             % the 'abs' or 'raw' data used and (below) whether the 'min' or
             % 'max' is searched for
             dop.tmp.peak_data = dop_output.data;
-            if strcmp(dop.tmp.value,'abs');
+            if strcmp(dop.tmp.value,'abs')
                 dop.tmp.peak_data = abs(dop.tmp.peak_data);
             end
             
