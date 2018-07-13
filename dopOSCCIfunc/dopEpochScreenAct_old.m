@@ -25,7 +25,7 @@ function [dop,okay,msg] = dopEpochScreenAct(dop_input,varargin)
 % 20-Aug-2014 NAB
 % 01-Sep-2014 NAB fixed dopSetBasicInputs
 % 04-Sep-2014 NAB msg & wait_warn updates
-% 20-May-2015 NAB added 'msg' & act_remove output variable
+% 20-May-2015 NAB added 'showmsg' & act_remove output variable
 % 21-May-2015 NAB added descriptives
 % 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
@@ -41,7 +41,7 @@ try
         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'msg',1,...
+            'showmsg',1,...
             'wait_warn',0,...
             'act_range',[50 150],...
             'signal_channels',[],...
@@ -58,11 +58,11 @@ try
             if size(dop.tmp.data,3) == 1
                 dop.tmp.data_type = 'continuous';
                 msg{end+1} = 'Continuous data (i.e., not epoched) inputted';
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 msg{end+1} = sprintf(['data %u columns, assuming first',...
                     ' 2 are left and right channels'],...
                     size(dop.tmp.data,2));
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 
                 [dop,okay,msg] = dopEventMarkers(dop,okay,msg);
                 % refresh the data if necessary
@@ -71,45 +71,30 @@ try
             elseif size(dop.tmp.data,3) > 1
                 dop.tmp.data_type = 'epoched';
                 msg{end+1} = 'Epoched data inputted';
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             else
                 okay = 0;
                 msg{end+1} = ['Data type unknown: expecting continuous or'...
                     'epoched. Can''t continue function'];
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
             
         end
         %% activation range check
         if okay
-            dop.tmp.ch_check = 1:2; % 13-Jul-2018 NAB added - useful to separate by channels
-            % not sure it's relevant that the difference and average have
-            % these checks... wasn't ever intended
-            % this was just checking if the median activation in each of
-            % the epochs (ignoring channel) was in the right range - weird
-            % check to have run but if would have been find most of the
-            % time and left & right would have dominated
-            % > different if run for the two channels that count
-            if isfield(dop,'dropout') && sum(dop.dropout.okay) ~= 2
-                % this will ensure we're using the best channel
-                dop.tmp.ch_check = find(dop.dropout.okay);
-                msg{end+1} = sprintf('Using %s channel based on ''dopDropoutCheck''.',...
-                    dop.dropout.ch_names{dop.tmp.ch_check});
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-            end
-            if  sum(mean(median(dop.tmp.data(:,dop.epoch.length,dop.tmp.ch_check))) > dop.tmp.act_range(1)) == numel(dop.tmp.ch_check) ...
-                    && sum(mean(median(dop.tmp.data(:,dop.epoch.length,dop.tmp.ch_check))) < dop.tmp.act_range(2)) == numel(dop.tmp.ch_check)
+            if  mean(median(dop.tmp.data(:,dop.epoch.length))) > dop.tmp.act_range(1) ...
+                    && mean(median(dop.tmp.data(:,dop.epoch.length))) < dop.tmp.act_range(2)
                 
                 %                 if mean(dop.tmp.data(:,1)) < 90 || mean(dop.tmp.data(:,1)) > 110
                 %                     okay = 0;
                 %                     msg{end+1} = sprintf(['Data should be normalised for these values,',...
                 %                         ' doesn''t look like this is the case:\n\t',...
                 %                         'means are  %3.2f (left channel)'],mean(dop.tmp.data(:,1)));
-                %                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                %                     dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 %                 else
                 msg{end+1} = sprintf(['Checking for data points below %i',...
                     ' and above %i'],dop.tmp.act_range);
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 % activation_range_values for the left and right channels
                 % left = row 1, right = row 2
                 dop.tmp.act_range_values = repmat(dop.tmp.act_range,2,1);
@@ -121,13 +106,13 @@ try
                 %                     'Check the activation range values'],...
                 %                     mean(squeeze(dop.tmp.data(:,:,1:2))),...
                 %                     dop.tmp.act_range);
-                %                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                %                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 
                 %                 dop.tmp.range_type = 'sd';
                 %                 msg{end+1} = sprintf(['Checking for data points below %i',...
                 %                     ' and above %i standard deviations of mean.'],...
                 %                     dop.tmp.act_range);
-                %                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                %                 dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                 %                 % activation_range_values for the left and right channels
                 %                 % left = row 1, right = row 2
                 %                 if size(dop.tmp.data,3) == 1
@@ -146,7 +131,7 @@ try
                     ' the left channel (e.g., %3.2f)\n\texpected mean to be',...
                     ' with the activation range: check values'],...
                     dop.tmp.act_range,mean(dop.tmp.data(:,1)));
-                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             end
         end
         %% main code
@@ -162,7 +147,7 @@ try
                 ' Right values < %3.2f or > %3.2f'],...
                 dop.tmp.act_range_values(1,:),dop.tmp.act_range_values(2,:));
             msg{end+1} = dop.epoch.act_note;
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             
             dop.epoch.act = ones(1,dop.tmp.n_epochs);
             
@@ -186,7 +171,7 @@ try
                                 ' %u samples (%3.2f secs). Checking avialable'],...
                                 j,abs(dop.tmp.filt_limits(1)),...
                                 dop.tmp.filt_limits(1)*(1/dop.tmp.sample_rate));
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                             dop.tmp.filt_limits(1) = 1;
                         end
                         if dop.tmp.filt_limits(2) > size(dop.tmp.data,1)
@@ -194,21 +179,17 @@ try
                                 ' %u samples (%3.2f secs). Checking avialable'],...
                                 j,size(dop.tmp.data,1) - dop.tmp.filt_limits(2),...
                                 (size(dop.tmp.data,1)-dop.tmp.filt_limits(2))*(1/dop.tmp.sample_rate));
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                             dop.tmp.filt_limits(2) = size(dop.tmp.data,1);
                         end
                         dop.tmp.filt = dop.tmp.filt_limits(1) : dop.tmp.filt_limits(2);
-%                         dop.tmp.filt_data =
-%                         dop.tmp.data(dop.tmp.filt,1:2); % pre 13-Jul-2018
-                        dop.tmp.filt_data = dop.tmp.data(dop.tmp.filt,1:2); %dop.tmp.ch_check);
+                        dop.tmp.filt_data = dop.tmp.data(dop.tmp.filt,1:2);
                     case 'epoched'
                         dop.tmp.filt = 1 : size(dop.tmp.data,1);
                         dop.tmp.filt_data = dop.tmp.data(:,j,1:2);
                 end
-%                 dop.tmp.under = bsxfun(@lt,dop.tmp.filt_data(:,1:2),dop.tmp.act_range_values(:,1)');
-%                 dop.tmp.over = bsxfun(@gt,dop.tmp.filt_data(:,1:2), dop.tmp.act_range_values(:,2)');
-                dop.tmp.under = bsxfun(@lt,dop.tmp.filt_data(:,dop.tmp.ch_check),dop.tmp.act_range_values(dop.tmp.ch_check,1)');
-                dop.tmp.over = bsxfun(@gt,dop.tmp.filt_data(:,dop.tmp.ch_check), dop.tmp.act_range_values(dop.tmp.ch_check,2)');
+                dop.tmp.under = bsxfun(@lt,dop.tmp.filt_data(:,1:2),dop.tmp.act_range_values(:,1)');
+                dop.tmp.over = bsxfun(@gt,dop.tmp.filt_data(:,1:2), dop.tmp.act_range_values(:,2)');
                 dop.tmp.all = bsxfun(@plus,dop.tmp.under,dop.tmp.over);
                 dop.tmp.pct = sum(dop.tmp.all)/numel(dop.tmp.all)*100;
                 %                 dop.tmp.adjust = dop.tmp.pct <= dop.tmp.act_correct;
@@ -242,7 +223,7 @@ try
                     %                             msg{end} = strrep(msg{end},'Correcting',...
                     %                                 sprintf('Epoch %u: Correcting',j));
                     %                         end
-                    %                         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                    %                         dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     %                         dop.tmp.filt_data(logical(dop.tmp.all(:,i)),i) = ...
                     %                             eval([dop.tmp.act_replace,'(dop.tmp.filt_data(:,i))']);
                     %                     else
@@ -252,7 +233,7 @@ try
                             ' (%3.2f%%) in %s channel outside range'],...
                             j,sum(dop.tmp.all(:,i)),dop.tmp.pct(i),...
                             dop.tmp.ch_labels{i});
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
                     end
                 end
                 %                 %% put the corrected data into the new matrix
@@ -291,7 +272,7 @@ try
                 dop.epoch.act_mean,dop.epoch.act_std,...
                 dop.epoch.act_median,dop.epoch.act_iqr,...
                 dop.epoch.act_min,dop.epoch.act_max);
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             msg{end+1} = sprintf(['To include this information in data file add the following '...
                 'to the dop.save.extras variable:\n',...
                 '\t- ''act_removed'' = number epochs removed outside range (%u %u)\n',...

@@ -22,7 +22,8 @@ function [dop,okay,msg] = dopEpochScreenChange(dop_input,varargin)
 %
 % Created: 29-Jun-2018 NAB
 % Last edit:
-%   29-Jun-2018 NAB made sure the windows are whole numbers
+% 29-Jun-2018 NAB made sure the windows are whole numbers
+% 13-Jul-2018 NAB need to ignore dropout channels
 
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -38,7 +39,7 @@ try
         inputs.defaults = struct(...
             'act_change_plot',0,...
             'screen_event',1,...
-            'showmsg',1,...
+            'msg',1,...
             'wait_warn',0,...
             'act_change',15,... % change relative to mean/baseline
             'act_change_index','pct',... 'iqr'
@@ -57,12 +58,12 @@ try
             if size(dop.tmp.data,3) == 1
                 dop.tmp.data_type = 'continuous';
                 msg{end+1} = 'Continuous data (i.e., not epoched) inputted';
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 
                 msg{end+1} = sprintf(['data %u columns, assuming first',...
                     ' 2 are left and right channels'],...
                     size(dop.tmp.data,2));
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 
                 [dop,okay,msg] = dopEventMarkers(dop,okay,msg);
                 % refresh the data if necessary
@@ -71,12 +72,12 @@ try
             elseif size(dop.tmp.data,3) > 1
                 dop.tmp.data_type = 'epoched';
                 msg{end+1} = 'Epoched data inputted';
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             else
                 okay = 0;
                 msg{end+1} = ['Data type unknown: expecting continuous or'...
                     'epoched. Can''t continue function'];
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
             
         end
@@ -123,7 +124,7 @@ try
                                     ' %u samples (%3.2f secs). Checking avialable'],...
                                     j,abs(dop.tmp.filt_limits(1)),...
                                     dop.tmp.filt_limits(1)*(1/dop.tmp.sample_rate));
-                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                 dop.tmp.filt_limits(1) = 1;
                             end
                             if dop.tmp.filt_limits(2) > size(dop.tmp.data,1)
@@ -131,7 +132,7 @@ try
                                     ' %u samples (%3.2f secs). Checking avialable'],...
                                     j,size(dop.tmp.data,1) - dop.tmp.filt_limits(2),...
                                     (size(dop.tmp.data,1)-dop.tmp.filt_limits(2))*(1/dop.tmp.sample_rate));
-                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                 dop.tmp.filt_limits(2) = size(dop.tmp.data,1);
                             end
                             dop.tmp.filt = dop.tmp.filt_limits(1) : dop.tmp.filt_limits(2);
@@ -220,6 +221,21 @@ try
 %                             dop.tmp.pct = 100*(sum(dop.tmp.all == 0)/numel(dop.tmp.diff));
                             dop.tmp.pct_windows = 100*(sum(dop.tmp.all == 1)./size(dop.tmp.window_diffs,1));
                             dop.epoch.change(j) = sum(sum(dop.tmp.all) == 0) == 2;
+                            % 13-Jul-2018 seems inefficient to do this
+                            % every time but it allows the for the
+                            % calculation and then saving of the data if
+                            % that's part of the process
+                            if isfield(dop,'dropout') && sum(dop.dropout.okay) ~= 2
+                                % this will ensure we're using the best channel
+                                dop.epoch.change(j) = sum(sum(dop.tmp.all(:,logical(dop.dropout.okay)))) == 0;
+                                %                                 dop.epoch.change(j) = true(ones(size(dop.epoch.sep)));
+                                if j == 1 % don't need to repeat this for every epoch
+                                    msg{end+1} = sprintf(['Only using single channel (%s) ',...
+                                        'for screening (''%s'').'],...
+                                        dop.dropout.ch_names{logical(dop.dropout.okay)},mfilename);
+                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                end
+                            end
                             if ~dop.epoch.change(j)
 %                                 if dop.tmp.pct <= dop.tmp.act_change_pct
 %                                     dop.epoch.change(j) = 1;
@@ -229,11 +245,12 @@ try
 %                                         j,sum(dop.tmp.all == 0),dop.tmp.value,dop.tmp.pct,...
 %                                         dop.tmp.act_change_pct);
 %                                 else
-                                    msg{end+1} = sprintf(['Epoch %u. has a change',...
-                                        ' greater than %3.2f (%% of %3.2f-second windows: left = %3.2f%%, right = %3.2f%%), therefore excluded'],...
+                                    msg{end+1} = sprintf(['Epoch %u. has a change' ...
+                                        ' greater than %3.2f (%% of %3.2f-second windows: ' ...
+                                        'left = %3.2f%%, right = %3.2f%%), therefore excluded'],...
                                         j,dop.tmp.value, dop.tmp.act_change_window,dop.tmp.pct_windows);
 %                                 end
-                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             end
                     end
                 end
@@ -244,7 +261,7 @@ try
                 dop.save.act_change_use,...
                 dop.tmp.act_change_index);
             msg{end+1} = dop.epoch.change_note;
-            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             
             dop.epoch.change = logical(dop.epoch.change);
             dop.epoch.act_change_removed = sum(dop.epoch.change == 0);
@@ -261,7 +278,7 @@ try
                 dop.epoch.act_change_mean,dop.epoch.act_change_std,...
                 dop.epoch.act_change_median,dop.epoch.act_change_iqr,...
                 dop.epoch.act_change_min,dop.epoch.act_change_max);
-            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             %% L and R variables + average
             for i = 1 : numel(dop.epoch.act_change_descriptives)
                 dop.tmp.LR_labels = {'L','R'};

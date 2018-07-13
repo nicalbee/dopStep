@@ -114,6 +114,7 @@ function [dop,okay,msg] = dopEpochScreenManual(dop_input,varargin)
 %   doesn't expect this...
 % 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 13-Jul-2018 NAB added save extras message
 
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -302,6 +303,9 @@ try
             
             dop.epoch.manual = logical(dop.epoch.manual);
             dop.epoch.manual_removed = sum(dop.epoch.manual == 0);
+            msg{end+1} = ['To include this information in data file add the following ' ...
+                'to the dop.save.extras variable:\n' ...
+                '\t- ''manual_removed'''];
         end
         
         dop.step.(mfilename) = 1;

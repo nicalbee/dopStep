@@ -33,6 +33,7 @@ function [dop,okay,msg] = dopEpochScreenSep(dop_input,varargin)
 % 09-Nov-2015 NAB wondering about individually sensitive cut-offs
 % 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 13-Jul-2018 NAB adding dropout/single channel skip
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -95,7 +96,7 @@ try
             elseif strcmp(dop.tmp.data_type,'epoched')
                 dop.tmp.n_epochs = size(dop.tmp.data,2);
             end
-            dop.epoch.sep = ones(1,dop.tmp.n_epochs);
+            dop.epoch.sep = ones(1,dop.tmp.n_epochs)*-9999;
             
             % some descriptives
             dop.epoch.act_sep_descriptives = {'mean','std','median','iqr','min','max'};
@@ -199,6 +200,14 @@ try
             dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
             
             dop.epoch.sep = logical(dop.epoch.sep);
+            if isfield(dop,'dropout') && sum(dop.dropout.okay) ~= 2
+                % this will ensure we're using the best channel
+                dop.epoch.sep = true(ones(size(dop.epoch.sep)));
+                msg{end+1} = sprintf(['Only using single channel (%s) ',...
+                    'for screening so skipping ''%s'' screening.'],...
+                    dop.dropout.ch_names{logical(dop.dropout.okay)},mfilename);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
             dop.epoch.act_sep_removed = sum(dop.epoch.sep == 0);
             
             

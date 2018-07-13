@@ -24,12 +24,13 @@ function [dop,okay,msg] = dopHeartCycle(dop_input,varargin)
 % 31-Aug-2014 NAB fixed first and last events as could be incomplete, using
 %   next and previous values respectively
 % 04-Sep-2014 NAB msg & warn_wait updates
-% 20-May-2015 NAB added 'showmsg'
+% 20-May-2015 NAB added 'msg'
 % 25-july-2016 NAB changed 'correct' to 'step' for 'type' of correct
 % 30-July-2016 NAB updated 'linspace' setting to be 'linear' makes more
 %   sense and fits with dopStep gui explanation more transparently
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 % 13-Nov-2017 NAB added 'heart_cycle_type' variable - better for definition
+% 13-Jul-2018 NAB added dropout check alternate channel
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -40,54 +41,56 @@ try
         inputs.turnOff = {'comment'};%,'correct','linspace'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'showmsg',1,...
+            'msg',1,...
             'wait_warn',0,...
             'sample_rate',[], ...
-            'signal_channels',[2 3],...
+            'signal_channels',[2 3],... % only needed if data is rawer than usual
             'event_channels',[],... % really need to keep event data somewhere
             'heart_cycle_type',[],...
             'type','linear',... % 'step'
             'window',3, ... % number of samples to look for peak of
             'plot_range',[500 700] ... % 2 numbers and plot will be created
             );
+        %             'channel_labels',[],...
         inputs.required = ...
-            {'sample_rate','signal_channels','event_channels'}; %
+            {'sample_rate','signal_channels','event_channels'};%,'channel_labels'}; %
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
         %% data check
         % need to have event data
-        if size(dop.tmp.data,3) > 1
-            okay = 0;
-            msg{end+1} = 'Data already epoched. Reset data to pre-epoched; e.g., dop.data.raw or dop.data.down or dop.data.norm (with ''overall'' method)';
-            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-        elseif size(dop.tmp.data,2) >= max(dop.tmp.event_channels) && numel(unique(dop.tmp.data(:,dop.tmp.event_channels(1)))) > 2
-            [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
-            [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);          
-        elseif size(dop.tmp.data,2) == numel(dop.data.channel_labels) || ...
-                size(dop.tmp.data,2) == numel([dop.tmp.signal_channels,dop.tmp.event_channels]) ...
-                || numel(unique(dop.tmp.data(:,dop.tmp.event_channels(1)))) == 2
-            msg{end+1} = 'Event channels in ''dop.tmp.data''';
-            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-        else
-            okay = 0;
-            msg{end+1} = sprintf(['Can''t create ''dop.data.event'' variable, as data'...
-                ' doesn''t have suitable number of columns:\n\t%u and max' ...
-                ' event channel is %u\n\tThis is likely to be a problem at' ...
-                ' some point down the track - e.g, dopEpoch.'],...
-                size(dop.tmp.data,2),max(dop.tmp.event_channels));
-            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+        if okay
+            if size(dop.tmp.data,3) > 1
+                okay = 0;
+                msg{end+1} = 'Data already epoched. Reset data to pre-epoched; e.g., dop.data.raw or dop.data.down or dop.data.norm (with ''overall'' method)';
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            elseif size(dop.tmp.data,2) >= max(dop.tmp.event_channels) && numel(unique(dop.tmp.data(:,dop.tmp.event_channels(1)))) > 2
+                [dop,okay,msg] = dopChannelExtract(dop,okay,msg);
+                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+            elseif size(dop.tmp.data,2) == numel(dop.data.channel_labels) || ...
+                    size(dop.tmp.data,2) == numel([dop.tmp.signal_channels,dop.tmp.event_channels]) ...
+                    || numel(unique(dop.tmp.data(:,dop.tmp.event_channels(1)))) == 2
+                msg{end+1} = 'Event channels in ''dop.tmp.data''';
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            else
+                okay = 0;
+                msg{end+1} = sprintf(['Can''t create ''dop.data.event'' variable, as data'...
+                    ' doesn''t have suitable number of columns:\n\t%u and max' ...
+                    ' event channel is %u\n\tThis is likely to be a problem at' ...
+                    ' some point down the track - e.g, dopEpoch.'],...
+                    size(dop.tmp.data,2),max(dop.tmp.event_channels));
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
         end
-        
         %     if okay && or(size(dop.tmp.data,2) > 2, size(dop.tmp.data,3) > 1)
         %         if size(dop.tmp.data,2) > 2 && size(dop.tmp.data,3) == 1
         %         dop.tmp.in_data = dop.tmp.data;
         %         dop.tmp.data = dop.tmp.data(:,dop.tmp.signal_channels);
         %         msg{end+1} = 'Pulling out the signal channels';
-        %         dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+        %         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         %         elseif size(dop.tmp.data,3) > 1
         %             okay = 0;
         %             msg{end+1} = 'Data already epoched. Reset data to pre-epoched; e.g., dop.data.raw or dop.data.down or dop.data.norm (with ''overall'' method)';
-        %         dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+        %         dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
         %         end
         %     end
         if okay
@@ -100,7 +103,7 @@ try
             
             %% >> find dop.tmp.systolic
             % dop.tmp.systolic=1; % treat first point as peak, even though it might not be
-            dop.tmp.systolic = [];
+            %             dop.tmp.systolic = []; % define this later now
             %     dop.tmp.window = 3; % formerly 10, July 2010...some people's heart beats are weird...
             % dop.tmp.use_data = dop.tmp.data;
             % filter window, screening for heart cycles
@@ -108,7 +111,14 @@ try
             
             
             dop.tmp.use_data = dop.tmp.data;
-            
+            %% check the data
+            % if there's a heap of dropout, could be problematic and a
+            % particular channel should be ignored
+            %             dop.tmp.ch_names = {'left','right'}; % updating
+            %             dop.tmp.dropped_events = zeros(1,numel(dop.tmp.ch_names));
+            %             for j = 1 : numel(dop.tmp.ch_names)
+            %
+            %             end
             %% filter data?
             % I no longer think this is helpful but it might be for some particular
             % data files 10-Aug-2014
@@ -118,13 +128,29 @@ try
             % this strange number came from trial and error...
             dop.tmp.range = round(dop.tmp.sample_rate/3.7879); % search range/windows
             
+            % 05-July-2018 NAB worried about this for a while but it hasn't
+            % been a problem but it's just using a single channel for this
+            %             dop.tmp.ch_names = {'left','right'}; % updating
+            j = 1;
+            if isfield(dop,'dropout') && sum(dop.dropout.okay) ~= 2
+                % this will ensure we're using the best channel
+                j = find(dop.dropout.okay);
+                msg{end+1} = sprintf('Using %s channel based on ''dopDropoutCheck''.',...
+                    dop.dropout.ch_names{j});
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+            end
+            
+            %             for j = 1 : 1 %numel(dop.tmp.ch_names)
+            dop.tmp.systolic = [];
             for i = 2 : dop.tmp.range*2+1
-                if dop.tmp.use_data(i-1,1) >= dop.tmp.use_data(i-i+1:i,1)
+                if dop.tmp.use_data(i-1,j) >= dop.tmp.use_data(i-i+1:i,j)
                     if dop.tmp.use_data(i-1,1) >= dop.tmp.use_data(i:i+dop.tmp.range,1)
                         dop.tmp.systolic(end+1) = i-1; %dop.tmp.systolic holds times of dop.tmp.systolic
                     end
                 end
             end
+            
+            
             for i = 1 + dop.tmp.range : size(dop.tmp.data,1)-1-dop.tmp.range
                 if isempty(dop.tmp.systolic)
                     if and(dop.tmp.use_data(i,1) >= dop.tmp.use_data(i-dop.tmp.range:i-1,1),dop.tmp.use_data(i) >= dop.tmp.use_data(i+1:i+dop.tmp.range,1))
@@ -137,6 +163,12 @@ try
                     end
                 end
             end
+            % should be at least 30 beats per minute
+            %                 if numel(dop.tmp.systolic) > size(dop.tmp.use_data,1)/dop.tmp.sample_rate/60*30
+            %
+            %                     break
+            %                 end
+            %             end
             % don't think the last one needs to be one
             %     dop.tmp.systolic = [dop.tmp.systolic size(dop.tmp.data,1)]; % last one needs to be one as well
             %     for i = 1 : length(dop.tmp.systolic)
@@ -145,7 +177,7 @@ try
             dop.data.hc_events = zeros(size(dop.tmp.data,1),1);
             dop.data.hc_events(dop.tmp.systolic) = 1;
             
-            %% correct?
+            %% correction?
             if ~isempty(dop.tmp.heart_cycle_type)
                 dop.tmp.type = dop.tmp.heart_cycle_type;
             end
@@ -153,7 +185,7 @@ try
                 case {'step','linear'}
                     if strcmp(dop.tmp.type,'step')
                         msg{end+1} = 'Correcting for heart cycles using deppe method';
-                       dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                     end
                     % might be an elegant way to do this but I'm not sure
                     dop.tmp.hc_correct = zeros(size(dop.tmp.data));
@@ -161,22 +193,22 @@ try
                     
                     if strcmp(dop.tmp.type,'linear')
                         msg{end+1} = 'Correcting for heart cycles using deppe method + ''linear'' adjustment';
-                       dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                         dop.tmp.hc_linspace = dop.tmp.hc_correct;
                     end
                     for i = 2 : numel(dop.tmp.systolic)+1
                         if i <= numel(dop.tmp.systolic)%+2
-%                             switch i
-%                                 case 1 % first event, need to average before this point
-%                                     % but if not a whole cycle, average is
-%                                     % low - so changing this to be average
-%                                     % of next cycle
-%                                     dop.tmp.filt = 1 : dop.tmp.systolic(i)-1;
-%                                 case numel(dop.tmp.systolic)+1
-%                                     dop.tmp.filt = dop.tmp.systolic(i-1) : size(dop.tmp.data,1);
-%                                 otherwise
-                                    dop.tmp.filt = dop.tmp.systolic(i-1) : dop.tmp.systolic(i)-1;
-%                             end
+                            %                             switch i
+                            %                                 case 1 % first event, need to average before this point
+                            %                                     % but if not a whole cycle, average is
+                            %                                     % low - so changing this to be average
+                            %                                     % of next cycle
+                            %                                     dop.tmp.filt = 1 : dop.tmp.systolic(i)-1;
+                            %                                 case numel(dop.tmp.systolic)+1
+                            %                                     dop.tmp.filt = dop.tmp.systolic(i-1) : size(dop.tmp.data,1);
+                            %                                 otherwise
+                            dop.tmp.filt = dop.tmp.systolic(i-1) : dop.tmp.systolic(i)-1;
+                            %                             end
                             dop.tmp.hc_correct(dop.tmp.filt,1:2) = bsxfun(@times,ones(numel(dop.tmp.filt),2),mean(dop.tmp.use_data(dop.tmp.filt,1:2)));
                             if i == 2
                                 % first interval may not be complete so use next interval
@@ -190,14 +222,14 @@ try
                         end
                         %% > linspace smoothing
                         if i > 2 && strcmp(dop.tmp.type,'linear') && exist('linspace','file')
-%                             switch i
-%                                 case 2
-%                                     dop.tmp.filt = 1 : dop.tmp.systolic(i-1);
-%                                 case numel(dop.tmp.systolic)+2
-%                                     dop.tmp.filt = dop.tmp.systolic(i-2) : size(dop.tmp.data,1);
-%                                 otherwise
-                                    dop.tmp.filt = dop.tmp.systolic(i-2) : dop.tmp.systolic(i-1);
-%                             end
+                            %                             switch i
+                            %                                 case 2
+                            %                                     dop.tmp.filt = 1 : dop.tmp.systolic(i-1);
+                            %                                 case numel(dop.tmp.systolic)+2
+                            %                                     dop.tmp.filt = dop.tmp.systolic(i-2) : size(dop.tmp.data,1);
+                            %                                 otherwise
+                            dop.tmp.filt = dop.tmp.systolic(i-2) : dop.tmp.systolic(i-1);
+                            %                             end
                             dop.tmp.values = dop.tmp.hc_correct([min(dop.tmp.filt) max(dop.tmp.filt)],1:2);
                             dop.tmp.hc_linspace(dop.tmp.filt,1) =  linspace(dop.tmp.values(1,1),dop.tmp.values(2,1),numel(dop.tmp.filt));
                             dop.tmp.hc_linspace(dop.tmp.filt,2) = linspace(dop.tmp.values(1,2),dop.tmp.values(2,2),numel(dop.tmp.filt));
@@ -215,7 +247,7 @@ try
                     okay = 0;
                     msg{end+1} = sprintf('''%s'' correction type not recognised',...
                         dop.tmp.type);
-                    dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
             
             %% look at the data?
@@ -248,47 +280,47 @@ try
                 [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
             end
             dop.data.channel_labels = dop.tmp.channel_labels;
-%             if okay  && ~isempty(dop.tmp.plot_range)
-%                 dop.tmp.h = figure; %hold;
-%                 dop.tmp.range_array = dop.tmp.plot_range(1) : dop.tmp.plot_range(2);
-%                 plot(dop.data.hc_events(dop.tmp.range_array)*250,'k','DisplayName','Events'); hold;
-%                 set(gca,'XLim',[1 diff(dop.tmp.plot_range)]);
-%                 plot(dop.tmp.data(dop.tmp.range_array,1),'--b','linewidth',1,'DisplayName','Left');
-%                 plot(dop.tmp.hc_correct(dop.tmp.range_array,1),'b','linewidth',2,'DisplayName','Left Correct');
-%                 plot(dop.tmp.data(dop.tmp.range_array,2),'--r','linewidth',1,'DisplayName','Right');
-%                 plot(dop.tmp.hc_correct(dop.tmp.range_array,2),'r','linewidth',2,'DisplayName','Right Correct');
-%                 
-%                 if dop.tmp.filter
-%                     plot(dop.tmp.use_data(dop.tmp.range_array,1),'--c','DisplayName','Filtered');
-%                 end
-%                 if strcmp(dop.tmp.type,'linspace')
-%                     plot(dop.tmp.hc_linspace(dop.tmp.range_array,1),'--g','linewidth',1,'DisplayName','Left Smooth');
-%                     plot(dop.tmp.hc_linspace(dop.tmp.range_array,2),'--m','linewidth',1,'DisplayName','Right Smooth');
-%                 end
-%                 legend(get(dop.tmp.h,'CurrentAxes')); % doesn't always work...
-%                 fprintf('Press any key to continue\n');
-%                 pause;
-%                 try; close(dop.tmp.h); end
-%             end
+            %             if okay  && ~isempty(dop.tmp.plot_range)
+            %                 dop.tmp.h = figure; %hold;
+            %                 dop.tmp.range_array = dop.tmp.plot_range(1) : dop.tmp.plot_range(2);
+            %                 plot(dop.data.hc_events(dop.tmp.range_array)*250,'k','DisplayName','Events'); hold;
+            %                 set(gca,'XLim',[1 diff(dop.tmp.plot_range)]);
+            %                 plot(dop.tmp.data(dop.tmp.range_array,1),'--b','linewidth',1,'DisplayName','Left');
+            %                 plot(dop.tmp.hc_correct(dop.tmp.range_array,1),'b','linewidth',2,'DisplayName','Left Correct');
+            %                 plot(dop.tmp.data(dop.tmp.range_array,2),'--r','linewidth',1,'DisplayName','Right');
+            %                 plot(dop.tmp.hc_correct(dop.tmp.range_array,2),'r','linewidth',2,'DisplayName','Right Correct');
+            %
+            %                 if dop.tmp.filter
+            %                     plot(dop.tmp.use_data(dop.tmp.range_array,1),'--c','DisplayName','Filtered');
+            %                 end
+            %                 if strcmp(dop.tmp.type,'linspace')
+            %                     plot(dop.tmp.hc_linspace(dop.tmp.range_array,1),'--g','linewidth',1,'DisplayName','Left Smooth');
+            %                     plot(dop.tmp.hc_linspace(dop.tmp.range_array,2),'--m','linewidth',1,'DisplayName','Right Smooth');
+            %                 end
+            %                 legend(get(dop.tmp.h,'CurrentAxes')); % doesn't always work...
+            %                 fprintf('Press any key to continue\n');
+            %                 pause;
+            %                 try; close(dop.tmp.h); end
+            %             end
             %% update 'dop.data.use'
             if okay
                 switch dop.tmp.type
-                        case 'step'
-                            dop.data.hc_correct = dop.tmp.hc_correct;
-                            [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'hc_correct');
-                        case 'linear'
-                            if exist('linspace','file')
-                                msg{end+1} = 'Smoothing heart cycles corrected data (corrected using deppe method)';
-                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-                                
-                                dop.data.hc_linspace = dop.tmp.hc_linspace;
-                                [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'hc_linspace');
-                                
-                            elseif ~exist('linspace','file')
-                                msg{end+1} = ['Smoothing heart cycles requested but requires' ...
-                                    '''linspace'' MATLAB function which is not on path'];
-                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
-                            end
+                    case 'step'
+                        dop.data.hc_correct = dop.tmp.hc_correct;
+                        [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'hc_correct');
+                    case 'linear'
+                        if exist('linspace','file')
+                            msg{end+1} = 'Smoothing heart cycles corrected data (corrected using deppe method)';
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                            
+                            dop.data.hc_linspace = dop.tmp.hc_linspace;
+                            [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'hc_linspace');
+                            
+                        elseif ~exist('linspace','file')
+                            msg{end+1} = ['Smoothing heart cycles requested but requires' ...
+                                '''linspace'' MATLAB function which is not on path'];
+                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        end
                 end
                 [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
             end
