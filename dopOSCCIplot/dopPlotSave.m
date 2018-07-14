@@ -89,7 +89,10 @@ function [dop,okay,msg] = dopPlotSave(dop_input,varargin)
 % 20-Apr-2017 NAB added 'task_name' input and removed reference to dop.def
 %   variable
 % 02-Jul-2018 NAB little update for when not dop.tmp.collect (when it
-%   doesn't exist
+%   doesn't exist)
+% 14-Jul-2018 NAB making sure collect name works and only looks for the
+%   dop.tmp.beh variable when it exists
+%
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -108,6 +111,7 @@ try
             'plot_dir',[],... % location for plot image
             'plot_fullfile',[],...
             'plot_file_type','fig',...'png',...
+            'collect',0,...
             'handle',[],...
             'auto',1,...
             'gui',0,...
@@ -172,7 +176,7 @@ try
                                     dop_file,dop.tmp.task_name,dop.tmp.type);
                             end
                     end
-                    if ~isempty(dop.tmp.beh)
+                    if isfield(dop.tmp,'beh') && ~isempty(dop.tmp.beh)
                         dop.tmp.plot_file = sprintf('%s_%s',dop.tmp.plot_file,dop.tmp.beh);
                     end
                 elseif ~isempty(dop.tmp.file) && strcmp(dop.tmp.plot_file,dop.tmp.defaults.plot_file) || ~isempty(dop.tmp.file) && isempty(dop.tmp.plot_file)

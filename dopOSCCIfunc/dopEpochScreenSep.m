@@ -27,7 +27,7 @@ function [dop,okay,msg] = dopEpochScreenSep(dop_input,varargin)
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 12-Sep-2014 NAB absolute difference: negatives were getting through!
 % 19-May-2015 NAB adding some descriptives to look at
-% 20-May-2015 NAB added 'showmsg' & sep_remove output variable
+% 20-May-2015 NAB added 'msg' & sep_remove output variable
 % 21-May-2015 NAB updated descriptives
 % 22-May-2015 NAB fixed descriptive calculation
 % 09-Nov-2015 NAB wondering about individually sensitive cut-offs
@@ -46,7 +46,7 @@ try
         inputs.varargin = varargin;
         inputs.defaults = struct(...
             'screen_event',1,...
-            'showmsg',1,...
+            'msg',1,...
             'wait_warn',0,...
             'act_separation',20,...
             'act_separation_index','pct',... 'iqr'
@@ -65,12 +65,12 @@ try
             if size(dop.tmp.data,3) == 1
                 dop.tmp.data_type = 'continuous';
                 msg{end+1} = 'Continuous data (i.e., not epoched) inputted';
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 
                 msg{end+1} = sprintf(['data %u columns, assuming first',...
                     ' 2 are left and right channels'],...
                     size(dop.tmp.data,2));
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                 
                 [dop,okay,msg] = dopEventMarkers(dop,okay,msg);
                 % refresh the data if necessary
@@ -79,12 +79,12 @@ try
             elseif size(dop.tmp.data,3) > 1
                 dop.tmp.data_type = 'epoched';
                 msg{end+1} = 'Epoched data inputted';
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             else
                 okay = 0;
                 msg{end+1} = ['Data type unknown: expecting continuous or'...
                     'epoched. Can''t continue function'];
-                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
             
         end
@@ -122,7 +122,7 @@ try
                                     ' %u samples (%3.2f secs). Checking avialable'],...
                                     j,abs(dop.tmp.filt_limits(1)),...
                                     dop.tmp.filt_limits(1)*(1/dop.tmp.sample_rate));
-                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                 dop.tmp.filt_limits(1) = 1;
                             end
                             if dop.tmp.filt_limits(2) > size(dop.tmp.data,1)
@@ -130,7 +130,7 @@ try
                                     ' %u samples (%3.2f secs). Checking avialable'],...
                                     j,size(dop.tmp.data,1) - dop.tmp.filt_limits(2),...
                                     (size(dop.tmp.data,1)-dop.tmp.filt_limits(2))*(1/dop.tmp.sample_rate));
-                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                 dop.tmp.filt_limits(2) = size(dop.tmp.data,1);
                             end
                             dop.tmp.filt = dop.tmp.filt_limits(1) : dop.tmp.filt_limits(2);
@@ -186,7 +186,7 @@ try
                                         ' greater than %3.2f (%3.2f%%), therefore excluded'],...
                                         j,sum(dop.tmp.all == 0),dop.tmp.value,dop.tmp.pct);
                                 end
-                                dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             end
                     end
                 end
@@ -197,7 +197,7 @@ try
                 dop.tmp.act_separation_pct,dop.save.act_separation_use,...
                 dop.tmp.act_separation_index);
             msg{end+1} = dop.epoch.sep_note;
-            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             
             dop.epoch.sep = logical(dop.epoch.sep);
             if isfield(dop,'dropout') && sum(dop.dropout.okay) ~= 2
@@ -222,7 +222,7 @@ try
                 dop.epoch.act_sep_mean,dop.epoch.act_sep_std,...
                 dop.epoch.act_sep_median,dop.epoch.act_sep_iqr,...
                 dop.epoch.act_sep_min,dop.epoch.act_sep_max);
-            dopMessage(msg,dop.tmp.showmsg,1,okay,dop.tmp.wait_warn);
+            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             
             
             msg{end+1} = sprintf(['To include this information in data file add the following '...
