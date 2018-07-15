@@ -31,6 +31,8 @@ function [dop,okay,msg] = dopHeartCycle(dop_input,varargin)
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 % 13-Nov-2017 NAB added 'heart_cycle_type' variable - better for definition
 % 13-Jul-2018 NAB added dropout check alternate channel
+% 16-Jul-2018 NAB fixed the channel allocation thing - hadn't used it all
+%  the way through the different calculations...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -126,26 +128,35 @@ try
                 dop.tmp.use_data(:,1:2) = filter(ones(1,dop.tmp.window)/dop.tmp.window,1,dop.tmp.data(:,1:2));
             end
             % this strange number came from trial and error...
-            dop.tmp.range = round(dop.tmp.sample_rate/3.7879); % search range/windows
+%             dop.tmp.range = round(dop.tmp.sample_rate/3.7879); % search range/windows
+%             % wondering if this should be wider for lower sampling rate...
+%             % 16-Jul-2018
+%             if dop.tmp.sample_rate < 100
+%                 dop.tmp.range = round(dop.tmp.sample_rate/1.7879);
+%             end
+            % probably needs to be a time window rather than sample - about
+            % a quarter/third or more... of a second maybe:
+            dop.tmp.range = round(.33/(1/dop.tmp.sample_rate));
             
             % 05-July-2018 NAB worried about this for a while but it hasn't
             % been a problem but it's just using a single channel for this
             %             dop.tmp.ch_names = {'left','right'}; % updating
-            j = 1;
+            dop.tmp.check_ch = 1; %j = 1;
             if isfield(dop,'dropout') && sum(dop.dropout.okay) ~= 2
                 % this will ensure we're using the best channel
-                j = find(dop.dropout.okay);
+                dop.tmp.check_ch = find(dop.dropout.okay);
                 msg{end+1} = sprintf('Using %s channel based on ''dopDropoutCheck''.',...
-                    dop.dropout.ch_names{j});
+                    dop.dropout.ch_names{dop.tmp.check_ch});
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
             
             %             for j = 1 : 1 %numel(dop.tmp.ch_names)
+            % This is to find the first bump
             dop.tmp.systolic = [];
             for i = 2 : dop.tmp.range*2+1
-                if dop.tmp.use_data(i-1,j) >= dop.tmp.use_data(i-i+1:i,j)
-                    if dop.tmp.use_data(i-1,1) >= dop.tmp.use_data(i:i+dop.tmp.range,1)
-                        dop.tmp.systolic(end+1) = i-1; %dop.tmp.systolic holds times of dop.tmp.systolic
+                if dop.tmp.use_data(i-1,dop.tmp.check_ch) >= dop.tmp.use_data(i-i+1:i,dop.tmp.check_ch)
+                    if dop.tmp.use_data(i-1,dop.tmp.check_ch) >= dop.tmp.use_data(i:i+dop.tmp.range,dop.tmp.check_ch)
+                        dop.tmp.systolic(end+1) = i-1; % dop.tmp.systolic holds times of dop.tmp.systolic
                     end
                 end
             end
@@ -153,11 +164,11 @@ try
             
             for i = 1 + dop.tmp.range : size(dop.tmp.data,1)-1-dop.tmp.range
                 if isempty(dop.tmp.systolic)
-                    if and(dop.tmp.use_data(i,1) >= dop.tmp.use_data(i-dop.tmp.range:i-1,1),dop.tmp.use_data(i) >= dop.tmp.use_data(i+1:i+dop.tmp.range,1))
+                    if and(dop.tmp.use_data(i,dop.tmp.check_ch) >= dop.tmp.use_data(i-dop.tmp.range:i-1,dop.tmp.check_ch),dop.tmp.use_data(i,dop.tmp.check_ch) >= dop.tmp.use_data(i+1:i+dop.tmp.range,dop.tmp.check_ch))
                         dop.tmp.systolic(end+1) = i; %dop.tmp.systolic holds times of dop.tmp.systolic
                     end
                 else
-                    if and(and(dop.tmp.use_data(i,1) >= dop.tmp.use_data(i-dop.tmp.range:i-1,1),dop.tmp.use_data(i)>=dop.tmp.use_data(i+1:i+dop.tmp.range,1)),...
+                    if and(and(dop.tmp.use_data(i,dop.tmp.check_ch) >= dop.tmp.use_data(i-dop.tmp.range:i-1,dop.tmp.check_ch),dop.tmp.use_data(i,dop.tmp.check_ch)>=dop.tmp.use_data(i+1:i+dop.tmp.range,dop.tmp.check_ch)),...
                             (i-max(dop.tmp.systolic)) > dop.tmp.range) %find a peak
                         dop.tmp.systolic(end+1) = i; %dop.tmp.systolic holds times of dop.tmp.systolic
                     end
