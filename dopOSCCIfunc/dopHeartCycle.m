@@ -16,6 +16,10 @@ function [dop,okay,msg] = dopHeartCycle(dop_input,varargin)
 % > Outputs: (note, varargout - therefore optional or as many as you want)
 % - dop = dop matlab sructure
 %
+% heart_cycle_window
+% - time in seconds used to look for peaks in one of the left or right
+%   channels to find the heart beats
+%
 % Created: 18-Dec-2013 NAB
 % Last edit:
 % 18-Aug-2014 NAB
@@ -49,6 +53,7 @@ try
             'signal_channels',[2 3],... % only needed if data is rawer than usual
             'event_channels',[],... % really need to keep event data somewhere
             'heart_cycle_type',[],...
+            'heart_cycle_window',.26,... % window size in milliseconds
             'type','linear',... % 'step'
             'window',3, ... % number of samples to look for peak of
             'plot_range',[500 700] ... % 2 numbers and plot will be created
@@ -136,7 +141,7 @@ try
 %             end
             % probably needs to be a time window rather than sample - about
             % a quarter/third or more... of a second maybe:
-            dop.tmp.range = round(.33/(1/dop.tmp.sample_rate));
+            dop.tmp.range = round(dop.tmp.heart_cycle_window/(1/dop.tmp.sample_rate));
             
             % 05-July-2018 NAB worried about this for a while but it hasn't
             % been a problem but it's just using a single channel for this
