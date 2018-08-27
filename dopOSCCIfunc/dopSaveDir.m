@@ -215,7 +215,7 @@ try
         dop.tmp.var_found = 0;
         for i = 1 : numel(dop.tmp.name_variables)
             dop.tmp.vn = dop.tmp.name_variables{i}; % variable name
-            if isfield(dop.tmp,dop.tmp.vn) && ~isempty(dop.tmp.(dop.tmp.vn));
+            if isfield(dop.tmp,dop.tmp.vn) && ~isempty(dop.tmp.(dop.tmp.vn))
                 dop.tmp.var_found = dop.tmp.var_found + 1;
                 %                 if isempty(dop.tmp.save_name)
                 dop.tmp.programmed = 1;

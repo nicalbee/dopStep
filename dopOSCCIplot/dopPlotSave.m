@@ -92,6 +92,7 @@ function [dop,okay,msg] = dopPlotSave(dop_input,varargin)
 %   doesn't exist)
 % 14-Jul-2018 NAB making sure collect name works and only looks for the
 %   dop.tmp.beh variable when it exists
+% 27-Aug-2018 NAB removing legend from evoked flow (from Abu Dhabi!)
 %
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -111,6 +112,7 @@ try
             'plot_dir',[],... % location for plot image
             'plot_fullfile',[],...
             'plot_file_type','fig',...'png',...
+            'plot_save_legend',0,... % only toggles for evoked flow
             'collect',0,...
             'handle',[],...
             'auto',1,...
@@ -182,7 +184,7 @@ try
                 elseif ~isempty(dop.tmp.file) && strcmp(dop.tmp.plot_file,dop.tmp.defaults.plot_file) || ~isempty(dop.tmp.file) && isempty(dop.tmp.plot_file)
                     [~,dop_file,~] = fileparts(dop.tmp.file);
                     dop.tmp.plot_file = sprintf('%s_%s_%s',...
-                                    dop_file,dop.tmp.task_name,dop.tmp.type);
+                        dop_file,dop.tmp.task_name,dop.tmp.type);
                     %                     dop.tmp.plot_file = strrep(dop.tmp.file,dop.tmp.ext,'');
                 end
                 if ~isempty(dop.tmp.plot_fullfile)
@@ -248,65 +250,76 @@ try
             end
             %% main code
             if isfield(dop.tmp,'plot_h') && ~isempty(dop.tmp.plot_h)
-            dop.tmp.axes_only = figure('visible','off','units','normalized',...
-                'position',get(dop.tmp.plot_h,'Position'));
-            dop.tmp.ch = get(dop.tmp.plot_h,'children');
-            dop.tmp.axes_h = dop.tmp.ch(ismember(get(dop.tmp.ch,'type'),'axes'));
-            copyobj(dop.tmp.axes_h,dop.tmp.axes_only);
-            dop.tmp.axes_new = get(dop.tmp.axes_only,'children');
-            set(dop.tmp.axes_new,'Position',[.1 .1 .8 .8],...
-                'Box','off');
-            set(get(dop.tmp.axes_new,'XLabel'),'String','Time in seconds (zero = event)');
-            set(get(dop.tmp.axes_new,'YLabel'),'String','Blood Flow Velocity cm/sec');
-            dop.tmp.legend = legend;
-            legend show;
-            
-            % below legend code doesn't work...
-            %             dop.tmp.legend = findobj(gcf,'Type','axes','Tag','legend');
-            %             set(dop.tmp.legend,'EdgeColor',[1 1 1],'Location','Best');%'NorthWest');
-            
-            legend Location best % this does work but can't alter the EdgeColor...
-
-%             drawnow;
-            dop.tmp.save_h = dop.tmp.axes_only; % dop.tmp.plot_h
-            dop.tmp.pos = get(dop.tmp.plot_h,'Position');
-            set(dop.tmp.save_h,'PaperPos',[0 0 dop.tmp.pos([3 4])*20]);
-            dop.tmp.plot_file_type = strrep(dop.tmp.plot_file_type,'.','');
-            switch dop.tmp.plot_file_type
-                case {'png','jpeg','jpg','tiff','tif','bmp'}
-                    print(dop.tmp.save_h,dop.tmp.plot_fullfile,...
-                        ['-d',dop.tmp.plot_file_type] ...
-                        );
-                case 'fig'
-                    set(dop.tmp.save_h,'Visible','on');
-                    savefig(dop.tmp.save_h,dop.tmp.plot_fullfile);
-            end
-            
-            % add these to a non-temporary structure so that they can be
-            % accessed after dopMultiFuncTmpCheck - reported in gui msgbox
-            dop.safe.plot_fullfile = dop.tmp.plot_fullfile;
-            [dop.safe.plot_dir,dop.safe.plot_file,dop.safe.plot_file_type] = fileparts(dop.safe.plot_fullfile);
-            
-            msg{end+1} = sprintf('Plot saved to: %s%s (%s)',dop.safe.plot_file,dop.safe.plot_file_type,dop.tmp.plot_dir);
-            
-            
-            
-            
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-            delete(dop.tmp.axes_only);
-            
-            if isprop(dop.tmp.handle,'style')
-                switch get(dop.tmp.handle,'style')
-                    case 'pushbutton'
-                        msgbox(msg{end},'Saved plot:');
+                dop.tmp.axes_only = figure('visible','off','units','normalized',...
+                    'position',get(dop.tmp.plot_h,'Position'));
+                dop.tmp.ch = get(dop.tmp.plot_h,'children');
+                dop.tmp.axes_h = dop.tmp.ch(ismember(get(dop.tmp.ch,'type'),'axes'));
+                copyobj(dop.tmp.axes_h,dop.tmp.axes_only);
+                dop.tmp.axes_new = get(dop.tmp.axes_only,'children');
+                set(dop.tmp.axes_new,'Position',[.1 .1 .8 .8],...
+                    'Box','off');
+                set(get(dop.tmp.axes_new,'XLabel'),'String','Time in seconds (zero = event)');
+                set(get(dop.tmp.axes_new,'YLabel'),'String','Blood Flow Velocity cm/sec');
+                
+                % the legend is a pain for the evoked flow - always gets in the
+                % way and hopefully the information is self-explanatory
+                switch dop.tmp.type
+                    case {'epoch','base','epoch_norm'}
+                        if dop.tmp.plot_save_legend
+                            dop.tmp.legend = legend;
+                            legend show;
+                            
+                            % below legend code doesn't work...
+                            %             dop.tmp.legend = findobj(gcf,'Type','axes','Tag','legend');
+                            %             set(dop.tmp.legend,'EdgeColor',[1 1 1],'Location','Best');%'NorthWest');
+                            
+                            legend Location best % this does work but can't alter the EdgeColor...
+                        end
+                    otherwise
+                        dop.tmp.legend = legend;
+                        legend show;
+                        legend Location best % this does work but can't alter the EdgeColor...
                 end
+                %             drawnow;
+                dop.tmp.save_h = dop.tmp.axes_only; % dop.tmp.plot_h
+                dop.tmp.pos = get(dop.tmp.plot_h,'Position');
+                set(dop.tmp.save_h,'PaperPos',[0 0 dop.tmp.pos([3 4]).*[50 47]]); % adjusting this number includes the x title... 20 does not
+                dop.tmp.plot_file_type = strrep(dop.tmp.plot_file_type,'.','');
+                switch dop.tmp.plot_file_type
+                    case {'png','jpeg','jpg','tiff','tif','bmp'}
+                        print(dop.tmp.save_h,dop.tmp.plot_fullfile,...
+                            ['-d',dop.tmp.plot_file_type] ...
+                            );
+                    case 'fig'
+                        set(dop.tmp.save_h,'Visible','on');
+                        savefig(dop.tmp.save_h,dop.tmp.plot_fullfile);
+                end
+                
+                % add these to a non-temporary structure so that they can be
+                % accessed after dopMultiFuncTmpCheck - reported in gui msgbox
+                dop.safe.plot_fullfile = dop.tmp.plot_fullfile;
+                [dop.safe.plot_dir,dop.safe.plot_file,dop.safe.plot_file_type] = fileparts(dop.safe.plot_fullfile);
+                
+                msg{end+1} = sprintf('Plot saved to: %s%s (%s)',dop.safe.plot_file,dop.safe.plot_file_type,dop.tmp.plot_dir);
+                
+                
+                
+                
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                delete(dop.tmp.axes_only);
+                
+                if isprop(dop.tmp.handle,'style')
+                    switch get(dop.tmp.handle,'style')
+                        case 'pushbutton'
+                            msgbox(msg{end},'Saved plot:');
+                    end
+                end
+            else
+                msg{end+1} = sprintf(['''dop.tmp.plot_h'' variable not found. ',...
+                    '- ''%s'' should be called from within ''dopPlot''.'],mfilename);
+                okay = 0;
+                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
-        else
-              msg{end+1} = sprintf(['''dop.tmp.plot_h'' variable not found. ',...
-                  '- ''%s'' should be called from within ''dopPlot''.'],mfilename);
-            okay = 0;
-            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);  
-            end    
         end
         %         %% tmp check
         %         [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);

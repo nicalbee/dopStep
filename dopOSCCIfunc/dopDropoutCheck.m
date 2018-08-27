@@ -134,6 +134,7 @@ function [dop,okay,msg] = dopDropoutCheck(dop_input,varargin)
 %
 % Created: 13-Jul-2018 NAB
 % Edits:
+% 27-Jul-2018 NAB typo on line 201 sprintf updated & continue
 %
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -147,7 +148,7 @@ try
         %         inputs.turnOff = {'comment'};
         inputs.varargin = varargin;
         inputs.defaults = struct(...
-            'dropout_pct',5, ... % acceptable percent
+            'dropout_pct',50, ... % acceptable percent
             'single_channel',0,... % logical - okay to proceed with single channel
             'file',[],... % for error reporting mostly
             'msg',1,... % show messages
@@ -173,7 +174,7 @@ try
             dop.dropout.okay = [0 0];
             dop.dropout.continue = 1;
             for i = 1 : 2
-                dop.dropout.samples(i) = sum(dop.tmp.data(:,i) == 0);
+                dop.dropout.samples(i) = sum(dop.tmp.data(:,i) <= 0);
                 dop.dropout.pct(i) = dop.dropout.samples(i)/size(dop.tmp.data,1)*100;
                 dop.save.(sprintf('dropout_pct_%s',dop.dropout.ch_names{i})) = dop.dropout.pct(i);
                 if dop.dropout.pct(i) < dop.tmp.dropout_pct
@@ -197,12 +198,12 @@ try
                 end
             end
             %% check the data
-            if dop.tmp.single_channel && sum(dop.dropout.okay) == 2
-                msg{end+1} = sprtinf(['Even though the ''single_channel'' variable set to 1, ',...
+            if dop.tmp.single_channel && sum(dop.dropout.okay) == 0
+                msg{end+1} = sprintf(['Even though the ''single_channel'' variable set to 1, ',...
                     'neither channel passes the test, so won''t continue processing. (%s)'],...
                     dop.tmp.file);
-                dop.dropout.continue = 0;
-                okay = 0;
+                dop.dropout.continue = 1;
+                okay = 1; % not sure about cancelling at this point but they'll be lots of popups if we don't...
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
             %% summary message

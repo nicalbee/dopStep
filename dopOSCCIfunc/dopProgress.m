@@ -96,6 +96,8 @@ function [dop,okay,msg] = dopProgress(dop_input,varargin)
 % 07-July-2017 NAB adding a 'extra' input for customisation - e.g., when running
 %   across multiple folders
 % 2017-Nov-13 NAB don't need this for n = 1 list
+% 2018-July-27 NAB just updating to upper case for all of DOPOSCCI
+%
 
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
@@ -150,7 +152,7 @@ try
                 end
                 
                 dop.progress.n = numel(dop.file_list);
-                dop.progress.msg = 'dopOSSCI waitbar initialising...';
+                dop.progress.msg = 'DOPOSSCI waitbar initialising...';
                 dop.progress.screen_size = get(0,'ScreenSize');
                 if dop.tmp.dim(1) <= 1
                     dop.progress.pos = [dop.tmp.pos dop.tmp.dim].* ...
@@ -173,7 +175,7 @@ try
                 dop.progress.portion = dop.progress.current/dop.progress.n;
             
             % could add task name to this
-            dop.progress.msg = sprintf('dopOSCCI progress: %u%% (file %u of %u)',round(dop.progress.portion*100),dop.progress.current,dop.progress.n);
+            dop.progress.msg = sprintf('DOPOSCCI progress: %u%% (file %u of %u)',round(dop.progress.portion*100),dop.progress.current,dop.progress.n);
             waitbar(dop.progress.portion,dop.progress.h); % update the progress bar
             
             set(dop.progress.h_title,'String',dop.progress.msg); % update the message

@@ -26,7 +26,11 @@ function varargout = dopOSCCIversion%(output)
 % 3.4.3 13-Nov-2017 mostly working on dopMethodText function to help report
 %   the DOPOSCCI steps that were run
 % 3.5.0 16-Jul-2018 added dropout check and single channel processing
-%   options with plotting variations as well as saving data 'extras' 
+%   options with plotting variations as well as saving data 'extras'
+% 3.5.1 2018-Jul-27 fixed a few bugs
+% 3.5.2 2018-Aug-27 making sure that the 'value' and 'peak' settings for
+%   the channel calculations flow through. And removed the legend from the
+%   average/epoch plots
 
 %
 % -------------------------------------------------------------------------
@@ -62,8 +66,8 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.5.0';
-    dop_date = 'Monday 16th of July 2018';
+    dop_version = '3.5.2';
+    dop_date = 'Monday 27th of July 2018';
 %     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...
