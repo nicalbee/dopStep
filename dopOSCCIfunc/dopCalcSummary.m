@@ -53,6 +53,8 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 % 04-Jul-2018 NAB when plotting with multiple periods of interest there's
 %   some conflict in here - setup to use the first one.
+% 2018-Aug-31 NAB made sure raw overall summary is using the mean of the
+%   data. Was only doing this for abs...
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -269,7 +271,8 @@ try
                 dop.tmp.peak_data = dop_output.data;
                 % there was an issue here with the numbers going into the
                 % overall calculation 30-Sep-2015 NAB
-                if strcmp(dop.tmp.value,'abs');
+                dop.tmp.peak_data = mean(dop.tmp.peak_data,2); % this is required for raw data... might fix things 31-Aug-2018 NAB
+                if strcmp(dop.tmp.value,'abs')
                     dop.tmp.peak_data = abs(mean(dop.tmp.peak_data,2));
                 end
                 % across all epochs (i.e., the average of all epochs)
