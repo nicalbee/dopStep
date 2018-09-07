@@ -32,6 +32,8 @@ function [file_types,file_types_search] = dopFileTypes(report,search_dir,varargi
 %
 % 29-Oct-2015 NAB added search_dir but it's not working properly - I'll
 %   leave it in for the moment in case it makes sense at some point
+%
+% 2018-Sep-07 NAB updated for .txt files - Delica
 if ~exist('report','var') || isempty(report)
     report = 0;
 end
@@ -49,7 +51,7 @@ try
     
     dopOSCCIindent('run',report);
     % hopefully not case sensitive in most instances...
-    file_types = {'.TX','.EXP','.MAT','.tx','.exp','.mat','.dat'};%,'.tx','.tw','.exp','.mat'};
+    file_types = {'.TX','.EXP','.MAT','.tx','.exp','.mat','.dat','.txt'};%,'.tx','.tw','.exp','.mat'};
     file_types_search = [];
     search_sep = ';';
     for i = 1 : numel(file_types)
