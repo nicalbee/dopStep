@@ -56,6 +56,7 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 % 2018-Aug-31 NAB made sure raw overall summary is using the mean of the
 %   data. Was only doing this for abs...
 
+
 % start with dummy values in case there are problems
 tmp_default = 999;
 dop_output = struct(...
