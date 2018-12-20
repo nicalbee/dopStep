@@ -237,6 +237,10 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 % 2018-Dec-20 NAB set missing values to be NaN but it's also an input
 %  option for changing NaN for MATLAB, NA for R
+% 2018-Dec-21 NAB which saveing by 'epoch' added but in the 'n' variable
+% (peak_n or period_n or n) and this will have '_okay' on the end and
+% reflect whether or not the trial/epoch was included after screening. This
+% can be used to exclude single epochs from analyses more easily.
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -420,9 +424,17 @@ try
                                                         dop.tmp.var,dop.tmp.ch,dop.tmp.eps,...
                                                         dop.tmp.prd_spec);
                                                 case 'epoch'
-                                                    if iiii == 1 && ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
-                                                        % n is redundant when it's just the one epoch, so exclude it
-                                                        
+                                                    %                                                     if iiii == 1 && ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
+                                                    % n is redundant when it's just the one epoch, so exclude it
+                                                    % 2018-Dec-21 but
+                                                    % could use this to
+                                                    % code whether or
+                                                    % not included
+                                                    if iiii == 1 % && ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
+                                                        if strcmp(dop.tmp.var,'peak_n') || strcmp(dop.tmp.var,'period_n')  || strcmp(dop.tmp.var,'n')
+                                                            dop.tmp.var_keep = dop.tmp.var;
+                                                            dop.tmp.var = sprintf('%s_okay',dop.tmp.var);
+                                                        end
                                                         % only need to do this once and
                                                         % epoch screen
                                                         % ('screen','odd','even') isn't
@@ -531,7 +543,7 @@ try
                                     %                                     dop.tmp.value = sprintf('[%s]',num2str(find(dop.(dop.tmp.ep_ch).(dop.tmp.ep_extras))));
                                     
                             end
-                            if dop.tmp.value ~= 999
+                            if dop.tmp.value ~= dop.tmp.missing_value
                                 fprintf(dop.save.fid,...
                                     [dopVarType(dop.tmp.value),...
                                     dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
@@ -579,7 +591,7 @@ try
                                                 dop.tmp.delims{3} = 2; % new line
                                                 dop.tmp.epoch_saved = 1;
                                             end
-                                            dop.tmp.value = 999;
+                                            dop.tmp.value = dop.tmp.missing_value;
                                             if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= j %dop.tmp.num_events
                                                 dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)(j);
                                             end
@@ -640,8 +652,14 @@ try
                                                         dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
                                                     
                                                 case 'epoch'
-                                                    if ~dop.tmp.epoch_saved && ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
+                                                    if ~dop.tmp.epoch_saved %&& ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
                                                         % n is redundant when it's just the one epoch, so exclude it
+                                                        % 2018-Dec-21
+                                                        % updating to
+                                                        % be included afer
+                                                        % screen or not
+                                                        % ('okay')
+                                                        
                                                         
                                                         if ~strcmp(dop.tmp.eps,'all') && iiii == 1
                                                             % only loop through the
@@ -656,10 +674,14 @@ try
                                                                     dop.tmp.delims{3} = 2; % new line
                                                                     dop.tmp.epoch_saved = 1;
                                                                 end
-                                                                dop.tmp.value = 999;
+                                                                dop.tmp.value = dop.tmp.missing_value;
                                                                 if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= j %dop.tmp.num_events
                                                                     dop.tmp.value = dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)(j);
+                                                                    if strcmp(dop.tmp.var,'peak_n') || strcmp(dop.tmp.var,'period_n') || strcmp(dop.tmp.var,'n')
+                                                                        dop.tmp.value = double(dop.epoch.screen(j));
+                                                                    end
                                                                 end
+                                                                
                                                                 fprintf(dop.save.fid,...
                                                                     [dopVarType(dop.tmp.value),...
                                                                     dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
@@ -684,7 +706,7 @@ try
                                                                                 dop.tmp.delims{3} = 2; % new line
                                                                                 dop.tmp.epoch_saved = 1;
                                                                             end
-                                                                            dop.tmp.value = 999;
+                                                                            dop.tmp.value = dop.tmp.missing_value;
                                                                             if numel(dop.epoch.(dop.tmp.extra_ep_type)) >= j
                                                                                 dop.tmp.value = 0;
                                                                                 if dop.epoch.(dop.tmp.extra_ep_type)(j)
@@ -695,8 +717,8 @@ try
                                                                                 [dopVarType(dop.tmp.value),...
                                                                                 dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
                                                                             
-%                                                                             dop.save.labels{end+1} = sprintf('%s%i',... % '%s_%s%u%s_%s_%s'
-%                                                                                 dop.save.extras{kkkkk},dop.tmp.sum,j);
+                                                                            %                                                                             dop.save.labels{end+1} = sprintf('%s%i',... % '%s_%s%u%s_%s_%s'
+                                                                            %                                                                                 dop.save.extras{kkkkk},dop.tmp.sum,j);
                                                                         end
                                                                     end
                                                                 end

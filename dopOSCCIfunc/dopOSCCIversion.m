@@ -32,7 +32,8 @@ function varargout = dopOSCCIversion%(output)
 %   the channel calculations flow through. And removed the legend from the
 %   average/epoch plots
 % 3.5.7 2018-Sep-07 added .txt to the dopFileTypes options (Delica)
-%
+% 3.6.0 2018-Dec-21 changed what the peak_n reflects for 'epoch' saving -
+%   logical whether or not it was included in the screen
 
 %
 % -------------------------------------------------------------------------
@@ -68,8 +69,8 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.5.2';
-    dop_date = 'Monday 27th of July 2018';
+    dop_version = '3.6.0';
+    dop_date = 'Friday 21st December 2018';
 %     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...
