@@ -235,6 +235,8 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 %   (or 'epoch_xxx') is in dop.save.extras and 'epoch' is in
 %   dop.save.summary you'll get a column for each epoch, yes/no used
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 2018-Dec-20 NAB set missing values to be NaN but it's also an input
+%  option for changing NaN for MATLAB, NA for R
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -260,6 +262,7 @@ try
             'msg',[],... % 30-Sep-2015 not sure about adding this
             'file',[],...
             'showmsg',1,...
+            'missing_value',NaN,... NaN for MATLAB, NA for R
             'wait_warn',0 ...
             );
         inputs.defaults.extras = {'file'};
@@ -516,7 +519,7 @@ try
                         [dop.tmp.ep_ch,dop.tmp.ep_extras] = strtok(dop.tmp.data_name,'_');
                         dop.tmp.ep_extras = strrep(dop.tmp.ep_extras,'_',''); % remove the underscore
                         % dummy value
-                        dop.tmp.value = 999;
+                        dop.tmp.value = dop.tmp.missing_value; % Peter Humburg said I shouldn't use numbers for missing values - ever!
                         if isfield(dop,dop.tmp.ep_ch) && isfield(dop.(dop.tmp.ep_ch),dop.tmp.ep_extras) ...
                                 && ~isempty(dop.(dop.tmp.ep_ch).(dop.tmp.ep_extras))
                             switch dop.tmp.ep_ch
