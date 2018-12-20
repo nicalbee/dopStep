@@ -31,6 +31,8 @@ function varargout = dopOSCCIversion%(output)
 % 3.5.2 2018-Aug-27 making sure that the 'value' and 'peak' settings for
 %   the channel calculations flow through. And removed the legend from the
 %   average/epoch plots
+% 3.5.7 2018-Sep-07 added .txt to the dopFileTypes options (Delica)
+%
 
 %
 % -------------------------------------------------------------------------
