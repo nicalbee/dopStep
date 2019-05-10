@@ -241,6 +241,7 @@ function [dop,okay,msg] = dopSave(dop_input,varargin)
 % (peak_n or period_n or n) and this will have '_okay' on the end and
 % reflect whether or not the trial/epoch was included after screening. This
 % can be used to exclude single epochs from analyses more easily.
+% 2019-05-02 NAB a bunch of tweaks for the 'epochm' variable
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -281,6 +282,11 @@ try
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         
         dop.tmp.epoch_saved = 0;
+        dop.tmp.epoch_sum_vars = cell2mat(strfind(dop.tmp.summary,'epoch')); %zeros(1,sum(ismember(dop.tmp.summary,'epoch')));
+        if ~isempty(dop.tmp.epoch_sum_vars)
+            % there's now an 'epochm' variable - need to account for this
+            dop.tmp.epoch_saved = zeros(size(dop.tmp.epoch_sum_vars));
+        end
         % only want to save the epoch by epoch LIs once and if the 'epochs'
         % setting has option more than 'all', don't want to repeat the save
         
@@ -423,7 +429,7 @@ try
                                                     dop.save.labels{end+1} = sprintf('%s%s_%s_%s',...
                                                         dop.tmp.var,dop.tmp.ch,dop.tmp.eps,...
                                                         dop.tmp.prd_spec);
-                                                case 'epoch'
+                                                case {'epoch','epochm'}
                                                     %                                                     if iiii == 1 && ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
                                                     % n is redundant when it's just the one epoch, so exclude it
                                                     % 2018-Dec-21 but
@@ -475,7 +481,8 @@ try
                                                             for kkkkk = 1 : numel(dop.save.extras)
                                                                 [dop.tmp.extra_ep, dop.tmp.extra_remain] = strtok(dop.save.extras{kkkkk},'_');
                                                                 dop.tmp.extra_ep_type = strtok(dop.tmp.extra_remain,'_');
-                                                                if strcmp(dop.tmp.extra_ep,'epoch') && isfield(dop.epoch,dop.tmp.extra_ep_type)
+                                                                if strcmp(dop.tmp.extra_ep,'epoch') && isfield(dop.epoch,dop.tmp.extra_ep_type) || ...
+                                                                    strcmp(dop.tmp.extra_ep,'epochm') && isfield(dop.epochm,dop.tmp.extra_ep_type)
                                                                     for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
                                                                         dop.save.labels{end+1} = sprintf('%s%i',... % '%s_%s%u%s_%s_%s'
                                                                             dop.save.extras{kkkkk},j);
@@ -516,7 +523,7 @@ try
             for i = 1 : numel(dop.tmp.extras)
                 k = k + 1;
                 dop.tmp.data_name = dop.tmp.extras{i};
-                tmp.check = {'save','epoch','use','def','file_info'}; % order of these matters
+                tmp.check = {'save','epoch','epochm','use','def','file_info'}; % order of these matters
                 for j = 1 : numel(tmp.check)
                     if isfield(dop,tmp.check{j}) ...
                             && isfield(dop.(tmp.check{j}),dop.tmp.data_name)
@@ -535,7 +542,7 @@ try
                         if isfield(dop,dop.tmp.ep_ch) && isfield(dop.(dop.tmp.ep_ch),dop.tmp.ep_extras) ...
                                 && ~isempty(dop.(dop.tmp.ep_ch).(dop.tmp.ep_extras))
                             switch dop.tmp.ep_ch
-                                case 'epoch'
+                                case {'epoch','epochm'}
                                     % turn this into a string
                                     dop.tmp.nums = find(dop.(dop.tmp.ep_ch).(dop.tmp.ep_extras));
                                     dop.tmp.value = repmat('%i~',1,numel(dop.tmp.nums));
@@ -589,6 +596,10 @@ try
                                             k = k + 1;
                                             if k == numel(dop.save.labels)
                                                 dop.tmp.delims{3} = 2; % new line
+                                                % doesn't currently cope
+                                                % with 'epochm' but it
+                                                % might never need to
+                                                % 2019-05-02
                                                 dop.tmp.epoch_saved = 1;
                                             end
                                             dop.tmp.value = dop.tmp.missing_value;
@@ -651,8 +662,16 @@ try
                                                         [dopVarType(dop.tmp.value),...
                                                         dop.tmp.delims{dop.tmp.delims{3}}],dop.tmp.value);
                                                     
-                                                case 'epoch'
-                                                    if ~dop.tmp.epoch_saved %&& ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
+                                                case {'epoch','epochm'}
+                                                   if sum(dop.tmp.epoch_saved) ~= length(dop.tmp.epoch_saved)
+                                                       % given there's now
+                                                       % an 'epochm'
+                                                       % option, might need
+                                                       % to run through
+                                                       % this twice
+                                                       % 2019-05-02
+%                                                     if ~dop.tmp.epoch_saved %&& ~strcmp(dop.tmp.var,'peak_n') && ~strcmp(dop.tmp.var,'period_n') && ~strcmp(dop.tmp.var,'n')
+                                                        %
                                                         % n is redundant when it's just the one epoch, so exclude it
                                                         % 2018-Dec-21
                                                         % updating to
@@ -672,7 +691,7 @@ try
                                                                 k = k + 1;
                                                                 if k == numel(dop.save.labels)
                                                                     dop.tmp.delims{3} = 2; % new line
-                                                                    dop.tmp.epoch_saved = 1;
+                                                                    dop.tmp.epoch_saved(ismember({'epoch','epochm'},dop.tmp.summary{i})) = 1;
                                                                 end
                                                                 dop.tmp.value = dop.tmp.missing_value;
                                                                 if numel(dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.epoch_eps).(dop.tmp.var)) >= j %dop.tmp.num_events
@@ -699,7 +718,8 @@ try
                                                                 for kkkkk = 1 : numel(dop.save.extras)
                                                                     [dop.tmp.extra_ep, dop.tmp.extra_remain] = strtok(dop.save.extras{kkkkk},'_');
                                                                     dop.tmp.extra_ep_type = strtok(dop.tmp.extra_remain,'_');
-                                                                    if strcmp(dop.tmp.extra_ep,'epoch') && isfield(dop.epoch,dop.tmp.extra_ep_type)
+                                                                    if strcmp(dop.tmp.extra_ep,'epoch') && isfield(dop.epoch,dop.tmp.extra_ep_type) || ...
+                                                                            strcmp(dop.tmp.extra_ep,'epochm') && isfield(dop.epochm,dop.tmp.extra_ep_type)
                                                                         for j = 1 : dop.tmp.num_events % dop.event(dop.tmp.save_event).n % for the moment
                                                                             k = k + 1;
                                                                             if k == numel(dop.save.labels)

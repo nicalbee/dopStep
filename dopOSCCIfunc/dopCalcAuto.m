@@ -42,7 +42,10 @@ function [dop,okay,msg] = dopCalcAuto(dop_input,varargin)
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 % 27-Aug-2018 NAB added dop.tmp.value option to flow through into
 %   dopCalcSummary
-
+% 2019-04-24 NAB tweaked to accommodate the 'epochm' calculation which is
+%   the calculation of epoch values based on the overall mean peak timing
+% 2019-05-02 NAB further updates to make sure there's an 'all' field in the
+%   'epochm' structure
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
 
@@ -160,7 +163,7 @@ try
                             %                             dop.tmp.prd_spec = strrep(dop.tmp.prd_spec,'-','n');
                             for iiii = 1 : numel(dop.tmp.epochs)
                                 dop.tmp.eps = dop.tmp.epochs{iiii};
-                                if strcmp(dop.tmp.sum,'epoch')
+                                if ~isempty(strfind(dop.tmp.sum,'epoch')) % updated for epochm
                                     dop.tmp.eps = 'all';
                                 end
                                 
@@ -200,7 +203,7 @@ try
                                             dop.tmp.ep_select = dop.tmp.ep_even;
                                         end
                                     case 'all'
-                                    
+                                        
                                     otherwise
                                         if  strcmp(dop.tmp.eps(1:3),'beh') % assume we'll have beh# for the number of conditions
                                             % now need to select
@@ -227,9 +230,9 @@ try
                                                 dop.tmp.ep_select(and(dop.epoch.screen,dop.tmp.ep_select_beh)) = 1;
                                             else
                                                 msg{end+1} = sprintf([...
-                                                        '!!!! Individual not found in behavioural file - skipping: %s'],...
-                                                        dop.def.file);
-                                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                                    '!!!! Individual not found in behavioural file - skipping: %s'],...
+                                                    dop.def.file);
+                                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                             end
                                         else
                                             msg{end+1} = sprintf([...
@@ -262,20 +265,22 @@ try
                                 %            dop.tmp.dat = dop.tmp.ep(dop.tmp.prd_filt(1):dop.tmp.prd_filt(2));
                                 
                                 % peak_n = number of epochs
-                                switch dop.tmp.sum
-                                    case 'overall'
-                                        %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
-                                        %                                         size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2);
-                                        dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data = squeeze(...
-                                            dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
-                                        %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data_epochs = squeeze(...
-                                        %                                         dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
-                                    case 'epoch'
-                                        %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
-                                        %                                         ones(1,size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2));
-                                        dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data = squeeze(...
-                                            dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
-                                end
+                                % 2019-04-24 these switches seems to do the
+                                % same thing
+                                %                                 switch dop.tmp.sum
+                                %                                     case 'overall'
+                                %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
+                                %                                         size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2);
+                                dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data = squeeze(...
+                                    dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
+                                %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data_epochs = squeeze(...
+                                %                                         dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
+                                %                                     case {'epoch','epochm'}
+                                %                                         %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
+                                %                                         %                                         ones(1,size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2));
+                                %                                         dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data = squeeze(...
+                                %                                             dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
+                                %                                 end
                                 
                                 %% > summary statistics
                                 [dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps),...
@@ -296,13 +301,15 @@ try
                                 msg = [msg,msg_sum];
                                 % possibly don't need this here... 1-Aug-2016
                                 %                             [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-                                if strcmp(dop.tmp.sum,'epoch')
-                                    % only need to do this once - overall vs odd
-                                    % vs even makes no difference, defaults to
-                                    % selection of all epochs so single
-                                    % calculation will do it
-                                    %                                 keyboard;
-                                    break
+                                %                                 if strcmp(dop.tmp.sum,'epoch')
+                                switch dop.tmp.sum
+                                    case {'epoch','epochm'}
+                                        % only need to do this once - overall vs odd
+                                        % vs even makes no difference, defaults to
+                                        % selection of all epochs so single
+                                        % calculation will do it
+                                        %                                 keyboard;
+                                        break
                                 end
                             end
                         end
