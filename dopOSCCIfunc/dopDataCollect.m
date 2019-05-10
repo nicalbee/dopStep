@@ -28,6 +28,7 @@ function [dop,okay,msg] = dopDataCollect(dop_input,varargin)
 % 04-Sep-2014 NAB msg & wait_warn updates
 % 14-Mar-2017 added a behavioural collection loop
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 2019-05-10 NAB fixed behavioural file search
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -170,7 +171,10 @@ try
                             dop.tmp.beh_num = ['beh',num2str(dop.tmp.k_beh)];
                             if sum(ismember(dop.save.epochs,dop.tmp.beh_num))
                                 dop.tmp.filt.scrn = dop.epoch.screen;
-                                dop.tmp.beh_file = ismember(dop.epoch.beh_list,dop.def.file);
+                                dop.tmp.beh_file = ismember(dop.epoch.beh_list,dop.tmp.file);
+                                if ~sum(dop.tmp.beh_file)
+                                    dop.tmp.beh_file = ismember(dop.epoch.beh_list,dop.def.file);
+                                end
                                 if sum(dop.tmp.beh_file)
                                     dop.tmp.filt.beh = zeros(size(dop.tmp.filt.scrn));
                                     dop.tmp.filt.beh(eval(dop.epoch.beh_select.(dop.tmp.beh_num){dop.tmp.beh_file})) = 1;

@@ -217,6 +217,10 @@ try
                                                 dop.tmp.beh_row = ismember(dop.epoch.beh_list,dop.tmp.file);
                                             end
                                             if sum(dop.tmp.beh_row)
+                                                msg{end+1} = sprintf( ...
+                                                        'Individual behavioural file found: %s',...
+                                                        dop.tmp.file);
+                                                    dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                                 dop.tmp.beh_eps = eval(dop.epoch.beh_select.(dop.tmp.eps){dop.tmp.beh_row});
                                                 if sum(dop.tmp.beh_eps > size(dop.tmp.data,2))
                                                     dop.tmp.missing = dop.tmp.beh_eps > size(dop.tmp.data,2);
@@ -236,8 +240,8 @@ try
                                                 dop.tmp.ep_select_beh(dop.tmp.beh_eps) = 1;
                                                 dop.tmp.ep_select(and(dop.epoch.screen,dop.tmp.ep_select_beh)) = 1;
                                             else
-                                                msg{end+1} = sprintf([...
-                                                        '!!!! Individual not found in behavioural file - skipping: %s'],...
+                                                msg{end+1} = sprintf(...
+                                                        '!!!! Individual not found in behavioural file - skipping: %s',...
                                                         dop.def.file);
                                                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                                             end
