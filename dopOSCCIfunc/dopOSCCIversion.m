@@ -36,6 +36,8 @@ function varargout = dopOSCCIversion%(output)
 %   logical whether or not it was included in the screen
 % 3.6.1 2019-04-24 added an 'epochm' summary option. Returns epoch values
 %   based on the timing of the overall average peak
+% 3.6.2 2019-05-10 updated to behavioural list finding and method text
+%   output
 
 %
 % -------------------------------------------------------------------------
@@ -71,8 +73,8 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.6.1';
-    dop_date = 'Wednesday 24th April 2019';
+    dop_version = '3.6.2';
+    dop_date = 'Friday May 10 2019';
 %     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...
