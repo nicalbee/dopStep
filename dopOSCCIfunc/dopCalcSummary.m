@@ -55,6 +55,8 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 %   some conflict in here - setup to use the first one.
 % 2018-Aug-31 NAB made sure raw overall summary is using the mean of the
 %   data. Was only doing this for abs...
+% 2019-04-24 NAB added 'epochm' summary = peak values for each epoch based
+%   upon then timing of the overall peak
 
 
 % start with dummy values in case there are problems
@@ -268,20 +270,42 @@ try
             % values for each epoch
             [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
                 eval([dop.tmp.peak,'(dop.tmp.peak_data)']); % could be min or max
-            if ismember(dop.tmp.summary,{'overall'})
-                dop.tmp.peak_data = dop_output.data;
-                % there was an issue here with the numbers going into the
-                % overall calculation 30-Sep-2015 NAB
-                dop.tmp.peak_data = mean(dop.tmp.peak_data,2); % this is required for raw data... might fix things 31-Aug-2018 NAB
-                if strcmp(dop.tmp.value,'abs')
-                    dop.tmp.peak_data = abs(mean(dop.tmp.peak_data,2));
-                end
-                % across all epochs (i.e., the average of all epochs)
-                [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
-                    eval([dop.tmp.peak,'(dop.tmp.peak_data)']); % could be min or max
-                %                 [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
-                %                     eval([dop.tmp.peak,'(mean(dop.tmp.peak_data,2))']); % could be min or max
-            end
+            % 2019-04-23 these are different for each epoch, what if you
+            % want the same timing, based on the overall mean?
+            
+%             if ismember(dop.tmp.summary,{'overall'})
+%                 dop.tmp.peak_data = dop_output.data;
+%                 % there was an issue here with the numbers going into the
+%                 % overall calculation 30-Sep-2015 NAB
+%                 dop.tmp.peak_data = mean(dop.tmp.peak_data,2); % this is required for raw data... might fix things 31-Aug-2018 NAB
+%                 if strcmp(dop.tmp.value,'abs')
+%                     dop.tmp.peak_data = abs(mean(dop.tmp.peak_data,2));
+%                 end
+%                 % across all epochs (i.e., the average of all epochs)
+%                 [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
+%                     eval([dop.tmp.peak,'(dop.tmp.peak_data)']); % could be min or max
+%                 %                 [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
+%                 %                     eval([dop.tmp.peak,'(mean(dop.tmp.peak_data,2))']); % could be min or max
+%             end
+switch dop.tmp.summary
+    case {'overall','epochm'}
+        dop.tmp.peak_data = dop_output.data;
+        % there was an issue here with the numbers going into the
+        % overall calculation 30-Sep-2015 NAB
+        dop.tmp.peak_data = mean(dop.tmp.peak_data,2); % this is required for raw data... might fix things 31-Aug-2018 NAB
+        if strcmp(dop.tmp.value,'abs')
+            dop.tmp.peak_data = abs(mean(dop.tmp.peak_data,2));
+        end
+        % across all epochs (i.e., the average of all epochs)
+        [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
+            eval([dop.tmp.peak,'(dop.tmp.peak_data)']); % could be min or max
+        %                 [dop.tmp.peak_value,dop.tmp.peak_sample] = ...
+        %                     eval([dop.tmp.peak,'(mean(dop.tmp.peak_data,2))']); % could be min or max
+        if ismember(dop.tmp.summary,{'epochm'})
+            dop.tmp.peak_value = dop_output.data(dop.tmp.peak_sample,:);
+            dop.tmp.peak_sample = ones(size(dop.tmp.peak_value))*dop.tmp.peak_sample;
+        end
+end
             dop_output.peak_latency_sample = -1 + dop.tmp.period_filt(1) + dop.tmp.peak_sample; % in samples
             % -1 here to 'zero' the latency 27-Jan-15 NAB
             dop_output.peak_latency = dop.tmp.epoch(1) + dop_output.peak_latency_sample*(1/dop.tmp.sample_rate);
