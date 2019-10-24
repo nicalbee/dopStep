@@ -45,6 +45,11 @@ function [dop,okay,msg] = dopCalcAuto(dop_input,varargin)
 % 2019-05-10 NAB ensured that behavioural files don't need to have
 %   directory/location hard coded
 % 2019-05-17 NAB set the wait_warn to 1 = important for people to know
+% 2019-10-25 NAB added 'epochm' for dopCalcSummary based on overall mean
+%   period for each epoch - unsure how this was working before!
+% 2019-10-25 NAB + another adjustment to ensure the 'all' summary is
+%   completed so that 'epochm' has that data needed for dopSave. This has
+%   definitely worked in the past. Time to write a new version in R!
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -104,6 +109,11 @@ try
                     mfilename,dop.tmp.file);
                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
             end
+        end
+        
+        %% all needed for epochm
+        if sum(ismember(dop.tmp.summary,'epochm')) && ~sum(ismember(dop.tmp.epochs,'all'))
+            dop.tmp.epochs{end+1} = 'all';
         end
         %% tmp check
         %         if okay && isfield(dop,mfilename)
@@ -291,7 +301,7 @@ try
                                             dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
                                         %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).data_epochs = squeeze(...
                                         %                                         dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt));
-                                    case 'epoch'
+                                    case {'epoch','epochm'}
                                         %                                     dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd).(dop.tmp.eps).peak_n = ...
                                         %                                         ones(1,size(dop.tmp.data(:,dop.tmp.ep_select,dop.tmp.channel_filt),2));
                                         dop.sum.(dop.tmp.sum).(dop.tmp.ch).(dop.tmp.prd_spec).(dop.tmp.eps).data = squeeze(...
