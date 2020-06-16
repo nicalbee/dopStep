@@ -50,6 +50,7 @@ function [dop,okay,msg] = dopEventChannels(dop_input,varargin)
 % 15-Sep-2015 NAB updating for periods with multiple rows
 % 28-Sep-2016 NAB updating for multiple events...
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 2020-Jun-15 NAB found that a msg variable wasn't being past through
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -224,7 +225,7 @@ try
                 
                 % now they're set
                 % can people do some selection?
-                [dop,okay,msg] = dopUseDataOperations(dop,'event');
+                [dop,okay,msg] = dopUseDataOperations(dop,okay,msg,'event');
             end
         end
         

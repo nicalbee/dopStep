@@ -41,6 +41,7 @@ function varargout = dopEXPread(fileNameLoc)
 
 % Edits:
 % 17-March-2017 NAB added dir information for file into 'headers' variable
+% 11-June-2020 NAB old dopOSCCI debug
 try
     %     headers=[]; % create structure for output
     %     dopplerColumns=[2 3];
@@ -119,5 +120,5 @@ try
     
 catch err
     %% catch dopOSCCI error
-    save(dopOSCCIdebug(mfilename)); rethrow(err);
+    save(dopOSCCIdebug); rethrow(err);
 end
