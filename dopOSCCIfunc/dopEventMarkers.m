@@ -33,6 +33,10 @@ function [dop,okay,msg] = dopEventMarkers(dop_input,varargin) % ,downsample_rate
 % 28-Apr-2017 NAB okay okay check to initial check
 % 07-July-2017 NAB fixed remove_end option
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 2021-Jan-11 NAB added 'remove_short' option to exclude event markers that
+%   aren't separated enough
+% 2021-June-22 NAB created dopIQR: MATLAB update has changed the IQR
+%   function...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -55,6 +59,7 @@ try
             'num_events',[],...
             'remove_start',0,...
             'remove_end',0,...
+            'remove_short',0,...
             'sample_rate',[] ... % not critical
             );
         inputs.required = ...
@@ -182,136 +187,235 @@ try
                                 dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             end
                         end
+                        
                     end
-                    %% > separation
-                    dop.event(j).separation_samples = mean(diff(dop.event(j).samples));
-                    dop.event(j).separation_samples_stdev = std(diff(dop.event(j).samples));
-                    dop.event(j).separation_samples_min = min(diff(dop.event(j).samples));
-                    dop.event(j).separation_samples_max = max(diff(dop.event(j).samples));
-                    %% get the event times
-                    if ~isempty(dop.tmp.sample_rate)
-                        dop.event(j).times_sec = dop.event(j).samples*(1/dop.tmp.sample_rate);
-                        dop.event(j).times_ms = dop.event(j).times_sec*1000;
-                        dop.event(j).times_min = dop.event(j).times_sec/60;
-                        
-                        dop.event(j).separation_secs = diff(dop.event(j).samples*(1/dop.tmp.sample_rate));
-                        dop.event(j).separation_secs_mean = mean(dop.event(j).separation_secs);
-                        dop.event(j).separation_secs_median = median(dop.event(j).separation_secs);
-                        dop.use.event_sep(j) = dop.event(j).separation_secs_mean; % update for auto use in dopSetGetInputs
-                        dop.event(j).separation_secs_stdev = std(dop.event(j).separation_secs);
-                        dop.event(j).separation_secs_min = min(dop.event(j).separation_secs);
-                        dop.event(j).separation_secs_max = max(dop.event(j).separation_secs);
-                        dop.event(j).separation_secs_iqr = [];
-                        if license('test', 'statistics_toolbox')
-                            dop.event(j).separation_secs_iqr = iqr(dop.event(j).separation_secs);
-                        end
-                        %         dop.event(j).use_samples = dop.event.samples;
-                        %         dop.event.downsamples = ones(dop.event.n,1)*-1; % make it negative when it's not available
-                        %         if exist('downsample_rate','var') && ~isempty(downsample_rate) && ~isfield(dop.event,'downsamples')
-                        %             dop.event.downsamples = round(dop.event.samples/...
-                        %                 (sample_rate/downsample_rate));
-                        %             dop.event.use_samples = dop.event.downsamples;
-                        %         elseif ~isfield(dop.event,'downsamples')
-                        %             fprintf('\t''dop.event.downsamples'' variable already exists, no correction required\n');
-                        %             dop.event.downsamples = dop.event.sample;
-                        %         end
-                        
-                        for i = 1 : dop.event(j).n
-                            msg{end+1} = sprintf(['\t- %u:\t mins = %3.2f, secs = %3.2f, msecs = %.0f, ',...
-                                '[sample = %u]'],...
-                                i,dop.event(j).times_min(i),dop.event(j).times_sec(i),...
-                                dop.event(j).times_ms(i),dop.event(j).samples(i));
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                            %             fprintf(['\t- %u:\t min = %3.1f, sec = %3.1f, ms = %.0f, ',...
-                            %                 '[sample = %u, down samples = %i]\n'],...
-                            %                 i,dop.event(j).times_min(i),dop.event(j).times_sec(i),...
-                            %                 dop.event(j).times_ms(i),dop.event(j).samples(i),...
-                            %                 dop.event(j).downsamples(i));
-                        end
-                        
-                        %% check the separation
-                        if ~isempty(dop.tmp.event_sep)
-                            switch dop.tmp.outlier_type
-                                case 'iqr' % interquartile range
-                                    % assume normalish distribution and base
-                                    % this cut-offs on 1.5*IQR beyond the
-                                    % 25th & 75th percentiles
-                                    dop.event(j).outliers_range = ...
-                                        dop.event(j).separation_secs_median+ ...
-                                        [-1 1]*dop.event(j).separation_secs_iqr*(1+dop.tmp.outlier_value);
-                                case 'sd' % standard deviation
-                                    dop.event(j).outliers_range = ...
-                                        dop.event(j).separation_secs_mean+ ...
-                                        [-1 1]*dop.event(j).separation_secs_stdev*dop.tmp.outlier_value;
+                    dop.tmp.removed_short = 0;
+%                     if ~dop.tmp.remove_short
+%                         dop.tmp.removed_short = 1;
+%                     end
+                    while 1
+                        %% > separation
+                        dop.event(j).separation_samples = mean(diff(dop.event(j).samples));
+                        dop.event(j).separation_samples_stdev = std(diff(dop.event(j).samples));
+                        dop.event(j).separation_samples_min = min(diff(dop.event(j).samples));
+                        dop.event(j).separation_samples_max = max(diff(dop.event(j).samples));
+                        %% get the event times
+                        if ~isempty(dop.tmp.sample_rate)
+                            dop.event(j).times_sec = dop.event(j).samples*(1/dop.tmp.sample_rate);
+                            dop.event(j).times_ms = dop.event(j).times_sec*1000;
+                            dop.event(j).times_min = dop.event(j).times_sec/60;
+                            
+                            dop.event(j).separation_secs = diff(dop.event(j).samples*(1/dop.tmp.sample_rate));
+                            dop.event(j).separation_secs_mean = mean(dop.event(j).separation_secs);
+                            dop.event(j).separation_secs_median = median(dop.event(j).separation_secs);
+                            dop.use.event_sep(j) = dop.event(j).separation_secs_mean; % update for auto use in dopSetGetInputs
+                            dop.event(j).separation_secs_stdev = std(dop.event(j).separation_secs);
+                            dop.event(j).separation_secs_min = min(dop.event(j).separation_secs);
+                            dop.event(j).separation_secs_max = max(dop.event(j).separation_secs);
+                            dop.event(j).separation_secs_iqr = dopIQR(dop.event(j).separation_secs);
+                            
+                            
+%                             if license('test', 'statistics_toolbox')
+%                                 dop.event(j).separation_secs_iqr = iqr(dop.event(j).separation_secs);
+%                             end
+                            %         dop.event(j).use_samples = dop.event.samples;
+                            %         dop.event.downsamples = ones(dop.event.n,1)*-1; % make it negative when it's not available
+                            %         if exist('downsample_rate','var') && ~isempty(downsample_rate) && ~isfield(dop.event,'downsamples')
+                            %             dop.event.downsamples = round(dop.event.samples/...
+                            %                 (sample_rate/downsample_rate));
+                            %             dop.event.use_samples = dop.event.downsamples;
+                            %         elseif ~isfield(dop.event,'downsamples')
+                            %             fprintf('\t''dop.event.downsamples'' variable already exists, no correction required\n');
+                            %             dop.event.downsamples = dop.event.sample;
+                            %         end
+                            
+                            for i = 1 : dop.event(j).n
+                                msg{end+1} = sprintf(['\t- %u:\t mins = %3.2f, secs = %3.2f, msecs = %.0f, ',...
+                                    '[sample = %u]'],...
+                                    i,dop.event(j).times_min(i),dop.event(j).times_sec(i),...
+                                    dop.event(j).times_ms(i),dop.event(j).samples(i));
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                %             fprintf(['\t- %u:\t min = %3.1f, sec = %3.1f, ms = %.0f, ',...
+                                %                 '[sample = %u, down samples = %i]\n'],...
+                                %                 i,dop.event(j).times_min(i),dop.event(j).times_sec(i),...
+                                %                 dop.event(j).times_ms(i),dop.event(j).samples(i),...
+                                %                 dop.event(j).downsamples(i));
                             end
-                            dop.event(j).outliers = or(dop.event(j).separation_secs < dop.event(j).outliers_range(1),...
-                                dop.event(j).separation_secs > dop.event(j).outliers_range(2));
-                            dop.event(j).outliers_short = dop.event(j).separation_secs < dop.event(j).outliers_range(1);
-                            dop.event(j).outliers_long = dop.event(j).separation_secs > dop.event(j).outliers_range(2);
                             
-                            % these refer to the difference between events, so
-                            % the affected events are the 'next' event based on
-                            % the difference calcualtion:
-                            % diff([3 5 6]) = [2 1];
-                            % thefore, assume that the first event is okay
-                            % and sum them while we're at it
-                            
-                            % do it in a loop because it's a little repetitive
-                            dop.tmp.outlier_labels = {'','_short','_long'};
-                            for i = 1 : numel(dop.tmp.outlier_labels)
-                                % add a 0 at the start of an array, assuming
-                                % that is a column/vertical vector
-                                dop.event(j).(['outliers',dop.tmp.outlier_labels{i}]) = ...
-                                    logical([0;dop.event(j).(['outliers',dop.tmp.outlier_labels{i}])]);
+                            %% check the separation
+                            if ~isempty(dop.tmp.event_sep)
+                                switch dop.tmp.outlier_type
+                                    case 'iqr' % interquartile range
+                                        % assume normalish distribution and base
+                                        % this cut-offs on 1.5*IQR beyond the
+                                        % 25th & 75th percentiles
+                                        dop.event(j).outliers_range = ...
+                                            dop.event(j).separation_secs_median+ ...
+                                            [-1 1]*dop.event(j).separation_secs_iqr*(1+dop.tmp.outlier_value);
+                                    case 'sd' % standard deviation
+                                        dop.event(j).outliers_range = ...
+                                            dop.event(j).separation_secs_mean+ ...
+                                            [-1 1]*dop.event(j).separation_secs_stdev*dop.tmp.outlier_value;
+                                end
+                                dop.event(j).outliers = or(dop.event(j).separation_secs < dop.event(j).outliers_range(1),...
+                                    dop.event(j).separation_secs > dop.event(j).outliers_range(2));
+                                dop.event(j).outliers_short = dop.event(j).separation_secs < dop.event(j).outliers_range(1);
+                                dop.event(j).outliers_long = dop.event(j).separation_secs > dop.event(j).outliers_range(2);
                                 
-                                % sum the values to get the n affected
-                                dop.event(j).(['outliers',dop.tmp.outlier_labels{i},'_n']) = ...
-                                    sum(dop.event(j).(['outliers',dop.tmp.outlier_labels{i}]));
+                                % these refer to the difference between events, so
+                                % the affected events are the 'next' event based on
+                                % the difference calcualtion:
+                                % diff([3 5 6]) = [2 1];
+                                % thefore, assume that the first event is okay
+                                % and sum them while we're at it
+                                
+                                % do it in a loop because it's a little repetitive
+                                dop.tmp.outlier_labels = {'','_short','_long'};
+                                for i = 1 : numel(dop.tmp.outlier_labels)
+                                    % add a 0 at the start of an array, assuming
+                                    % that is a column/vertical vector
+                                    dop.event(j).(['outliers',dop.tmp.outlier_labels{i}]) = ...
+                                        logical([0;dop.event(j).(['outliers',dop.tmp.outlier_labels{i}])]);
+                                    
+                                    % sum the values to get the n affected
+                                    dop.event(j).(['outliers',dop.tmp.outlier_labels{i},'_n']) = ...
+                                        sum(dop.event(j).(['outliers',dop.tmp.outlier_labels{i}]));
+                                end
+                                
+                                
+                                %                         dop.event(j).outliers_n = sum(dop.event(j).outliers);
+                                %                         dop.event(j).outliers_short_n = sum(dop.event(j).outliers_short);
+                                %                         dop.event(j).outliers_long_n = sum(dop.event(j).outliers_long);
+                                
+                                msg{end+1} = sprintf(['%i events marked as potential ouliers based upon ',...
+                                    'a temporal separation outside the range of ',...
+                                    dopVarType(dop.event(j).outliers_range(1)),' to ',...
+                                    dopVarType(dop.event(j).outliers_range(2)),' seconds, ',...
+                                    dopVarType(dop.tmp.outlier_value),' based on %s. '...
+                                    'Affected events: ',dopVarType(find(dop.event(j).outliers))],...
+                                    dop.event(j).outliers_n,...
+                                    dop.event(j).outliers_range,dop.tmp.outlier_value,...
+                                    dop.tmp.outlier_type,find(dop.event(j).outliers));
+                                %                         okay = 0; % to alert
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                %                         okay = 1; % not dire...
+                                % could/should screen these - perhaps there needs
+                                % to be a dopEpochScreenEventSep function for
+                                % this...
+                                %                         dop.event.
+                                
+                                % quick look at the distribution
+                                % figure;
+                                % subplot(1,2,1);
+                                % hist(dop.event.separation_secs);
+                                % subplot(1,2,2);
+                                % boxplot(dop.event.separation_secs);
+                            else
+                                msg{end+1} = sprintf(['''event_sep'' (event separation) '...
+                                    'variable/input is empty. So can''t check for the '...
+                                    'possibility of outliers.']);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                             end
                             
-                            
-                            %                         dop.event(j).outliers_n = sum(dop.event(j).outliers);
-                            %                         dop.event(j).outliers_short_n = sum(dop.event(j).outliers_short);
-                            %                         dop.event(j).outliers_long_n = sum(dop.event(j).outliers_long);
-                            
-                            msg{end+1} = sprintf(['%i events marked as potential ouliers based upon ',...
-                                'a temporal separation outside the range of ',...
-                                dopVarType(dop.event(j).outliers_range(1)),' to ',...
-                                dopVarType(dop.event(j).outliers_range(2)),' seconds, ',...
-                                dopVarType(dop.tmp.outlier_value),' based on %s. '...
-                                'Affected events: ',dopVarType(find(dop.event(j).outliers))],...
-                                dop.event(j).outliers_n,...
-                                dop.event(j).outliers_range,dop.tmp.outlier_value,...
-                                dop.tmp.outlier_type,find(dop.event(j).outliers));
-                            %                         okay = 0; % to alert
-                            dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
-                            %                         okay = 1; % not dire...
-                            % could/should screen these - perhaps there needs
-                            % to be a dopEpochScreenEventSep function for
-                            % this...
-                            %                         dop.event.
-                            
-                            % quick look at the distribution
-                            % figure;
-                            % subplot(1,2,1);
-                            % hist(dop.event.separation_secs);
-                            % subplot(1,2,2);
-                            % boxplot(dop.event.separation_secs);
+                            %% Remove short epochs
+                            % 2021-Jan-11
+                            if ~dop.tmp.removed_short && dop.tmp.remove_short
+                                dop.tmp.data = dop.event(j).data; % I think this needs to be updated too
+                                dop.tmp.samples = dop.event(j).samples; % keep a copy
+                                jj = 0;
+                                while 1
+                                    jj = jj + 1; % counter
+                                    dop.tmp.sample_secs = dop.tmp.samples*(1/dop.tmp.sample_rate);
+                                    dop.tmp.sep_secs = diff(dop.tmp.sample_secs);
+                                    dop.tmp.sep_small = dop.tmp.sep_secs < dop.tmp.event_sep;
+                                    if sum(dop.tmp.sep_small) % any too small
+                                        % find the first one
+                                        dop.tmp.sep_small_first = find(dop.tmp.sep_small,1,'first');
+                                        
+                                        msg{end+1} = sprintf(['Time between events %i and %i (%2.2f secs) ',...
+                                            'is less than requested event separation (%2.2f secs), ',...
+                                            'removing event.'],dop.tmp.sep_small_first, dop.tmp.sep_small_first+1, ...
+                                            dop.tmp.sep_secs(dop.tmp.sep_small_first), dop.tmp.event_sep);
+                                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                        
+                                        % update the data/remove the event
+                                        dop.tmp.event_samples = dop.tmp.samples(dop.tmp.sep_small_first + 1): dop.tmp.samples(dop.tmp.sep_small_first + 1) + 10; % wider than we need but just to be sure
+                                        dop.tmp.data(dop.tmp.event_samples) = 0;
+                                        dop.tmp.samples(dop.tmp.sep_small_first + 1) = []; % remove it
+                                    else
+                                        break
+                                    end
+                                end
+                                % update the data a redo the loop
+                                dop.event(j).data = dop.tmp.data;
+                                dop.event(j).samples = dop.tmp.samples;
+                                dop.event(j).n = numel(dop.event(j).samples);
+                                dop.tmp.removed_short = 1;
+                                
+                                msg{end+1} = sprintf(['%i events removed being ',...
+                                    'less than requested event separation (%2.2f secs).'],...
+                                    jj-1, dop.tmp.event_sep);
+                                dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                                
+                            elseif dop.tmp.remove_short
+                                fprintf('Short already removed.\n');
+                                % should draw in the separation variable and warn if
+                                % there is potentially overlap
+                                [dop,~,msg] = dopPeriodChecks(dop,okay,msg);
+                                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                                break
+                            else
+                                % should draw in the separation variable and warn if
+                                % there is potentially overlap
+                                [dop,~,msg] = dopPeriodChecks(dop,okay,msg);
+                                [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
+                                if ~dop.tmp.remove_short
+                                    break
+                                end
+                            end
                         else
-                            msg{end+1} = sprintf(['''event_sep'' (event separation) '...
-                                'variable/input is empty. So can''t check for the '...
-                                'possibility of outliers.']);
+                            msg{end+1} = ['''dop.tmp.sample_rate'' variable not ',...
+                                'specified. Sample times in seconds haven''t been calculated'];
                             dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
                         end
-                        % should draw in the separation variable and warn if
-                        % there is potentially overlap
-                        [dop,~,msg] = dopPeriodChecks(dop,okay,msg);
-                        [dop,okay,msg] = dopMultiFuncTmpCheck(dop,okay,msg);
-                        
-                    else
-                        msg{end+1} = ['''dop.tmp.sample_rate'' variable not',...
-                            'specified. Sample times in seconds haven''t been calculated'];
-                        dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        %                         %% Remove short epochs
+                        %                         % 2021-Jan-11
+                        %                         if ~dop.tmp.removed_short && dop.tmp.remove_short
+                        %                             dop.tmp.samples = dop.event(j).samples; % keep a copy
+                        %                             jj = 0;
+                        %                             while 1
+                        %                                 jj = jj + 1; % counter
+                        %                                 dop.tmp.sample_secs = dop.tmp.samples*(1/dop.tmp.sample_rate);
+                        %                                 dop.tmp.sep_secs = diff(dop.tmp.sample_secs);
+                        %                                 dop.tmp.sep_small = dop.tmp.sep_secs < dop.tmp.event_sep;
+                        %                                 if sum(dop.tmp.sep_small) % any too small
+                        %                                     % find the first one
+                        %                                     dop.tmp.sep_small_first = find(dop.tmp.sep_small,1,'first');
+                        %
+                        %                                     msg{end+1} = sprintf(['Time between events %i and %i (%2.2f) ',...
+                        %                                         'is less than requested event separation (%2.2f), ',...
+                        %                                         'removing event.'],dop.tmp.sep_small_first, dop.tmp.sep_small_first+1, ...
+                        %                                         dop.tmp.sep_secs(dop.tmp.sep_small_first), dop.tmp.event_sep);
+                        %                                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        %                                     dop.tmp.samples(dop.tmp.sep_small_first + 1) = []; % remove it
+                        %                                 else
+                        %                                     break
+                        %                                 end
+                        %                             end
+                        %                             % update the data a redo the loop
+                        %                             dop.event(j).samples = dop.tmp.samples;
+                        %                             dop.event(j).n = numel(dop.event(j).samples);
+                        %                             dop.tmp.removed_short = 1;
+                        %
+                        %                             msg{end+1} = sprintf(['%jj events removed being ',...
+                        %                                         'less than requested event separation (%2.2f).'],...
+                        %                                         jj, dop.tmp.event_sep);
+                        %                                     dopMessage(msg,dop.tmp.msg,1,okay,dop.tmp.wait_warn);
+                        %
+                        %                         else
+                        %                             fprintf('Short already removed.\n');
+                        %                             break % break the while loop
+                        %                         end
                     end
                 end
             end

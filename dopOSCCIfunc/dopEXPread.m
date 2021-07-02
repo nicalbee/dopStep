@@ -63,8 +63,15 @@ try
     %% header info:
     % fprintf('\n%s\n','Header Info:');
     for i = 1 : numHeaderLines
-        if isempty(columnLabels) && sum(strfind(inData.textdata{i},':'))
-            [tmpLabel tmpData] = strtok(inData.textdata{i},':');
+        if isempty(columnLabels)
+            if isfield(inData,'textdata')
+                tmpRow = inData.textdata{i};
+            else
+                tmpRow = inData{i};
+            end
+        end
+        if isempty(columnLabels) && sum(strfind(tmpRow,':'))
+            [tmpLabel,tmpData] = strtok(tmpRow,':');
             if length(strfind(tmpData,':'))>1 % if more colons after first colon:
                 tmpData=tmpData(2:end);
                 %             fprintf('\t%s\t%s\n',[tmpLabel,':'],tmpData);
@@ -82,41 +89,62 @@ try
             headers.(lower(tmpLabel)) = tmpData;
         else
             if isempty(columnLabels) % first time here, therefore row of header labels
-                columnLabelsCell=textscan(inData.textdata{i},'%s\t','delimiter','\t');
+                if isfield(inData,'textdata')
+                    columnLabelsCell=textscan(inData.textdata{i},'%s\t','delimiter','\t');
+                else
+                    columnLabelsCell=textscan(inData{i},'%s\t','delimiter','\t');
+                end
                 columnLabels=cellstr(columnLabelsCell{1});
                 %             columnLabels{end+1}='Event'; % doesn't include this one for some reason
                 %             fprintf('\n\t%s\n','Data Column Labels:');
-                for j=1:length(columnLabels)
-                    %                 fprintf('\t\t%s\n',columnLabels{j});
-                end
+                %for j=1:length(columnLabels)
+                %                 fprintf('\t\t%s\n',columnLabels{j});
+                %end
                 headers.columnLabels=columnLabels;
             else
                 %                 columnMeasures=textscan(inData.textdata{i},'%s\t','delimiter','\t');
                 % headers.columnMeasures=cellstr(columnMeasures{1});
-                
-                headers.columnMeasures = inData.textdata(i,:);
+                if isfield(inData,'textdata')
+                    headers.columnMeasures = inData.textdata(i,:);
+                else
+                    headers.columnMeasures = inData(i,:);
+                end
                 
             end
+            if isfield(headers,'columnLabels')
+                headers.dataLabels=headers.columnLabels(2:end);%{'left','right','event'};
+            end
+            if isfield(headers,'rate')
+                headers.sample_rate=headers.rate;
+            end
+            if isfield(headers,'columnMeasures')
+            headers.list=fieldnames(headers);
+            % Octave read doesn't know how many header lines there are...
+            break
+            end
         end
-        if isfield(headers,'columnLabels')
-            headers.dataLabels=headers.columnLabels(2:end);%{'left','right','event'};
-        end
-        if isfield(headers,'rate')
-            headers.sample_rate=headers.rate;
-        end
-        headers.list=fieldnames(headers);
     end
     
     % set outputs
     if isfield(inData,'data')
         varargout{1} = inData.data;
+        
+            if isfield(inData,'textdata')
+        varargout{3} = inData.textdata(numHeaderLines+1 : end);
+    end
+    
+    else
+        fid = fopen(fileNameLoc);
+        in_mat = textscan(fid,'%s%u%u%u%u%f%u%f%u','HeaderLines',i,'delimiter','\t');
+        fclose(fid);
+
+      varargout{1} = cell2mat(in_mat(2:end));
+      varargout{3} = in_mat{1};
     end
     
     varargout{2} = headers;
     
-    if isfield(inData,'textdata')
-        varargout{3} = inData.textdata(numHeaderLines+1 : end);
-    end
+
     
 catch err
     %% catch dopOSCCI error

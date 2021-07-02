@@ -41,6 +41,7 @@ function varargout = dopOSCCIversion%(output)
 % 3.6.3 2019-10-25  making sure the 'epochm' option works in dopCalcAuto
 % 3.6.4 2020-06-16  found that messages weren't passing through a couple of
 %   the functions. Fixed now.
+% 3.6.5 2021-07-03 dopIQR added + 'remove_short' in dopEventMarkers
 
 %
 % -------------------------------------------------------------------------
@@ -76,8 +77,8 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.6.4';
-    dop_date = 'Tuesday 16 June 2020';
+    dop_version = '3.6.5';
+    dop_date = 'Saturday 03 July 2021';
 %     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...

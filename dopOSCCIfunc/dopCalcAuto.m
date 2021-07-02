@@ -73,7 +73,7 @@ try
             'poi_fullfile',[], ... %
             'poi_dir',[],...
             'poi_file',[],...
-            'act_window',[], ... %
+            'act_window',2, ... %
             'sample_rate',[], ...
             'peak','max',... % 'min'
             'value','abs',... 'raw' what to do with the data - take absolute or not
@@ -86,7 +86,7 @@ try
         inputs.defaults.periods = {'poi'};
         inputs.defaults.epochs = {'screen'}; % 'screen','odd','even','all','act','sep'
         inputs.required = ...
-            {'poi','baseline','act_window','sample_rate'};
+            {'poi','baseline','sample_rate'};
         [dop,okay,msg] = dopSetGetInputs(dop_input,inputs,msg);
         %% data check
         if okay

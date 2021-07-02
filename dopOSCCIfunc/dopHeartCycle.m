@@ -37,6 +37,7 @@ function [dop,okay,msg] = dopHeartCycle(dop_input,varargin)
 % 13-Jul-2018 NAB added dropout check alternate channel
 % 16-Jul-2018 NAB fixed the channel allocation thing - hadn't used it all
 %  the way through the different calculations...
+% 08-Jan-2021 NAB a couple of over-the-line ... missing
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -169,11 +170,13 @@ try
             
             for i = 1 + dop.tmp.range : size(dop.tmp.data,1)-1-dop.tmp.range
                 if isempty(dop.tmp.systolic)
-                    if and(dop.tmp.use_data(i,dop.tmp.check_ch) >= dop.tmp.use_data(i-dop.tmp.range:i-1,dop.tmp.check_ch),dop.tmp.use_data(i,dop.tmp.check_ch) >= dop.tmp.use_data(i+1:i+dop.tmp.range,dop.tmp.check_ch))
+                    if and(dop.tmp.use_data(i,dop.tmp.check_ch) >= dop.tmp.use_data(i-dop.tmp.range:i-1,dop.tmp.check_ch), ...
+                        dop.tmp.use_data(i,dop.tmp.check_ch) >= dop.tmp.use_data(i+1:i+dop.tmp.range,dop.tmp.check_ch))
                         dop.tmp.systolic(end+1) = i; %dop.tmp.systolic holds times of dop.tmp.systolic
                     end
                 else
-                    if and(and(dop.tmp.use_data(i,dop.tmp.check_ch) >= dop.tmp.use_data(i-dop.tmp.range:i-1,dop.tmp.check_ch),dop.tmp.use_data(i,dop.tmp.check_ch)>=dop.tmp.use_data(i+1:i+dop.tmp.range,dop.tmp.check_ch)),...
+                    if and(and(dop.tmp.use_data(i,dop.tmp.check_ch) >= dop.tmp.use_data(i-dop.tmp.range:i-1,dop.tmp.check_ch), ...
+                        dop.tmp.use_data(i,dop.tmp.check_ch)>=dop.tmp.use_data(i+1:i+dop.tmp.range,dop.tmp.check_ch)),...
                             (i-max(dop.tmp.systolic)) > dop.tmp.range) %find a peak
                         dop.tmp.systolic(end+1) = i; %dop.tmp.systolic holds times of dop.tmp.systolic
                     end

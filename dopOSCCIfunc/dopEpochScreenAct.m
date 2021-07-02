@@ -30,6 +30,8 @@ function [dop,okay,msg] = dopEpochScreenAct(dop_input,varargin)
 % 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 % 13-Jul-2018 NAB just updated how to save variables message
+% 2021-Jun-22 NAB default iqr function deal with timeseries data now... so
+%   wrote one for dopOSCCI dopIQR...
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -216,8 +218,14 @@ try
                 % really should be separated by left and right, rather than
                 % mean
                 for i = 1 : numel(dop.epoch.act_descriptives)
-                    dop.epoch.(['act_',dop.epoch.act_descriptives{i},'_ep'])(j) = ...
-                        eval(sprintf('mean(%s(dop.tmp.filt_data(:,1:2)))',dop.epoch.act_descriptives{i}));
+                    switch dop.epoch.act_descriptives{i}
+                        case 'iqr'
+                            dop.epoch.(['act_',dop.epoch.act_descriptives{i},'_ep'])(j) = ...
+                                mean(dopIQR(dop.tmp.filt_data(:,1:2)));
+                        otherwise
+                            dop.epoch.(['act_',dop.epoch.act_descriptives{i},'_ep'])(j) = ...
+                                eval(sprintf('mean(%s(dop.tmp.filt_data(:,1:2)))',dop.epoch.act_descriptives{i}));
+                    end
                 end
                 %                 dop.epoch.act_mean_ep(j) = mean(mean(dop.tmp.filt_data(:,1:2)));
                 %                 dop.epoch.act_sd_ep(j) = mean(std(dop.tmp.filt_data(:,1:2)));

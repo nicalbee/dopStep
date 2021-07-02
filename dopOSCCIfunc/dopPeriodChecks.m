@@ -158,7 +158,7 @@ try
             dop.length.event_sep = numel(dop.event);
             % not calculating the other as yet.
         end
-        dop.length.fields = fields(dop.length);
+        dop.length.fields = fieldnames(dop.length);
         if okay
             for i = 1 : numel(dop.length.fields)
                 if isfield(dop.tmp,dop.length.fields{i})

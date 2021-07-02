@@ -144,8 +144,14 @@ try
                         case 'descriptives'
                             % descriptive calculations
                             for i = 1 : numel(dop.epoch.act_sep_descriptives)
-                                dop.epoch.(['act_sep_',dop.epoch.act_sep_descriptives{i},'_ep'])(j) = ...
-                                    eval(sprintf('%s(abs(dop.tmp.diff))',dop.epoch.act_sep_descriptives{i}));
+                                switch dop.epoch.act_sep_descriptives{i}
+                                    case 'iqr'
+                                        dop.epoch.(['act_sep_',dop.epoch.act_sep_descriptives{i},'_ep'])(j) = ...
+                                            dopIQR(abs(dop.tmp.diff));
+                                    otherwise
+                                        dop.epoch.(['act_sep_',dop.epoch.act_sep_descriptives{i},'_ep'])(j) = ...
+                                            eval(sprintf('%s(abs(dop.tmp.diff))',dop.epoch.act_sep_descriptives{i}));
+                                end
                             end
                             if j == dop.tmp.n_epochs
                                 % not sure about this being summarised as means

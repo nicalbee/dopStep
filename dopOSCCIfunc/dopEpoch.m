@@ -6,7 +6,7 @@ function [dop,okay,msg] = dopEpoch(dop_input,varargin)
 % notes:
 % Segment the continuous data into multiple divisions based upon epoch
 % values surrounding event markers. The 'dop.data.epoch' out matrix is a
-% 3-dimentional matrix with samples/time x number of epochs x data type. Data
+% 3-dimensional matrix with samples/time x number of epochs x data type. Data
 % type relates to left and right activation, the left minus right
 % difference, and the average of the left and right channels.
 %

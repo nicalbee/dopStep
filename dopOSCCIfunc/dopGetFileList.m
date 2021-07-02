@@ -196,11 +196,15 @@ try
                             % these tend to have a number after the
                             % extension - quite annoying really!
                             dop.file_list = dir(fullfile(dop.tmp.dir,sprintf('*%s*',dop.tmp.type)));
-                        otherwise
+                      otherwise
                             dop.file_list = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.type)));
                     end
                 else
-                    dop.tmp.types = upper(dopFileTypes);
+                    if exist('OCTAVE_VERSION', 'builtin') ~= 0 % isOctave = 
+                      dop.tmp.types = dopFileTypes;
+                    else
+                      dop.tmp.types = upper(dopFileTypes);
+                    end
                     % stupid case sensitivity....
                     dop.tmp.types = unique(dop.tmp.types);
                     dop.file_lists = cell(1,numel(dop.tmp.types));
@@ -232,7 +236,11 @@ try
                             otherwise
                                 dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.types{i})));
                                 if isempty(dop.file_lists{i})
-                                    dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',upper(dop.tmp.types{i}))));
+                                  if exist('OCTAVE_VERSION', 'builtin') ~= 0 % isOctave = 
+                                    dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',dop.tmp.types{i})));
+                                    else
+                                     dop.file_lists{i} = dir(fullfile(dop.tmp.dir,sprintf('*%s',upper(dop.tmp.types{i}))));
+                                    end
                                 end
                         end
                         if ~isempty(dop.file_lists{i})
