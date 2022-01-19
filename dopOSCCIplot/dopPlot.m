@@ -470,15 +470,21 @@ try
                             end
                                 
                             for i = 1 : size(dop.tmp.plot_data,length(size(dop.tmp.plot_data)))  % numel(dop.data.epoch_labels) %
-                                if i == 1 && ishold(dop.fig.h); hold; end
+                                if i == 1 && ~ishold; hold; end %if i == 1 && ishold(dop.fig.h); hold; end
+                                % 2021-10-12 NAB maybe above ishold is no
+                                % longer specific enough
+%                                 if i == 1 && ~ishold(gca); hold(gca); fprintf('Holding... axes\n'); end
                                 dop.tmp.name = dop.data.epoch_labels{i};
                                 dop.tmp.(dop.tmp.name).h = plot(dop.epoch.times,...
                                     mean(squeeze(dop.tmp.plot_data(:,i)),2),...
                                     'color',dopPlotColours(lower(dop.tmp.name)),...
                                     'DisplayName',dop.tmp.name,'linewidth',2,...
-                                    'Visible','off','Tag',dop.tmp.name);
-                                if sum(strcmpi(dop.tmp.ep_vis,dop.tmp.name))
-                                    set(dop.tmp.(dop.tmp.name).h,'Visible','on');
+                                    'Visible','on','Tag',dop.tmp.name);
+                                % set this to turn off rather than on: NAB
+                                % 2021-10-12
+                                if ~sum(strcmpi(dop.tmp.ep_vis,dop.tmp.name))
+                                    fprintf('%s: off\n',dop.tmp.name)
+                                    set(dop.tmp.(dop.tmp.name).h,'Visible','off');
                                 end
                                 dop.tmp.data_handles(i) = dop.tmp.(dop.tmp.name).h;
                             end
@@ -547,7 +553,9 @@ try
                             dopPlotLegend(dop.fig.h);
                             % change which elements are 'on top'
                             uistack(dop.tmp.data_handles,'top');
-                            
+%                             2021-10-12 NAB used to work...
+%                             uistack(dop.fig.h,'top'); was somehow
+%                             deleting the lines due to a hold issue...
                             % zero lines
                             dop.tmp.zero.yh = plot(dop.epoch.times,...
                                 zeros(size(dop.epoch.times)),...

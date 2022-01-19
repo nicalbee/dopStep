@@ -57,7 +57,7 @@ function [dop_output,okay,msg,dop] = dopCalcSummary(dop_input,varargin)
 %   data. Was only doing this for abs...
 % 2019-04-24 NAB added 'epochm' summary = peak values for each epoch based
 %   upon the timing of the overall peak
-
+% 2022-Jan-19 added the jackknife SD output for period and peak
 
 % start with dummy values in case there are problems
 tmp_default = 999;
@@ -68,6 +68,7 @@ dop_output = struct(...
     'peak_mean',tmp_default,...
     'peak_sd',tmp_default,... 'peak_sd_note', 'This is the standard deviation of the means of the data',...
     'peak_sd_of_mean',tmp_default,...'peak_mean_sd',tmp_default,...
+    'peak_jk_sd_of_mean',tmp_default,...
     'peak_sd_of_sd',tmp_default,...
     'period_samples',tmp_default,...
     'period_epochs',tmp_default,...
@@ -75,6 +76,7 @@ dop_output = struct(...
     'period_sd',tmp_default,... 'period_mean_sd',tmp_default,...
     'period_sd_of_mean',tmp_default,...
     'period_sd_of_sd',tmp_default,...
+    'period_jk_sd_of_mean',tmp_default,...
     'period_mean_sd_note','Equal to standard deviation for epoch by epoch summary',...
     'period_sd_of_sd_note','Equal to standard deviation for epoch by epoch summary',...
     'period_n',tmp_default,...
@@ -212,6 +214,15 @@ try
             dop_output.period_sd_of_mean = dop_output.period_sd; %mean(std(dop_output.data,1,2));
             dop_output.period_sd_of_sd = dop_output.period_sd; %mean(std(dop_output.data,1,2));
             
+            % Jackknife the SD: 2022-01-19
+            % could be useful to have tighter confidence intervals
+            dop.tmp.JKmeans = [];
+            for i = 1 : numel(dop_output.period_mean) % should be each epoch
+                dop.tmp.JKdata = dop_output.period_mean;
+                dop.tmp.JKdata(i) = [];
+                dop.tmp.JKmeans(end+1) = mean(dop.tmp.JKdata);
+            end
+            dop_output.period_jk_sd_of_mean = std(dop.tmp.JKmeans);
             
             if ismember(dop.tmp.summary,{'overall'})
                 % across all epochs (i.e., the average of all epochs)
@@ -367,6 +378,16 @@ end
                 dop_output.t_df = ones(1,dop_output.peak_epochs)*dop_output.t_df;
                 dop_output.t_sd = ones(1,dop_output.peak_epochs)*dop_output.t_sd;
             end
+            
+            % Jacknife the SD: 2022-01-19
+            % could be useful to have tighter confidence intervals
+            dop.tmp.peakJKmeans = [];
+            for i = 1 : numel(dop_output.period_mean) % should be each epoch
+                dop.tmp.JKdata = dop_output.peak_mean;
+                dop.tmp.JKdata(i) = [];
+                dop.tmp.peakJKmeans(end+1) = mean(dop.tmp.JKdata);
+            end
+            dop_output.peak_jk_sd_of_mean = std(dop.tmp.peakJKmeans);
             
             if exist('ttest','file') && dop.tmp.ttest
                 

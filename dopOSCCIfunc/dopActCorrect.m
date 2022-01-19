@@ -17,7 +17,7 @@ function [dop,okay,msg] = dopActCorrect(dop_input,varargin)
 % is 5) percent of the data.
 %
 % 'correct_replace' variable:
-% The default method, 'linspace' corrects the extreme samples by creating a
+% Thade default method, 'linspace' corrects the extreme samples by creating a
 % linear sequence of values from samples either side of the extreme value.
 % By default the samples either 'side' of the extreme value are 1.5 seconds
 % before and after the extreme point ('correct_linspace_seconds' variable). I have
