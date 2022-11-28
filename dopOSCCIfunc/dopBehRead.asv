@@ -250,18 +250,15 @@ try
                 dop.epoch.beh_select = dop.tmp.beh_data;
                 dop.epoch.beh_names = dop.epoch.beh_select.Properties.VariableNames;
                 if dop.tmp.update_save
-                    % 28-Nov-2022 fixed
                     dop.save.epochs(end+1:end+size(dop.epoch.beh_select,2)) = dop.epoch.beh_select.Properties.VariableNames;
-                    % 28-Nov-2022 added
                     if ismember('even',dop.save.epochs)
                         % useful to have these for each of the behavioural
                         % conditions as well
                         dop.tmp.even = cell(1,size(dop.epoch.beh_select,2));
                         dop.tmp.odd = dop.tmp.even;
-                        dop.tmp.even(:) = {'even'};
-                        dop.tmp.odd(:) = {'odd'};
-                        dop.save.epochs(end+1:end+size(dop.epoch.beh_select,2)) = append(dop.epoch.beh_select.Properties.VariableNames, dop.tmp.odd);
-                        dop.save.epochs(end+1:end+size(dop.epoch.beh_select,2)) = append(dop.epoch.beh_select.Properties.VariableNames, dop.tmp.even);
+                        dop.tmp.even(:) = {'even'}
+                        dop.tmp.odd(:) = {'odd'}
+                        dop.save.epochs(end+1:end+size(dop.epoch.beh_select,2)) = append(dop.epoch.beh_select.Properties.VariableNames, );
                     end
                     msg{end+1} = sprintf(['dop.save.epochs ',...
                         'variable update for behavioural epoch ',...

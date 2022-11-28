@@ -32,6 +32,8 @@ function [dop,okay,msg] = dopEpochScreenAct(dop_input,varargin)
 % 13-Jul-2018 NAB just updated how to save variables message
 % 2021-Jun-22 NAB default iqr function deal with timeseries data now... so
 %   wrote one for dopOSCCI dopIQR...
+% 2022-Feb-02 NAB added 'omitnan' to the mean calculation - can mess
+%   things up
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -168,10 +170,10 @@ try
             
             dop.epoch.act = ones(1,dop.tmp.n_epochs);
             
-            % some descriptives
+            % some descriptives - empty values
             dop.epoch.act_descriptives = {'mean','std','median','iqr','min','max'};
             for i = 1 : numel(dop.epoch.act_descriptives)
-                dop.epoch.(['act_',dop.epoch.act_descriptives{i},'_ep']) = dop.epoch.act;
+                        dop.epoch.(['act_',dop.epoch.act_descriptives{i},'_ep']) = dop.epoch.act;
             end
             %             dop.epoch.act_sd_ep = dop.epoch.act;
             %             dop.epoch.act_median_ep = dop.epoch.act;
@@ -279,8 +281,13 @@ try
             % not sure about this being summarised as means
             
             for i = 1 : numel(dop.epoch.act_descriptives)
+                try
                 dop.epoch.(['act_',dop.epoch.act_descriptives{i}]) = ...
+                    eval(sprintf('mean(dop.epoch.([''act_'',''%s'',''_ep'']),''omitnan'')',dop.epoch.act_descriptives{i}));
+                catch
+                    dop.epoch.(['act_',dop.epoch.act_descriptives{i}]) = ...
                     eval(sprintf('mean(dop.epoch.([''act_'',''%s'',''_ep'']))',dop.epoch.act_descriptives{i}));
+                end
             end
             %             dop.epoch.act_mean = mean(dop.epoch.act_mean_ep);
             %             dop.epoch.act_sd = mean(dop.epoch.act_sd_ep);

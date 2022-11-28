@@ -263,6 +263,7 @@ try
                                                     dop.tmp.ep_select(and(and(dop.epoch.screen,dop.tmp.ep_select_beh), dop.tmp.ep_even)) = 1;
                                                 else
                                                     % moved down from above
+                                                    
                                                     dop.tmp.ep_select(and(dop.epoch.screen,dop.tmp.ep_select_beh)) = 1;
                                                 end
                                             else

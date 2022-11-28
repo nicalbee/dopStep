@@ -34,6 +34,10 @@ function [dop,okay,msg] = dopEpochScreenSep(dop_input,varargin)
 % 28-Sep-2016 NAB updating for multiple events... 'screen_event' variable
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 % 13-Jul-2018 NAB adding dropout/single channel skip
+% 2021-Jun-22 NAB default iqr function deal with timeseries data now... so
+%   wrote one for dopOSCCI dopIQR... (2022-02-02 adding this comment!)
+% 2022-Feb-02 NAB added 'omitnan' to the mean calculation - can mess
+%   things up
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -98,7 +102,7 @@ try
             end
             dop.epoch.sep = ones(1,dop.tmp.n_epochs)*-9999;
             
-            % some descriptives
+            % some descriptives - empty values
             dop.epoch.act_sep_descriptives = {'mean','std','median','iqr','min','max'};
             for i = 1 : numel(dop.epoch.act_sep_descriptives)
                 dop.epoch.(['act_sep_',dop.epoch.act_sep_descriptives{i},'_ep']) = dop.epoch.sep;
@@ -157,8 +161,13 @@ try
                                 % not sure about this being summarised as means
                                 
                                 for i = 1 : numel(dop.epoch.act_sep_descriptives)
+                                    try
                                     dop.epoch.(['act_sep_',dop.epoch.act_sep_descriptives{i}]) = ...
+                                        eval(sprintf('mean(dop.epoch.([''act_sep_'',''%s'',''_ep'']),''omitnan'')',dop.epoch.act_sep_descriptives{i}));
+                                    catch
+                                        dop.epoch.(['act_sep_',dop.epoch.act_sep_descriptives{i}]) = ...
                                         eval(sprintf('mean(dop.epoch.([''act_sep_'',''%s'',''_ep'']))',dop.epoch.act_sep_descriptives{i}));
+                                    end
                                 end
                             end
                         case 'exclusions'
