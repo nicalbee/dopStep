@@ -131,6 +131,7 @@ function [dop,okay,msg] = dopSaveCollect(dop_input,varargin)
 % 18-Aug-2016 NAB - fixed up check for 'collect' data in elseif
 % 15-Mar-2017 NAB updated for beh1 etc.
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
+% 14-Dec-2022 NAB setup for multiple different sized behavioural conditions
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -262,6 +263,20 @@ try
                 dop.tmp.delims{3} = 1;
                 dop.tmp.fid = fopen(dop.tmp.collect_fullfiles{ii},'w+');
                 fprintf(dop.tmp.fid,['%s',dop.tmp.delims{dop.tmp.delims{3}}],'time');
+                
+                switch ii
+                    case 1
+                        dop.tmp.save_data = dop.tmp.data;
+                        
+                        dop.tmp.data_files = dop.collect.(dop.tmp.type).files;
+                    otherwise % set up for behavioural at the moment
+                        [~,tmp_file,~] = fileparts(dop.tmp.collect_fullfiles{ii});
+                        dop.tmp.beh = tmp_file(end-3:end);
+                        dop.tmp.save_data = dop.collect.(dop.tmp.type).(dop.tmp.beh);
+                        
+                        dop.tmp.data_files = dop.collect.(dop.tmp.type).([dop.tmp.beh,'_files']);
+                end
+                
                 k = 0;
                 for i = 1 : size(dop.tmp.data,3)
                     dop.tmp.var = sprintf('var%u',i);
@@ -269,13 +284,13 @@ try
                             && size(dop.tmp.data,3) == numel(dop.data.epoch_labels)
                         dop.tmp.var = dop.data.epoch_labels{i};
                     end
-                    for j = 1 : numel(dop.collect.(dop.tmp.type).files)
+                    for j = 1 : numel(dop.tmp.data_files)
                         k = k + 1;
-                        if k == numel(dop.collect.(dop.tmp.type).files) * size(dop.tmp.data,3)
+                        if k == numel(dop.tmp.data_files) * size(dop.tmp.data,3)
                             dop.tmp.delims{3} = 2;
                         end
                         fprintf(dop.tmp.fid,['%s',dop.tmp.delims{dop.tmp.delims{3}}],...
-                            [dop.tmp.var,dop.collect.(dop.tmp.type).files{j}]);
+                            [dop.tmp.var,dop.tmp.data_files{j}]);
                     end
                 end
                 fclose(dop.tmp.fid); % close the file

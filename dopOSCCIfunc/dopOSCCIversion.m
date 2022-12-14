@@ -42,6 +42,9 @@ function varargout = dopOSCCIversion%(output)
 % 3.6.4 2020-06-16  found that messages weren't passing through a couple of
 %   the functions. Fixed now.
 % 3.6.5 2021-07-03 dopIQR added + 'remove_short' in dopEventMarkers
+% 3.6.6 2022-12-14 updated last week to give odd-even breakdown within
+%   behavioural conditions: today fixed behavioural plotting files column
+%   headers
 
 %
 % -------------------------------------------------------------------------
@@ -77,8 +80,8 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.6.5';
-    dop_date = 'Saturday 03 July 2021';
+    dop_version = '3.6.6';
+    dop_date = 'Wednesday 14 December 2022';
 %     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...
