@@ -45,6 +45,8 @@ function varargout = dopOSCCIversion%(output)
 % 3.6.6 2022-12-14 updated last week to give odd-even breakdown within
 %   behavioural conditions: today fixed behavioural plotting files column
 %   headers
+% 3.6.7 2023-03-20 issue in dopDataCollect when there was a mismatch
+%   between available and requested epochs
 
 %
 % -------------------------------------------------------------------------
@@ -80,8 +82,8 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.6.6';
-    dop_date = 'Wednesday 14 December 2022';
+    dop_version = '3.6.7';
+    dop_date = 'Monday 20 March 2023';
 %     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...

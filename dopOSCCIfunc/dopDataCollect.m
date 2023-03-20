@@ -29,6 +29,7 @@ function [dop,okay,msg] = dopDataCollect(dop_input,varargin)
 % 14-Mar-2017 added a behavioural collection loop
 % 13-Nov-2017 NAB added dop.step.(mfilename) = 1;
 % 2019-05-10 NAB fixed behavioural file search
+% 2023-03-20 NAB fixed issue with mismatched scrn vs. available epochs
 
 [dop,okay,msg,varargin] = dopSetBasicInputs(dop_input,varargin);
 msg{end+1} = sprintf('Run: %s',mfilename);
@@ -177,7 +178,20 @@ try
                                 end
                                 if sum(dop.tmp.beh_file)
                                     dop.tmp.filt.beh = zeros(size(dop.tmp.filt.scrn));
+                                    % if there are numbers in here higher
+                                    % than the total available, this causes
+                                    % a problem - creates an extra cell
                                     dop.tmp.filt.beh(eval(dop.epoch.beh_select.(dop.tmp.beh_num){dop.tmp.beh_file})) = 1;
+                                    % one way around this is to only use
+                                    % the length of the scrn
+                                    if length(dop.tmp.filt.beh) > length(dop.tmp.filt.scrn)
+                                        dop.tmp.removed = length(dop.tmp.filt.beh) - length(dop.tmp.filt.scrn);
+                                        dop.tmp.filt.beh = dop.tmp.filt.beh(1:length(dop.tmp.filt.scrn));
+                                        msg{end+1} = sprintf(['Greater epoch number',...
+                                            'specified in behavioural file than is available. ',...
+                                            'Removing excess epoch numbers (n = %i): %s'],...
+                                           dop.tmp.removed, dop.def.file);
+                                    end
                                 end
                                 if sum(dop.tmp.beh_file) && size(dop.tmp.filt.scrn,2) == size(dop.tmp.filt.beh,2)
                                     dop.tmp.filt.filt = dop.tmp.filt.scrn & dop.tmp.filt.beh;
