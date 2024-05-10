@@ -185,7 +185,7 @@ try
             end
             %% get the data
             if okay && ~isempty(dop.tmp.import_data)
-                if (exist('istable','builtin') && istable(dop.tmp.import_data)) || (exist('istable','file') && istable(dop.tmp.import_data))
+                if exist('istable','builtin') && istable(dop.tmp.import_data)
                     % remove rows and columns with in NaN or empty values -
                     % sometimes happens with conversion from excel
                     dop.tmp.import_data = dop.tmp.import_data(~ismissing(dop.tmp.import_data(:,1)),:);
@@ -235,7 +235,7 @@ try
                     %                         dop.tmp.beh_exclude{i} = checkManualString(dop.tmp.beh_exclude{i});
                     %                     end
                 else
-                    % check this later - not sure what form it will take
+                    % check this later
                     %                     dop.tmp.beh_list = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
                     %                     dop.tmp.beh_exclude = cell(size(dop.tmp.import_data,1)-1,1); % minus 1 = assume header
                     %                     for i = 2 : size(dop.tmp.import_data,1)

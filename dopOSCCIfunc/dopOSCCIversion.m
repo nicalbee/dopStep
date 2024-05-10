@@ -47,6 +47,8 @@ function varargout = dopOSCCIversion%(output)
 %   headers
 % 3.6.7 2023-03-20 issue in dopDataCollect when there was a mismatch
 %   between available and requested epochs
+% 3.6.8 2024-05-10 issue in dopBehRead: 'exist' function now has 'builtin'
+%   option for functions - not 'file' as it was previously.
 
 %
 % -------------------------------------------------------------------------
@@ -82,8 +84,8 @@ try
 %         output = 0;
 %     end
     
-    dop_version = '3.6.7';
-    dop_date = 'Monday 20 March 2023';
+    dop_version = '3.6.8';
+    dop_date = 'Friday 10 May 2024';
 %     dop_out = [dop_version,': ',dop_date];
     fprintf('MATLAB version: %s\n',version);
     fprintf('dopOSCCI version number is %s\n > last modified on %s\n\n',...
